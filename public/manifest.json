@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Easy Market Order",
+  "description": "Cryptocurrency trading extension",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "32": "vite.svg"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "unlimitedStorage"],
+  "host_permissions": [
+    "https://*.binance.com/*",
+    "https://*.upbit.com/*",
+    "https://*.bithumb.com/*",
+    "https://*.bybit.com/*",
+    "https://*.okx.com/*",
+    "https://*.huobi.com/*",
+    "https://*.kucoin.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "icons": {
+    "32": "vite.svg"
+  }
+}
