@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Easy Market Order",
+  "name": "LazyTradingChromeExtension",
   "description": "Cryptocurrency trading extension",
   "version": "1.0.0",
   "action": {
