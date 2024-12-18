@@ -1,50 +1,41 @@
-# React + TypeScript + Vite
+# 안전한 시장가 매매를 위한 크롬 확장 프로그램
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+늘 무지성 100배에 청산당하시는 그대들을 위해 바칩니다.
 
-Currently, two official plugins are available:
+## 앱의 목적
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+손익비와 익절 후 본절.. 자주 들어보신 말 아닌가요?
+머릿속에는 있지만 실제로 행동하기 어려운 리스크 관리를 자동으로 도와드립니다.
 
-## Expanding the ESLint configuration
+### 자동적인 손절 기준 저점 혹은 고점 계산
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+선택하는 시간봉에 따라 자동으로 손절의 기준이 될 수 있는 저점과 고점을 찾아드립니다.
 
-- Configure the top-level `parserOptions` property like this:
+### 원하는 리스크의 설정과 자동 레버리지 계산
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+한번에 매매에는 고정적인 리스크가 정해져야 합니다.
+한번에 매매에 감당할수 있는 자본의 크기를 퍼센트로 정할 수 있습니다.
+퍼센트로 정한 리스크의 크기에 따라 진입가와 손절가를 파악하여 자동으로 레버리지를 계산하여 매매에 들어갑니다.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+예) 리스크:1.5% 로 설정할 때 손절가가 진입 대비 0.5% 아래에 존재한다면 현제 사용 가능한 자본의 3배에 해당하는 자본 규모로 매매에 진입합니다.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+### 자동적인 1차수익 설정
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+일차수익의 손익비를 설정할 수 있습니다.
+손절가와 진입가를 기준으로 설정된 손익비에 따라 1차 수익 가격이 정해집니다.
+(자동적으로 손절가를 본절로 옮기는 기능도 넣을 예정입니다.)
+
+## 안정성에 대한 걱정
+
+크롬 확장프로그램의 경우 서버를 운영하는것보다 데이터 유출에 취약합니다.
+그렇기 때문에 본 확장 프로그램은 다음과 같은 방식을 선택했습니다.
+
+1. 해싱하는 핀 코드는 어디에도 저장되지 않는다.
+   앱을 처음 시작하면 핀번호를 설정하게 됩니다. 하지만 해당 번호는 크롬의 서비스워커를 통해 관리되며 저장소나 코드에 저장되지 않습니다. 오직 브라우져가 켜져있는 동안만 유지되며 브라우져가 꺼진 이후 다시키면 아무것도 기억하지 못합니다.
+2. 핀 코드는 api를 암호화 하는것에만 사용된다.
+   처음 앱을 세팅할때 핀 번호를 설정하고 바로 첫 api를 등록하게 됩니다.
+   이후에는 브라우져가 닫히고 열릴때마다 핀번호를 입력해야 하며 핀번호가 옳바른지 여부는 처음 등록한 api를 통해 거래소와 통신이 가능한지 여부로만 판단 합니다.
+3. 로컬스토리지에는 암호화된 api키와 시크릿 코드만 저장된다.
+   본인이 설정한 핀 코드를 통해 암호화된 코드만 저장되며 핀 코드를 아는 본인만이 암호를 복호 할 수 있습니다.
+4. 만약 핀코드를 찾지 못한다면 모든 데이터는 초기화 된다.
+   핀 코드를 잃어버리는 경우엔 등록됬던 api키에 대한 정보도 초기화 됩니다. 이후 재등록을 통해 사용할 수 있습니다.
