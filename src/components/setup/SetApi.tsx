@@ -19,38 +19,45 @@ import { Input } from "../ui/input";
 
 const SetApi = () => {
   return (
-    <Card>
+    <Card className="w-[400px]">
       <CardHeader>
-        <CardTitle>Create project</CardTitle>
+        <CardTitle>Setup Your API Key</CardTitle>
         <CardDescription>Deploy your new project in one-click.</CardDescription>
       </CardHeader>
       <CardContent>
         <form>
-          <div className="grid w-full items-center gap-4">
+          <div className="grid w-full items-center gap-2">
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" placeholder="Name of your project" />
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="framework">Framework</Label>
+              <Label htmlFor="framework">Exchanges</Label>
               <Select>
                 <SelectTrigger id="framework">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent position="popper">
-                  <SelectItem value="next">Next.js</SelectItem>
-                  <SelectItem value="sveltekit">SvelteKit</SelectItem>
-                  <SelectItem value="astro">Astro</SelectItem>
-                  <SelectItem value="nuxt">Nuxt.js</SelectItem>
+                  <SelectItem value="bybit">Bybit</SelectItem>
+                  <SelectItem value="binance">Binance</SelectItem>
+                  <SelectItem value="bitget">Bitget</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" placeholder="Name for remember" />
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="api">Api Key</Label>
+              <Input id="api" placeholder="Code of your Api" />
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="secret">Secret</Label>
+              <Input id="secret" placeholder="Secret of your Api" />
             </div>
           </div>
         </form>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline">Cancel</Button>
-        <Button>Deploy</Button>
+        <Button>Save</Button>
       </CardFooter>
     </Card>
   );
