@@ -1,11 +1,18 @@
-import { Button } from "./components/ui/button";
+import { ThemeProvider } from "@/components/theme-provider";
+// import { useEffect } from "react";
+import { Outlet } from "react-router";
+import { useMiddleware } from "./hooks/useMiddleware";
 
-function App() {
+//초기 로딩과 초기 셋업 불러오기
+//로딩 스크린 넣기
+
+const App = () => {
+  useMiddleware();
+
   return (
-    <>
-      <Button>click</Button>
-    </>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <Outlet />
+    </ThemeProvider>
   );
-}
-
+};
 export default App;
