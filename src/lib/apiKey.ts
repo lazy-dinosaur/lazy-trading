@@ -1,3 +1,8 @@
+export type EncryptedData = {
+  encrypted: number[];
+  iv: number[];
+  salt: number[];
+};
 // 제안: 더 안전한 암호화 방식 사용
 export const encryptApiKey = async (apiKey: string, pin: string) => {
   // PIN으로부터 암호화 키 생성
@@ -39,47 +44,6 @@ export const encryptApiKey = async (apiKey: string, pin: string) => {
     iv: Array.from(iv),
     salt: Array.from(salt),
   };
-};
-
-export const saveEncryptedKey = async (
-  accountId: string,
-  encryptedApiKey: ReturnType<typeof encryptApiKey>,
-  encryptedSecretKey: ReturnType<typeof encryptApiKey>,
-) => {
-  try {
-    await chrome.storage.local.set({
-      [`encrypted_${accountId}`]: {
-        apiKey: encryptedApiKey,
-        secretKey: encryptedSecretKey,
-      },
-    });
-    return true;
-  } catch (error) {
-    console.error("Failed to save encrypted keys:", error);
-    return false;
-  }
-};
-
-// 암호화된 키를 크롬 스토리지에서 불러오기
-export const loadEncryptedKey = async (accountId: string) => {
-  try {
-    const result = await chrome.storage.local.get([`encrypted_${accountId}`]);
-    return result[`encrypted_${accountId}`] || null;
-  } catch (error) {
-    console.error("Failed to load encrypted keys:", error);
-    return null;
-  }
-};
-
-// 저장된 암호화 키 삭제
-export const deleteEncryptedKey = async (accountId: string) => {
-  try {
-    await chrome.storage.local.remove([`encrypted_${accountId}`]);
-    return true;
-  } catch (error) {
-    console.error("Failed to delete encrypted keys:", error);
-    return false;
-  }
 };
 
 export const decryptApiKey = async (

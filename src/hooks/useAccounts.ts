@@ -1,4 +1,19 @@
+import { EncryptedData, encryptApiKey, decryptApiKey } from "@/lib/apiKey";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePin } from "@/hooks/usePin";
+
+// 복호화된 계정 타입
+interface DecryptedAccount extends Omit<Account, "apiKey" | "secretKey"> {
+  apiKey: string;
+  secretKey: string;
+}
+
+// 암호화되지 않은 계정 입력 타입
+interface RawAccountInput
+  extends Omit<Account, "apiKey" | "secretKey" | "id" | "createdAt"> {
+  apiKey: string;
+  secretKey: string;
+}
 
 export type ExchangeType = "bitget" | "binance" | "bybit";
 
@@ -6,8 +21,8 @@ interface Account {
   id: string; // 고유 식별자
   name: string; // 계정 이름
   exchange: ExchangeType; // 거래소 종류
-  apiKey: string;
-  secretKey: string;
+  apiKey: EncryptedData;
+  secretKey: EncryptedData;
   createdAt: number; // 생성 시간 timestamp
 }
 
@@ -68,6 +83,57 @@ const deleteAllAccounts = async (): Promise<boolean> => {
 
 export function useAccounts() {
   const queryClient = useQueryClient();
+  const { pin } = usePin(); // PIN 자동으로 가져오기
+
+  // 단일 계정 복호화
+  const decryptAccount = async (
+    account: Account,
+  ): Promise<DecryptedAccount | null> => {
+    if (!pin) {
+      console.warn("PIN is not set");
+      return null;
+    }
+
+    try {
+      const decryptedApiKey = await decryptApiKey(account.apiKey, pin);
+      const decryptedSecretKey = await decryptApiKey(account.secretKey, pin);
+
+      return {
+        ...account,
+        apiKey: decryptedApiKey,
+        secretKey: decryptedSecretKey,
+      };
+    } catch (error) {
+      console.error(`Failed to decrypt account ${account.id}:`, error);
+      return null;
+    }
+  };
+
+  // 계정 암호화
+  const encryptAccount = async (
+    account: RawAccountInput,
+  ): Promise<Account | null> => {
+    if (!pin) {
+      console.warn("PIN is not set");
+      return null;
+    }
+
+    try {
+      const encryptedApiKey = await encryptApiKey(account.apiKey, pin);
+      const encryptedSecretKey = await encryptApiKey(account.secretKey, pin);
+
+      return {
+        ...account,
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+        apiKey: encryptedApiKey,
+        secretKey: encryptedSecretKey,
+      };
+    } catch (error) {
+      console.error("Failed to encrypt account:", error);
+      return null;
+    }
+  };
 
   // 모든 계정 조회
   const { data: accounts, isLoading } = useQuery({
@@ -75,20 +141,52 @@ export function useAccounts() {
     queryFn: fetchAccounts,
   });
 
-  // 특정 계정 조회
+  // 암호화된 계정 조회
   const getAccount = (accountId: string) => {
     return accounts?.[accountId] || null;
   };
 
-  // 계정 추가/수정
+  // 복호화된 단일 계정 조회 (React Query 적용)
+  const useDecryptedAccount = (accountId: string) => {
+    return useQuery({
+      queryKey: ["decryptedAccount", accountId, pin],
+      queryFn: async () => {
+        const account = accounts?.[accountId];
+        if (!account) return null;
+        return await decryptAccount(account);
+      },
+      enabled: !!accounts && !!accountId && !!pin,
+    });
+  };
+
+  // 모든 복호화된 계정 조회 (React Query 적용)
+  const useAllDecryptedAccounts = () => {
+    return useQuery({
+      queryKey: ["decryptedAccounts", pin],
+      queryFn: async () => {
+        if (!accounts) return {};
+
+        const decrypted: { [key: string]: DecryptedAccount } = {};
+        for (const [id, account] of Object.entries(accounts)) {
+          const decryptedAccount = await decryptAccount(account);
+          if (decryptedAccount) {
+            decrypted[id] = decryptedAccount;
+          }
+        }
+        return decrypted;
+      },
+      enabled: !!accounts && !!pin,
+    });
+  };
+
+  // 계정 추가
   const { mutate: setAccountMutation } = useMutation({
-    mutationFn: (account: Omit<Account, "id" | "createdAt">) => {
-      const newAccount: Account = {
-        ...account,
-        id: crypto.randomUUID(), // 새 계정인 경우 ID 생성
-        createdAt: Date.now(),
-      };
-      return setAccount(newAccount);
+    mutationFn: async (rawAccount: RawAccountInput) => {
+      const encryptedAccount = await encryptAccount(rawAccount);
+      if (!encryptedAccount) {
+        throw new Error("Failed to encrypt account");
+      }
+      return setAccount(encryptedAccount);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
@@ -123,6 +221,8 @@ export function useAccounts() {
     accounts,
     isLoading,
     getAccount,
+    useDecryptedAccount,
+    useAllDecryptedAccounts,
     addAccount: setAccountMutation,
     updateAccount: updateAccountMutation,
     deleteAccount: deleteAccountMutation,

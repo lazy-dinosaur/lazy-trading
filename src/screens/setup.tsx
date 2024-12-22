@@ -1,6 +1,4 @@
-import { useEffect } from "react";
 import { usePin } from "@/hooks/usePin";
-import { useNavigate } from "react-router";
 import Pin from "@/components/setup/Pin";
 import SetApi from "@/components/setup/SetApi";
 import PopupContainer from "@/components/PopupContainer";
@@ -10,23 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 const Setup = () => {
-  const { pin, pinCreated, isLoading: isPinLoading } = usePin();
-  const { accounts, isLoading: isAccountsLoading } = useAccounts();
-
-  const navigation = useNavigate();
-
-  useEffect(() => {
-    if (
-      !isPinLoading &&
-      !isAccountsLoading &&
-      pinCreated &&
-      !!pin &&
-      !!accounts?.keys
-    ) {
-      navigation("/search");
-    }
-    console.log(!!pinCreated && !!pin);
-  }, [pin, pinCreated, isPinLoading, navigation, accounts, isAccountsLoading]);
+  const { pin, pinCreated } = usePin();
+  const { accounts } = useAccounts();
 
   return (
     <PopupContainer className="flex-col space-y-5">
@@ -46,18 +29,14 @@ const Setup = () => {
           <Label
             htmlFor="2step"
             className={cn(
-              `${!!accounts?.keys && pinCreated ? "line-through text-gray-400" : ""}`,
+              `${!!accounts?.keys && Object.keys(accounts).length > 0 && pinCreated ? "line-through text-gray-400" : ""}`,
             )}
           >
             Setup Your First API key
           </Label>
         </div>
       </div>
-      {!pin && !pinCreated && !isPinLoading && !isAccountsLoading ? (
-        <Pin />
-      ) : (
-        <SetApi />
-      )}
+      {!pin && !pinCreated ? <Pin /> : <SetApi />}
     </PopupContainer>
   );
 };
