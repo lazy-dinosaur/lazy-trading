@@ -1,4 +1,4 @@
 const Loading = () => {
-  return <></>;
+  return <>loading</>;
 };
 export default Loading;

@@ -1,13 +1,19 @@
-import Locked from "@/components/Locked";
 import PopupContainer from "@/components/PopupContainer";
-import { usePin } from "@/hooks/usePin";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
 
 const Search = () => {
-  const { pin, isLoading } = usePin();
-  console.log(pin);
+  const navigate = useNavigate();
+
   return (
     <PopupContainer>
-      {!isLoading && pin ? <>search</> : <Locked />}
+      <>
+        <Button onClick={() => navigate("/")}>dashboard</Button>
+        <Button onClick={() => navigate("/accounts")}>accounts</Button>
+        <Button onClick={() => navigate("/trade")}>trade</Button>
+        <Button onClick={() => navigate("/setup")}>setup</Button>
+        <Button onClick={() => navigate("/search")}>search</Button>
+      </>
     </PopupContainer>
   );
 };
