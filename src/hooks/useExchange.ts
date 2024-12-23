@@ -1,6 +1,12 @@
 import { ExchangeType } from "./useAccounts";
 import ccxt from "ccxt";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+interface BalanceMutationParams {
+  exchange: ExchangeType;
+  apikey: string;
+  secret: string;
+}
 
 export const supportExchanges: ExchangeType[] = ["bybit", "binance", "bitget"];
 const useExchange = () => {
@@ -47,7 +53,21 @@ const useExchange = () => {
       };
     },
   });
+  const fetchBalance = useMutation({
+    mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
+      if (!exchangeData.isLoading && exchangeData.data) {
+        const { data } = exchangeData;
 
-  return exchangeData;
+        const exchangeInstance = data[exchange].ccxt;
+        exchangeInstance.apiKey = apikey;
+        exchangeInstance.secret = secret;
+
+        return await exchangeInstance.fetchBalance();
+      }
+      throw new Error("Exchange data not available");
+    },
+  });
+
+  return { exchangeData, fetchBalance };
 };
 export default useExchange;
