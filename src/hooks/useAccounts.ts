@@ -180,18 +180,20 @@ export function useAccounts() {
   };
 
   // 계정 추가
-  const { mutate: setAccountMutation } = useMutation({
-    mutationFn: async (rawAccount: RawAccountInput) => {
-      const encryptedAccount = await encryptAccount(rawAccount);
-      if (!encryptedAccount) {
-        throw new Error("Failed to encrypt account");
-      }
-      return setAccount(encryptedAccount);
+  const { mutate: setAccountMutation, isSuccess: isAccountAdded } = useMutation(
+    {
+      mutationFn: async (rawAccount: RawAccountInput) => {
+        const encryptedAccount = await encryptAccount(rawAccount);
+        if (!encryptedAccount) {
+          throw new Error("Failed to encrypt account");
+        }
+        return setAccount(encryptedAccount);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      },
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-    },
-  });
+  );
 
   // 계정 수정
   const { mutate: updateAccountMutation } = useMutation({
@@ -210,12 +212,13 @@ export function useAccounts() {
   });
 
   // 모든 계정 삭제
-  const { mutate: deleteAllAccountsMutation } = useMutation({
-    mutationFn: deleteAllAccounts,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-    },
-  });
+  const { mutate: deleteAllAccountsMutation, isSuccess: isAllAccountsDeleted } =
+    useMutation({
+      mutationFn: deleteAllAccounts,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      },
+    });
 
   return {
     accounts,
@@ -224,8 +227,10 @@ export function useAccounts() {
     useDecryptedAccount,
     useAllDecryptedAccounts,
     addAccount: setAccountMutation,
+    isAccountAdded,
     updateAccount: updateAccountMutation,
     deleteAccount: deleteAccountMutation,
     deleteAllAccounts: deleteAllAccountsMutation,
+    isAllAccountsDeleted,
   };
 }

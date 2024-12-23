@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { useAppStateCache } from "@/hooks/useAppStateCache.ts";
 import ccxt from "ccxt";
 import { ExchangeType, useAccounts } from "@/hooks/useAccounts.ts";
+import { useNavigate } from "react-router";
 
 type FormValue = {
   exchange: ExchangeType;
@@ -34,9 +35,13 @@ const SetApi = () => {
   const form = useForm<FormValue>();
   const { updateState, appState } = useAppStateCache();
   const [isLoading, setLoading] = useState(true);
-  const { addAccount } = useAccounts();
-  // const navigate = useNavigate();
+  const { addAccount, isAccountAdded } = useAccounts();
+  const navigate = useNavigate();
   const [validChecking, setValidCheck] = useState(false);
+
+  useEffect(() => {
+    if (isAccountAdded) navigate("/search");
+  }, [isAccountAdded, navigate]);
 
   const onSubmit = async (data: FormValue) => {
     setValidCheck(true);
@@ -55,12 +60,11 @@ const SetApi = () => {
           apiKey: data.apiKey,
           secretKey: data.secretKey,
         });
-        // navigate("/search");
       }
     } catch (err) {
       console.log(err);
-      // form.setValue("apiKey", "");
-      // form.setValue("secretKey", "");
+      form.setValue("apiKey", "");
+      form.setValue("secretKey", "");
     } finally {
       setValidCheck(false);
     }
