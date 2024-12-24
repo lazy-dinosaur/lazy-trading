@@ -47,7 +47,6 @@ export const useAppStateCache = () => {
 
   useEffect(() => {
     if (isFetched && !isLoaded && !isLoading && appState) {
-      console.log("resurect");
       navigate(appState.currentRoute ? appState.currentRoute : "/");
       setLoaded(true);
     }
