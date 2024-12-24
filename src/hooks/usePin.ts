@@ -1,5 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPin, setPin, fetchPinCreated, setPinCreated } from "@/lib/utils";
+import { decryptAccount } from "./useAccounts";
+
+export const validatePinWithAccounts = async (
+  pin: string,
+  accounts: Record<string, any>,
+): Promise<boolean> => {
+  // 계정이 없는 경우
+  if (!accounts || Object.keys(accounts).length === 0) {
+    return false;
+  }
+
+  // 첫 번째 계정만 확인해도 충분함
+  const firstAccount = Object.values(accounts)[0];
+  const decryptedAccount = await decryptAccount(firstAccount, pin);
+
+  // 복호화 성공 여부로 PIN 유효성 판단
+  return decryptedAccount !== null;
+};
 
 export function usePin() {
   const queryClient = useQueryClient();

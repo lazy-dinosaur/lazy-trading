@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePin } from "@/hooks/usePin";
 
 // 복호화된 계정 타입
-interface DecryptedAccount extends Omit<Account, "apiKey" | "secretKey"> {
+export interface DecryptedAccount
+  extends Omit<Account, "apiKey" | "secretKey"> {
   apiKey: string;
   secretKey: string;
 }
@@ -81,33 +82,35 @@ const deleteAllAccounts = async (): Promise<boolean> => {
   }
 };
 
+export const decryptAccount = async (
+  account: Account,
+  pin: string,
+): Promise<DecryptedAccount | null> => {
+  if (!pin) {
+    console.warn("PIN is not set");
+    return null;
+  }
+
+  try {
+    const decryptedApiKey = await decryptApiKey(account.apiKey, pin);
+    const decryptedSecretKey = await decryptApiKey(account.secretKey, pin);
+
+    return {
+      ...account,
+      apiKey: decryptedApiKey,
+      secretKey: decryptedSecretKey,
+    };
+  } catch (error) {
+    console.error(`Failed to decrypt account ${account.id}:`, error);
+    return null;
+  }
+};
+
 export function useAccounts() {
   const queryClient = useQueryClient();
   const { pin } = usePin(); // PIN 자동으로 가져오기
 
   // 단일 계정 복호화
-  const decryptAccount = async (
-    account: Account,
-  ): Promise<DecryptedAccount | null> => {
-    if (!pin) {
-      console.warn("PIN is not set");
-      return null;
-    }
-
-    try {
-      const decryptedApiKey = await decryptApiKey(account.apiKey, pin);
-      const decryptedSecretKey = await decryptApiKey(account.secretKey, pin);
-
-      return {
-        ...account,
-        apiKey: decryptedApiKey,
-        secretKey: decryptedSecretKey,
-      };
-    } catch (error) {
-      console.error(`Failed to decrypt account ${account.id}:`, error);
-      return null;
-    }
-  };
 
   // 계정 암호화
   const encryptAccount = async (
@@ -153,7 +156,7 @@ export function useAccounts() {
       queryFn: async () => {
         const account = accounts?.[accountId];
         if (!account) return null;
-        return await decryptAccount(account);
+        return await decryptAccount(account, pin as string);
       },
       enabled: !!accounts && !!accountId && !!pin,
     });
@@ -168,7 +171,7 @@ export function useAccounts() {
 
         const decrypted: { [key: string]: DecryptedAccount } = {};
         for (const [id, account] of Object.entries(accounts)) {
-          const decryptedAccount = await decryptAccount(account);
+          const decryptedAccount = await decryptAccount(account, pin as string);
           if (decryptedAccount) {
             decrypted[id] = decryptedAccount;
           }
