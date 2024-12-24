@@ -22,6 +22,14 @@ export const useMiddleware = () => {
         setPin(null as any);
         navigate("/setup");
       }
+      if (
+        location.pathname == "/setup" &&
+        pinCreated &&
+        accounts &&
+        Object.keys(accounts).length > 0
+      ) {
+        navigate("/");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, isLoading]);
