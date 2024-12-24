@@ -1,11 +1,11 @@
 import { usePin } from "@/hooks/usePin";
 import Pin from "@/components/setup/Pin";
 import SetApi from "@/components/setup/SetApi";
-import PopupContainer from "@/components/PopupContainer";
 import { useAccounts } from "@/hooks/useAccounts";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import PopupContainer from "@/components/PopupContainer";
 
 const Setup = () => {
   const { pin, pinCreated } = usePin();
