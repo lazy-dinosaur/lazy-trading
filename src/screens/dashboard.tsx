@@ -1,13 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useAccounts } from "@/hooks/useAccounts";
-// import { useAppStateCache } from "@/hooks/useAppStateCache";
-// import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { deleteAllAccounts } = useAccounts();
-
   return (
     <>
       Dashboard.tsx
