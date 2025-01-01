@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { ChartCandlestick, HandCoins, Home, Search } from "lucide-react";
 
 import {
   Sidebar,
@@ -9,40 +9,44 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router";
 
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "#",
+    title: "Dashboard",
+    url: "/",
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
     title: "Search",
-    url: "#",
+    url: "/search",
     icon: Search,
   },
   {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
+    title: "Accounts",
+    url: "/Accounts",
+    icon: HandCoins,
   },
+  {
+    title: "Trade",
+    url: "/trade",
+    icon: ChartCandlestick,
+  },
+  // {
+  //   title: "Settings",
+  //   url: "#",
+  //   icon: Settings,
+  // },
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+  const { toggleSidebar } = useSidebar();
   return (
-    <Sidebar>
+    <Sidebar side="right">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -51,10 +55,15 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <span
+                      onClick={() => {
+                        navigate(item.url);
+                        toggleSidebar();
+                      }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
