@@ -1,24 +1,45 @@
-import { Button } from "@/components/ui/button";
 import useExchange from "@/hooks/useExchange";
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  ColumnFiltersState,
+  getPaginationRowModel,
+} from "@tanstack/react-table";
+import { columns } from "./search/columns";
+import Filter from "./search/filter";
+import { useState } from "react";
+import { DataTable } from "./search/data-table";
+import { LoadingSpinner } from "@/components/Loading";
 
 const Search = () => {
-  const navigate = useNavigate();
-  const { exchangeData } = useExchange();
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const {
+    tickerData: { data, isLoading },
+  } = useExchange();
 
-  useEffect(() => {
-    console.log(exchangeData.data);
-  }, [exchangeData]);
+  const table = useReactTable({
+    data: data ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
+  });
 
   return (
-    <>
-      <Button onClick={() => navigate("/")}>dashboard</Button>
-      <Button onClick={() => navigate("/accounts")}>accounts</Button>
-      <Button onClick={() => navigate("/trade")}>trade</Button>
-      <Button onClick={() => navigate("/setup")}>setup</Button>
-      <Button onClick={() => navigate("/search")}>search</Button>
-    </>
+    <div className="w-[450px] h-full">
+      {!isLoading ? (
+        <>
+          <Filter table={table} /> <DataTable table={table} />
+        </>
+      ) : (
+        <LoadingSpinner />
+      )}
+    </div>
   );
 };
 export default Search;
