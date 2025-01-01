@@ -20,9 +20,9 @@ createRoot(document.getElementById("root")!).render(
           <Route path="setup" element={<Setup />} />
           <Route element={<Protector />}>
             <Route index element={<Dashboard />} />
-            <Route path="trade" element={<Trade />} />
             <Route path="accounts" element={<Accounts />} />
             <Route path="search" element={<Search />} />
+            <Route path=":exchange/:coin/:base" element={<Trade />} />
           </Route>
         </Route>
       </Routes>
