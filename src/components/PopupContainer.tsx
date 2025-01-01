@@ -12,7 +12,7 @@ const PopupContainer = ({ children, className }: PopupContainerProps) => {
   return (
     <div
       className={cn(
-        `w-[450px] max-h-[600px] overflow-y-auto p-4 shadow-lg border border-gray-200 rounded-lg`,
+        `min-w-[400px] min-h-[300px] overflow-y-auto shadow-lg border border-gray-200 rounded-lg p-4`,
         className,
       )}
     >
