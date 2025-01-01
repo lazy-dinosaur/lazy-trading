@@ -1,6 +1,7 @@
 import { ExchangeType } from "./useAccounts";
-import ccxt from "ccxt";
+import ccxt, { Exchange, Ticker } from "ccxt";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 
 interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -8,66 +9,216 @@ interface BalanceMutationParams {
   secret: string;
 }
 
+interface ExchangeInstances {
+  [key: string]: {
+    ccxt: Exchange;
+    pro: Exchange;
+  };
+}
+
+interface TickerWithExchange extends Ticker {
+  exchange: ExchangeType;
+}
+
+const createExchangeInstances = (): ExchangeInstances => ({
+  bybit: {
+    ccxt: new ccxt.bybit(),
+    pro: new ccxt.pro.bybit(),
+  },
+  binance: {
+    ccxt: new ccxt.binance(),
+    pro: new ccxt.pro.binance(),
+  },
+  bitget: {
+    ccxt: new ccxt.bitget(),
+    pro: new ccxt.pro.bitget(),
+  },
+});
+
 export const supportExchanges: ExchangeType[] = ["bybit", "binance", "bitget"];
+
 const useExchange = () => {
-  // const [exchanges, setExchanges] = useState({});
+  const exchangeInstancesRef = useRef<ExchangeInstances | null>(null);
+
+  // Exchange 인스턴스 생성 및 정리
+  useEffect(() => {
+    exchangeInstancesRef.current = createExchangeInstances();
+
+    return () => {
+      // Cleanup function
+      if (exchangeInstancesRef.current) {
+        Object.values(exchangeInstancesRef.current).forEach(async ({ pro }) => {
+          try {
+            await pro.close(); // WebSocket 연결 정리
+          } catch (error) {
+            console.error("Error closing exchange connection:", error);
+          }
+        });
+        exchangeInstancesRef.current = null;
+      }
+    };
+  }, []);
+
+  // Exchange 기본 정보 쿼리
   const exchangeData = useQuery({
     queryKey: ["exchanges", supportExchanges],
     queryFn: async () => {
-      const bybit = new ccxt.bybit();
-      const binance = new ccxt.binance();
-      const bitget = new ccxt.bitget();
-      const bybitPro = new ccxt.pro.bybit();
-      const binancePro = new ccxt.pro.binance();
-      const bitgetPro = new ccxt.pro.bitget();
+      if (!exchangeInstancesRef.current) {
+        throw new Error("Exchange instances not initialized");
+      }
 
-      const bybitMarket = await bybit
-        .fetchMarkets()
-        .then((value) => value.filter((value) => value?.type == "swap"));
-      const binanceMarket = await binance
-        .fetchMarkets()
-        .then((value) => value.filter((value) => value?.type == "swap"));
-      const bitgetMarket = await bitget
-        .fetchMarkets()
-        .then((value) => value.filter((value) => value?.type == "swap"));
+      const { bybit, binance, bitget } = exchangeInstancesRef.current;
 
       return {
         bybit: {
-          ccxt: bybit,
-          pro: bybitPro,
-          market: bybitMarket,
-          features: bybit.features,
+          ccxt: bybit.ccxt,
+          pro: bybit.pro,
+          features: bybit.ccxt.features,
         },
         binance: {
-          ccxt: binance,
-          pro: binancePro,
-          market: binanceMarket,
-          features: binance.features,
+          ccxt: binance.ccxt,
+          pro: binance.pro,
+          features: binance.ccxt.features,
         },
         bitget: {
-          ccxt: bitget,
-          pro: bitgetPro,
-          market: bitgetMarket,
-          features: bitget.features,
+          ccxt: bitget.ccxt,
+          pro: bitget.pro,
+          features: bitget.ccxt.features,
         },
       };
     },
+    gcTime: 1000 * 60 * 5, // 5분 후 garbage collection
+    staleTime: 1000 * 30, // 30초 후 stale 처리
   });
+
+  // 티커 정보 전용 쿼리
+  const tickerData = useQuery({
+    queryKey: ["tickers", supportExchanges],
+    queryFn: async () => {
+      if (!exchangeInstancesRef.current) {
+        throw new Error("Exchange instances not initialized");
+      }
+
+      const { bybit, binance, bitget } = exchangeInstancesRef.current;
+
+      const [
+        bybitInverseTickers,
+        bybitLinearTickers,
+        binanceInverseTickers,
+        binanceLinearTickers,
+        bitgetInverseTickers,
+        bitgetLinearTickers,
+      ] = await Promise.all([
+        bybit.ccxt.fetchTickers(undefined, {
+          type: "swap",
+          subType: "inverse",
+        }),
+        bybit.ccxt.fetchTickers(undefined, {
+          type: "swap",
+          subType: "linear",
+        }),
+        binance.ccxt.fetchTickers(undefined, {
+          type: "swap",
+          subType: "inverse",
+        }),
+        binance.ccxt.fetchTickers(undefined, {
+          type: "swap",
+          subType: "linear",
+        }),
+        bitget.ccxt.fetchTickers(undefined, {
+          type: "swap",
+          subType: "inverse",
+        }),
+        bitget.ccxt.fetchTickers(undefined, {
+          type: "swap",
+          subType: "linear",
+        }),
+      ]);
+
+      const tickers: TickerWithExchange[] = [
+        ...Object.values(bybitInverseTickers)
+          .filter(
+            (ticker) =>
+              !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+          )
+          .map((ticker) => ({
+            ...ticker,
+            exchange: "bybit" as ExchangeType,
+          })),
+        ...Object.values(bybitLinearTickers)
+          .filter(
+            (ticker) =>
+              !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+          )
+          .map((ticker) => ({
+            ...ticker,
+            exchange: "bybit" as ExchangeType,
+          })),
+        ...Object.values(binanceInverseTickers)
+          .filter(
+            (ticker) =>
+              !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+          )
+          .map((ticker) => ({
+            ...ticker,
+            exchange: "binance" as ExchangeType,
+          })),
+        ...Object.values(binanceLinearTickers)
+          .filter(
+            (ticker) =>
+              !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+          )
+          .map((ticker) => ({
+            ...ticker,
+            exchange: "binance" as ExchangeType,
+          })),
+
+        ...Object.values(bitgetInverseTickers)
+          .filter(
+            (ticker) =>
+              !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+          )
+          .map((ticker) => ({
+            ...ticker,
+            exchange: "bitget" as ExchangeType,
+          })),
+        ...Object.values(bitgetLinearTickers)
+          .filter(
+            (ticker) =>
+              !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+          )
+          .map((ticker) => ({
+            ...ticker,
+            exchange: "bitget" as ExchangeType,
+          })),
+      ];
+
+      return tickers;
+    },
+    gcTime: 1000 * 60, // 1분 후 garbage collection
+    staleTime: 1000 * 10, // 10초 후 stale 처리
+    refetchInterval: 1000 * 30, // 30초마다 자동 갱신
+  });
+
   const fetchBalance = useMutation({
     mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
-      if (!exchangeData.isLoading && exchangeData.data) {
-        const { data } = exchangeData;
-
-        const exchangeInstance = data[exchange].ccxt;
-        exchangeInstance.apiKey = apikey;
-        exchangeInstance.secret = secret;
-
-        return await exchangeInstance.fetchBalance();
+      if (!exchangeInstancesRef.current) {
+        throw new Error("Exchange instances not initialized");
       }
-      throw new Error("Exchange data not available");
+
+      const exchangeInstance = exchangeInstancesRef.current[exchange].ccxt;
+      exchangeInstance.apiKey = apikey;
+      exchangeInstance.secret = secret;
+
+      return await exchangeInstance.fetchBalance();
     },
   });
 
-  return { exchangeData, fetchBalance };
+  return {
+    exchangeData,
+    tickerData,
+    fetchBalance,
+  };
 };
+
 export default useExchange;
