@@ -2,6 +2,7 @@ import { ExchangeType } from "./useAccounts";
 import ccxt, { Exchange, Ticker } from "ccxt";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { useParams } from "react-router";
 
 interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -195,9 +196,24 @@ const useExchange = () => {
 
       return tickers;
     },
-    gcTime: 1000 * 60, // 1분 후 garbage collection
-    staleTime: 1000 * 10, // 10초 후 stale 처리
     refetchInterval: 1000 * 30, // 30초마다 자동 갱신
+  });
+  const marketData = useQuery({
+    queryKey: ["tickers", supportExchanges],
+    queryFn: async () => {
+      if (!exchangeInstancesRef.current) {
+        throw new Error("Exchange instances not initialized");
+      }
+      const { bybit, binance, bitget } = exchangeInstancesRef.current;
+      const bybitMarket = await bybit.ccxt.fetchMarkets();
+      const binanceMarket = await binance.ccxt.fetchMarkets();
+      const bitgetMarket = await bitget.ccxt.fetchMarkets();
+      return {
+        bybit: bybitMarket,
+        binance: binanceMarket,
+        bitget: bitgetMarket,
+      };
+    },
   });
 
   const fetchBalance = useMutation({
@@ -214,10 +230,30 @@ const useExchange = () => {
     },
   });
 
+  const { coin, exchange, base } = useParams();
+  const symbol = `${coin}/${base}`;
+
+  const fetchTicker = useQuery({
+    queryKey: [exchange, coin, base],
+    queryFn: async () => {
+      if (!exchangeInstancesRef.current) {
+        throw new Error("Exchange instances not initialized");
+      }
+      const exchangeInstance =
+        exchangeInstancesRef.current[exchange as ExchangeType].ccxt;
+      return await exchangeInstance.fetchTicker(symbol);
+    },
+    enabled: !!coin && !!exchange && !!base,
+    refetchInterval: 200,
+    refetchIntervalInBackground: true,
+    refetchOnMount: true,
+  });
   return {
     exchangeData,
     tickerData,
     fetchBalance,
+    marketData,
+    fetchTicker,
   };
 };
 
