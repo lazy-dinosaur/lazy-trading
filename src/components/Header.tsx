@@ -42,12 +42,12 @@ const Header = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
         )}
-        <h1 className="text-xl capitalize">
+        <div className="text-xl capitalize flex items-center gap-2">
           {title ? title : "Dashboard"}
           {isExchangePath && !fetchTicker.isLoading && fetchTicker.data && (
             <span
               className={cn(
-                "ml-2 border-2 p-1 text-sm rounded-md bg-opacity-50 self-center justify-self-center place-self-center",
+                "p-1 text-xs rounded-md bg-opacity-50",
                 fetchTicker.data.percentage && fetchTicker.data.percentage < 0
                   ? "bg-red-700 text-red-400"
                   : "bg-green-700 text-green-400",
@@ -59,7 +59,7 @@ const Header = () => {
               {fetchTicker.data.percentage?.toFixed(2)}%
             </span>
           )}
-        </h1>
+        </div>
       </div>
       {!isLoading && !pin ? "" : <SidebarTrigger />}
     </div>
