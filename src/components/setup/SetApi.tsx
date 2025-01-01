@@ -20,9 +20,9 @@ import { Form, FormField, FormItem } from "../ui/form.tsx";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useAppStateCache } from "@/hooks/useAppStateCache.ts";
-import ccxt from "ccxt";
 import { ExchangeType, useAccounts } from "@/hooks/useAccounts.ts";
 import { useNavigate } from "react-router";
+import useExchange from "@/hooks/useExchange.ts";
 
 type FormValue = {
   exchange: ExchangeType;
@@ -38,6 +38,7 @@ const SetApi = () => {
   const { addAccount, isAccountAdded } = useAccounts();
   const navigate = useNavigate();
   const [validChecking, setValidCheck] = useState(false);
+  const { fetchBalance } = useExchange();
 
   useEffect(() => {
     if (isAccountAdded) navigate("/search");
@@ -45,15 +46,15 @@ const SetApi = () => {
 
   const onSubmit = async (data: FormValue) => {
     setValidCheck(true);
-    console.log(data);
-    const exchange = new ccxt.pro[data.exchange as ExchangeType]({
-      apiKey: data.apiKey,
-      secret: data.secretKey,
-    });
 
     try {
-      const balance = await exchange.fetchBalance();
-      if (balance) {
+      const validCheck = await fetchBalance.mutateAsync({
+        exchange: data.exchange,
+        apikey: data.apiKey,
+        secret: data.secretKey,
+      });
+
+      if (validCheck) {
         addAccount({
           exchange: data.exchange as ExchangeType,
           name: data.name,
@@ -62,6 +63,8 @@ const SetApi = () => {
         });
       }
     } catch (err) {
+      fetchBalance.reset();
+      //TODO: 에러 알림 표시 구현해야함
       console.log(err);
       form.setValue("apiKey", "");
       form.setValue("secretKey", "");
