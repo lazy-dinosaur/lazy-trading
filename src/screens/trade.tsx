@@ -1,29 +1,33 @@
 import { LoadingSpinner } from "@/components/Loading";
-import { Button } from "@/components/ui/button";
+import { DecryptedAccount, useAccounts } from "@/hooks/useAccounts";
 import useExchange from "@/hooks/useExchange";
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import { PriceInfo } from "./Trade/price-info";
+
 const Trade = () => {
-  const navigate = useNavigate();
   const { fetchTicker } = useExchange();
-  const { data, isLoading } = fetchTicker;
+  const { data: tickerData, isLoading } = fetchTicker;
+  const { useAllDecryptedAccounts } = useAccounts();
+  const { exchange } = useParams();
+  const { data } = useAllDecryptedAccounts();
+  const [accounts, setAccounts] = useState<DecryptedAccount[]>();
 
   useEffect(() => {
-    console.log(data);
+    if (!accounts && data)
+      setAccounts(() =>
+        Object.values(data).filter((value) => value.exchange === exchange),
+      );
   }, [data]);
 
   return (
     <div className="w-[450px] h-full">
-      {isLoading ? (
-        <LoadingSpinner />
-      ) : (
+      {!isLoading && tickerData ? (
         <>
-          Trade.tsx
-          <Button onClick={() => navigate("/accounts")}>accounts</Button>
-          <Button onClick={() => navigate("/trade")}>trade</Button>
-          <Button onClick={() => navigate("/setup")}>setup</Button>
-          <Button onClick={() => navigate("/search")}>search</Button>
+          <PriceInfo data={tickerData} />
         </>
+      ) : (
+        <LoadingSpinner />
       )}
     </div>
   );
