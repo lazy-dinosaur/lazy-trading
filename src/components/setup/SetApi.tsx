@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { useAppStateCache } from "@/hooks/useAppStateCache.ts";
 import { ExchangeType, useAccounts } from "@/hooks/useAccounts.ts";
 import { useNavigate } from "react-router";
-import useExchange from "@/hooks/useExchange.ts";
+import { useExchange } from "@/hooks/useExchange.ts";
 
 type FormValue = {
   exchange: ExchangeType;

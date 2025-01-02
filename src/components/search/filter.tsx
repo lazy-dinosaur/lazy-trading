@@ -43,37 +43,6 @@ const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
           </SelectGroup>
         </SelectContent>
       </Select>
-      {/* <DropdownMenu> */}
-      {/*   <DropdownMenuTrigger asChild> */}
-      {/*     <Button variant="outline"> */}
-      {/*       Exchange <ChevronDown className="ml-2 h-4 w-4" /> */}
-      {/*     </Button> */}
-      {/*   </DropdownMenuTrigger> */}
-      {/*   <DropdownMenuContent align="end"> */}
-      {/*     <DropdownMenuCheckboxItem */}
-      {/*       checked={!table.getColumn("exchange")?.getFilterValue()} */}
-      {/*       onCheckedChange={() => */}
-      {/*         table.getColumn("exchange")?.setFilterValue(null) */}
-      {/*       } */}
-      {/*     > */}
-      {/*       All */}
-      {/*     </DropdownMenuCheckboxItem> */}
-      {/*     {["bybit", "binance", "bitget"].map((exchange) => ( */}
-      {/*       <DropdownMenuCheckboxItem */}
-      {/*         key={exchange} */}
-      {/*         className="capitalize" */}
-      {/*         checked={ */}
-      {/*           table.getColumn("exchange")?.getFilterValue() === exchange */}
-      {/*         } */}
-      {/*         onCheckedChange={() => */}
-      {/*           table.getColumn("exchange")?.setFilterValue(exchange) */}
-      {/*         } */}
-      {/*       > */}
-      {/*         {exchange} */}
-      {/*       </DropdownMenuCheckboxItem> */}
-      {/*     ))} */}
-      {/*   </DropdownMenuContent> */}
-      {/* </DropdownMenu> */}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import useExchange from "@/hooks/useExchange";
+import { useExchange } from "@/hooks/useExchange";
 import {
   useReactTable,
   getCoreRowModel,
@@ -6,10 +6,10 @@ import {
   ColumnFiltersState,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import { columns } from "./search/columns";
-import Filter from "./search/filter";
+import { columns } from "@/components/search/columns";
+import Filter from "@/components/search/filter";
 import { useState } from "react";
-import { DataTable } from "./search/data-table";
+import { DataTable } from "@/components/search/data-table";
 import { LoadingSpinner } from "@/components/Loading";
 
 const Search = () => {
