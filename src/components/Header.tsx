@@ -2,13 +2,13 @@ import { useLocation, useNavigate } from "react-router";
 import { SidebarTrigger } from "./ui/sidebar";
 import { usePin } from "@/hooks/usePin";
 import { ArrowLeft } from "lucide-react";
-import useExchange from "@/hooks/useExchange";
+import { useTicker } from "@/hooks/useExchange";
 import { cn } from "@/lib/utils";
 
 const Header = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { fetchTicker } = useExchange();
+  const fetchTicker = useTicker();
   let title = "";
 
   const isExchangePath =
@@ -37,12 +37,12 @@ const Header = () => {
         {isExchangePath && (
           <button
             onClick={handleBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 dark:focus-visible:ring-zinc-300 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 h-7 w-7"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
         )}
-        <div className="text-xl capitalize flex items-center gap-2">
+        <div className="text-lg capitalize flex items-center gap-2">
           {title ? title : "Dashboard"}
           {isExchangePath && !fetchTicker.isLoading && fetchTicker.data && (
             <span
