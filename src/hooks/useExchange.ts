@@ -88,8 +88,7 @@ const useExchange = () => {
         },
       };
     },
-    gcTime: 1000 * 60 * 5, // 5분 후 garbage collection
-    staleTime: 1000 * 30, // 30초 후 stale 처리
+    refetchInterval: 10,
   });
 
   // 티커 정보 전용 쿼리
@@ -233,7 +232,7 @@ const useExchange = () => {
   const { coin, exchange, base } = useParams();
   const symbol = `${coin}/${base}`;
 
-  const fetchTicker = useQuery({
+  const fetchTicker = useQuery<Ticker>({
     queryKey: [exchange, coin, base],
     queryFn: async () => {
       if (!exchangeInstancesRef.current) {
@@ -248,12 +247,28 @@ const useExchange = () => {
     refetchIntervalInBackground: true,
     refetchOnMount: true,
   });
+
+  const setExchange = useMutation({
+    mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
+      if (!exchangeInstancesRef.current) {
+        throw new Error("Exchange instances not initialized");
+      }
+
+      const exchangeInstance = exchangeInstancesRef.current[exchange].ccxt;
+      exchangeInstance.apiKey = apikey;
+      exchangeInstance.secret = secret;
+
+      return { success: true };
+    },
+  });
+
   return {
     exchangeData,
     tickerData,
     fetchBalance,
     marketData,
     fetchTicker,
+    setExchange,
   };
 };
 
