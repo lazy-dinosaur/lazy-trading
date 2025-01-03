@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@/components/Loading";
+import { LoadingSpinner } from "@/components/loading";
 import { AccountSelector } from "@/components/trade/account-select";
 import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";

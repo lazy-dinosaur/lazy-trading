@@ -5,7 +5,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import PopupContainer from "@/components/PopupContainer";
+import PopupContainer from "@/components/popup-container";
 
 const Setup = () => {
   const { pin, pinCreated } = usePin();

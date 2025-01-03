@@ -1,6 +1,6 @@
-import { LoadingSpinner } from "@/components/Loading";
-import PopupContainer from "@/components/PopupContainer";
-import { ScreenWrapper } from "@/components/ScreenContainer";
+import { LoadingSpinner } from "@/components/loading";
+import PopupContainer from "@/components/popup-container";
+import { ScreenWrapper } from "@/components/screen-wrapper";
 
 const Index = () => {
   return (

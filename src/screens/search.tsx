@@ -10,8 +10,8 @@ import { columns } from "@/components/search/columns";
 import Filter from "@/components/search/filter";
 import { useState } from "react";
 import { DataTable } from "@/components/search/data-table";
-import { LoadingSpinner } from "@/components/Loading";
-import { ScreenWrapper } from "@/components/ScreenContainer";
+import { LoadingSpinner } from "@/components/loading";
+import { ScreenWrapper } from "@/components/screen-wrapper";
 
 const Search = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
