@@ -14,19 +14,22 @@ const Trade = () => {
   const [timeFrame, setTimeFrame] = useState<TimeFrameType>("30");
 
   return (
-    <div className="w-[450px] h-[500px] space-y-3 px-2 py-1">
+    <div className="w-[450px] h-max">
       {!isLoading && tickerData ? (
         <>
-          <PriceInfo data={tickerData} />
-          <div className="w-full flex items-center justify-between">
-            <TimeFrame timeFrameState={{ timeFrame, setTimeFrame }} />
-            <AccountSelector
-              accountState={{ accounts, setAccounts }}
-              selectedState={{ selected, setSelected }}
-              exchange={tickerData.exchange}
-            />
+          <div className="w-full space-y-3">
+            <PriceInfo data={tickerData} />
+            <div className="w-full flex items-center justify-between">
+              <TimeFrame timeFrameState={{ timeFrame, setTimeFrame }} />
+              <AccountSelector
+                accountState={{ accounts, setAccounts }}
+                selectedState={{ selected, setSelected }}
+                exchange={tickerData.exchange}
+              />
+            </div>
+            <ChartComponent timeFrame={timeFrame} tickerData={tickerData} />
           </div>
-          <ChartComponent timeFrame={timeFrame} tickerData={tickerData} />
+          <div className="w-full h-40 bg-slate-900">ddd</div>
         </>
       ) : (
         <LoadingSpinner />
