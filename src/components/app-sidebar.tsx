@@ -17,7 +17,7 @@ import { useNavigate } from "react-router";
 const items = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   {

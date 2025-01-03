@@ -7,8 +7,9 @@ import Accounts from "./screens/accounts.tsx";
 import Trade from "./screens/trade.tsx";
 import Search from "./screens/search.tsx";
 import App from "./App.tsx";
+import Protector from "./components/protector.tsx";
+import Index from "./screens/index.tsx";
 import Dashboard from "./screens/dashboard.tsx";
-import Protector from "./layouts/Protector.tsx";
 
 const queryClient = new QueryClient();
 
@@ -17,9 +18,10 @@ createRoot(document.getElementById("root")!).render(
     <MemoryRouter>
       <Routes>
         <Route element={<App />}>
+          <Route path="/" element={<Index />} />
           <Route path="setup" element={<Setup />} />
           <Route element={<Protector />}>
-            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="accounts" element={<Accounts />} />
             <Route path="search" element={<Search />} />
             <Route path=":exchange/:coin/:base" element={<Trade />} />

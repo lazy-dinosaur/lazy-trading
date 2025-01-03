@@ -47,7 +47,7 @@ export const useAppStateCache = () => {
 
   useEffect(() => {
     if (isFetched && !isLoaded && !isLoading && appState) {
-      navigate(appState.currentRoute ? appState.currentRoute : "/");
+      navigate(appState.currentRoute ? appState.currentRoute : "/dashboard");
       setLoaded(true);
     }
   }, [appState, isLoading, isFetched, isLoaded, navigate, setLoaded]);

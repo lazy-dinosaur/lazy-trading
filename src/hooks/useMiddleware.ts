@@ -28,7 +28,7 @@ export const useMiddleware = () => {
         accounts &&
         Object.keys(accounts).length > 0
       ) {
-        navigate("/");
+        navigate("/dashboard");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
