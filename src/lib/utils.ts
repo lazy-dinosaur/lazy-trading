@@ -1,3 +1,4 @@
+import { TimeFrameType } from "@/components/trade/time-frame";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -75,5 +76,37 @@ export const setStarted = async (value: boolean): Promise<boolean> => {
   } catch (error) {
     console.error("Failed to set started in service worker:", error);
     return false;
+  }
+};
+export const formatTime = (timestamp: number, timeFrame: TimeFrameType) => {
+  const date = new Date(timestamp * 1000);
+
+  switch (timeFrame) {
+    case "5":
+    case "15":
+    case "30":
+    case "60":
+    case "240":
+      // 분봉, 시간봉은 날짜와 시간 모두 표시
+      return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate(),
+        hour: date.getHours(),
+        minute: date.getMinutes(),
+      };
+
+    case "D":
+    case "W":
+    case "M":
+      // 일봉, 주봉, 월봉은 날짜만 표시
+      return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate(),
+      };
+
+    default:
+      return date.toISOString().split("T")[0];
   }
 };

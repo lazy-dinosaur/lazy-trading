@@ -4,6 +4,7 @@ import { CandleSeries } from "../chart/candle";
 import { Chart } from "../chart/chart";
 import { TickerWithExchange } from "../search/columns";
 import { TimeFrameType } from "./time-frame";
+import { formatTime } from "@/lib/utils";
 
 // 테스트 데이터
 const data = [
@@ -18,39 +19,6 @@ const data = [
   { open: 10.75, high: 11.6, low: 10.49, close: 10.93, time: 1643119076 },
   { open: 10.93, high: 11.53, low: 10.76, close: 10.96, time: 1643205476 },
 ];
-
-const formatTime = (timestamp: number, timeFrame: TimeFrameType) => {
-  const date = new Date(timestamp * 1000);
-
-  switch (timeFrame) {
-    case "5":
-    case "15":
-    case "30":
-    case "60":
-    case "240":
-      // 분봉, 시간봉은 날짜와 시간 모두 표시
-      return {
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        day: date.getDate(),
-        hour: date.getHours(),
-        minute: date.getMinutes(),
-      };
-
-    case "D":
-    case "W":
-    case "M":
-      // 일봉, 주봉, 월봉은 날짜만 표시
-      return {
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        day: date.getDate(),
-      };
-
-    default:
-      return date.toISOString().split("T")[0];
-  }
-};
 
 export const ChartComponent = ({
   timeFrame,
