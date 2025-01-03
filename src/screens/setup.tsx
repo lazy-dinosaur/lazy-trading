@@ -13,30 +13,34 @@ const Setup = () => {
 
   return (
     <PopupContainer className="flex-col space-y-5">
-      <div className="self-start space-y-2 mx-2">
-        <h1 className="text-xl ">Initial Setup</h1>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="1step" checked={true} disabled />
-          <Label
-            htmlFor="1step"
-            className={cn(`${pinCreated ? "line-through text-gray-400" : ""}`)}
-          >
-            Create PIN Number
-          </Label>
+      <div className="h-full self-start space-y-5 p-4">
+        <div className="self-start space-y-2 mx-2">
+          <h1 className="text-xl ">Initial Setup</h1>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="1step" checked={true} disabled />
+            <Label
+              htmlFor="1step"
+              className={cn(
+                `${pinCreated ? "line-through text-gray-400" : ""}`,
+              )}
+            >
+              Create PIN Number
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="2step" checked={pinCreated} disabled />
+            <Label
+              htmlFor="2step"
+              className={cn(
+                `${!!accounts?.keys && Object.keys(accounts).length > 0 && pinCreated ? "line-through text-gray-400" : ""}`,
+              )}
+            >
+              Setup Your First API key
+            </Label>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="2step" checked={pinCreated} disabled />
-          <Label
-            htmlFor="2step"
-            className={cn(
-              `${!!accounts?.keys && Object.keys(accounts).length > 0 && pinCreated ? "line-through text-gray-400" : ""}`,
-            )}
-          >
-            Setup Your First API key
-          </Label>
-        </div>
+        {!pin && !pinCreated ? <Pin /> : <SetApi />}
       </div>
-      {!pin && !pinCreated ? <Pin /> : <SetApi />}
     </PopupContainer>
   );
 };

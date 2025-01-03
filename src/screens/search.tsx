@@ -11,6 +11,7 @@ import Filter from "@/components/search/filter";
 import { useState } from "react";
 import { DataTable } from "@/components/search/data-table";
 import { LoadingSpinner } from "@/components/Loading";
+import { ScreenWrapper } from "@/components/ScreenContainer";
 
 const Search = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -31,15 +32,15 @@ const Search = () => {
   });
 
   return (
-    <div className="w-[450px] h-full">
+    <>
       {!isLoading ? (
-        <>
+        <ScreenWrapper className={["min-w-full"]}>
           <Filter table={table} /> <DataTable table={table} />
-        </>
+        </ScreenWrapper>
       ) : (
         <LoadingSpinner />
       )}
-    </div>
+    </>
   );
 };
 export default Search;

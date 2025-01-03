@@ -1,6 +1,6 @@
 import { LoadingSpinner } from "@/components/Loading";
 import { AccountSelector } from "@/components/trade/account-select";
-import { Chart } from "@/components/trade/chart";
+import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";
 import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
 import { DecryptedAccount } from "@/hooks/useAccounts";
@@ -14,7 +14,7 @@ const Trade = () => {
   const [timeFrame, setTimeFrame] = useState<TimeFrameType>("30");
 
   return (
-    <div className="w-[450px] h-full space-y-3">
+    <div className="w-[450px] h-[500px] space-y-3 px-2 py-1">
       {!isLoading && tickerData ? (
         <>
           <PriceInfo data={tickerData} />
@@ -26,7 +26,7 @@ const Trade = () => {
               exchange={tickerData.exchange}
             />
           </div>
-          <Chart timeFrame={timeFrame} tickerData={tickerData} />
+          <ChartComponent timeFrame={timeFrame} tickerData={tickerData} />
         </>
       ) : (
         <LoadingSpinner />

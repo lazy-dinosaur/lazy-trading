@@ -81,7 +81,7 @@ export const DataTable = ({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 pt-4">
+      <div className="flex items-center justify-end space-x-2">
         <div className="flex-1 text-sm text-muted-foreground">
           Showing {startIndex} to {endIndex} of {filteredRows.length} row(s).
         </div>

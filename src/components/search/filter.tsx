@@ -12,7 +12,7 @@ import {
 
 const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
   return (
-    <div className="flex items-center py-4 justify-between w-full">
+    <div className="flex items-center justify-between w-full">
       <Input
         placeholder="Search Coins"
         value={(table.getColumn("symbol")?.getFilterValue() as string) ?? ""}
