@@ -2,15 +2,15 @@ import { useLocation, useNavigate } from "react-router";
 import { SidebarTrigger } from "./ui/sidebar";
 import { usePin } from "@/hooks/usePin";
 import { ArrowLeft } from "lucide-react";
-import { useTicker } from "@/hooks/useExchange";
 import { cn } from "@/lib/utils";
 import { useAppStateCache } from "@/hooks/useAppStateCache";
+import { useChartData } from "@/hooks/useChartData";
 
 const Header = () => {
   const { pathname } = useLocation();
   const { isLoaded } = useAppStateCache();
   const navigate = useNavigate();
-  const fetchTicker = useTicker();
+  const { fetchTicker } = useChartData({});
   let title = "";
 
   const isExchangePath =
@@ -36,7 +36,7 @@ const Header = () => {
   return (
     isLoaded && (
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           {isExchangePath && (
             <button
               onClick={handleBack}

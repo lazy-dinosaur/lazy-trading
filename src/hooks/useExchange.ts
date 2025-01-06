@@ -1,9 +1,7 @@
 import { ExchangeType } from "./useAccounts";
-import ccxt, { Exchange, Num, Ticker } from "ccxt";
+import ccxt, { Exchange, Ticker } from "ccxt";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { useParams } from "react-router";
-import { TimeFrameType } from "@/components/trade/time-frame";
 
 interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -251,73 +249,4 @@ export const useExchange = () => {
     marketData,
     setExchange,
   };
-};
-export const useOHLCV = ({
-  timeFrame,
-  start,
-  end,
-  limit,
-}: {
-  timeFrame: TimeFrameType;
-  start?: Num;
-  end?: Num;
-  limit?: Num;
-}) => {
-  const params = useParams();
-  const symbol = `${params.coin}/${params.base}`;
-  const exchange = params.exchange as ExchangeType;
-
-  const {
-    exchangeData: { data, isLoading },
-  } = useExchange();
-  return useQuery({
-    queryKey: [exchange, symbol, timeFrame],
-    queryFn: async () => {
-      if (!data || !data[exchange]) {
-        throw new Error("Exchange instances not initialized");
-      }
-      const exchangeInstance = data[exchange].pro;
-      return await exchangeInstance.fetchOHLCV(
-        symbol,
-        timeFrame,
-        start,
-        limit,
-        { until: end },
-      );
-    },
-    refetchInterval: 10,
-    refetchIntervalInBackground: true,
-    refetchOnMount: true,
-    enabled: !isLoading && !!data,
-  });
-};
-export const useTicker = () => {
-  const params = useParams();
-  const symbol = `${params.coin}/${params.base}`;
-  const exchange = params.exchange as ExchangeType;
-
-  const {
-    exchangeData: { data, isLoading },
-  } = useExchange();
-
-  return useQuery<TickerWithExchange>({
-    queryKey: [exchange, params.coin, params.base],
-    queryFn: async () => {
-      if (!data || !data[exchange]) {
-        throw new Error("Exchange instances not initialized");
-      }
-      const exchangeInstance = data[exchange].ccxt;
-      const ticker = await exchangeInstance.fetchTicker(symbol);
-      return { ...ticker, exchange };
-    },
-    enabled:
-      !!params.coin &&
-      !!params.exchange &&
-      !!params.base &&
-      !!data &&
-      !isLoading,
-    refetchInterval: 200,
-    refetchIntervalInBackground: true,
-    refetchOnMount: true,
-  });
 };
