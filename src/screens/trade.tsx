@@ -4,18 +4,42 @@ import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";
 import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
 import { DecryptedAccount } from "@/hooks/useAccounts";
-import { useTicker } from "@/hooks/useExchange";
-import { useState } from "react";
+import { useAppStateCache } from "@/hooks/useAppStateCache";
+import { useChartData } from "@/hooks/useChartData";
+import { useEffect, useState } from "react";
 
 const Trade = () => {
-  const { data: tickerData, isLoading } = useTicker();
+  const {
+    fetchTicker: { data: tickerData, isLoading: isTickerLoading },
+  } = useChartData({});
+  const { appState, updateState } = useAppStateCache();
   const [accounts, setAccounts] = useState<DecryptedAccount[]>();
   const [selected, setSelected] = useState<number>(0);
-  const [timeFrame, setTimeFrame] = useState<TimeFrameType>("30");
+  const [timeFrame, setTimeFrame] = useState<TimeFrameType | null>(null);
+  const [isLoading, setLoading] = useState(true);
+
+  const chartKey = `${tickerData?.exchange}-${tickerData?.symbol}-${timeFrame}-trade`;
+
+  useEffect(() => {
+    if (appState && tickerData && !isTickerLoading && !timeFrame && isLoading) {
+      if (appState.data.timeFrame) {
+        setTimeFrame(appState.data.timeFrame);
+      } else {
+        setTimeFrame("30");
+      }
+      setLoading(false);
+    }
+  }, [appState, tickerData, isTickerLoading]);
+
+  useEffect(() => {
+    if (!isLoading && timeFrame) {
+      updateState({ ...appState, data: { timeFrame } });
+    }
+  }, [isLoading, timeFrame]);
 
   return (
-    <div className="w-[450px] h-max">
-      {!isLoading && tickerData ? (
+    <div key={chartKey} className="w-[450px] h-max">
+      {!isLoading && tickerData && timeFrame ? (
         <>
           <div className="w-full space-y-3">
             <PriceInfo data={tickerData} />
@@ -29,7 +53,7 @@ const Trade = () => {
             </div>
             <ChartComponent timeFrame={timeFrame} tickerData={tickerData} />
           </div>
-          <div className="w-full h-40 bg-slate-900">ddd</div>
+          <div className="w-full h-32 bg-slate-900">ddd</div>
         </>
       ) : (
         <LoadingSpinner />

@@ -7,6 +7,7 @@ interface ChartProps {
   grid?: DeepPartial<ChartOptions["grid"]>;
   timeScale?: DeepPartial<ChartOptions["timeScale"]>;
   rightPriceScale?: DeepPartial<ChartOptions["rightPriceScale"]>;
+  onReachStart?: () => void; // 과거 데이터 로드를 위한 콜백
   children?: React.ReactNode;
 }
 
@@ -17,7 +18,7 @@ export const Chart = (props: ChartProps) => {
     [],
   );
   return (
-    <div ref={handleRef} className="w-full h-64 rounded-md overflow-hidden">
+    <div ref={handleRef} className="w-full h-72 rounded-md overflow-hidden">
       {container && <ChartContainer {...props} container={container} />}
     </div>
   );

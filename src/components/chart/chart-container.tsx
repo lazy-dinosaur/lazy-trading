@@ -4,6 +4,7 @@ import {
   DeepPartial,
   ChartOptions,
   ISeriesApi,
+  LogicalRange,
 } from "lightweight-charts";
 import {
   forwardRef,
@@ -13,16 +14,19 @@ import {
   useEffect,
 } from "react";
 import { ChartContext } from "@/screens/search";
+import { throttle } from "lodash";
 
 interface ChartContainerProps {
   container: HTMLDivElement;
   layout?: DeepPartial<ChartOptions["layout"]>;
   children?: React.ReactNode;
+  onReachStart?: () => void; // 과거 데이터 로드를 위한 콜백
   [key: string]: any; // 추가 ChartOptions를 위한 인덱스 시그니처
 }
 
 interface ChartApiRef {
   isRemoved: boolean;
+  isLoading: boolean;
   _api?: IChartApi;
   api(): IChartApi;
   free(series: ISeriesApi<any>): void;
@@ -30,10 +34,11 @@ interface ChartApiRef {
 
 export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
   (props, ref) => {
-    const { children, container, layout, ...rest } = props;
+    const { children, container, layout, onReachStart, ...rest } = props;
 
     const chartApiRef = useRef<ChartApiRef>({
       isRemoved: false,
+      isLoading: false,
       api() {
         if (!this._api) {
           this._api = createChart(container, {
@@ -62,6 +67,43 @@ export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
         }
       },
     });
+
+    // handleRangeChange를 useEffect 내부로 이동
+    useEffect(() => {
+      const chart = chartApiRef.current.api();
+      const handleRangeChange = throttle(
+        async (range: LogicalRange | null) => {
+          if (
+            range?.from &&
+            range.from <= 2 &&
+            onReachStart &&
+            !chartApiRef.current.isLoading
+          ) {
+            try {
+              chartApiRef.current.isLoading = true;
+              await Promise.resolve(onReachStart());
+            } catch (error) {
+              console.error("Error loading historical data:", error);
+            } finally {
+              chartApiRef.current.isLoading = false;
+            }
+          }
+        },
+        500,
+        { leading: true, trailing: false },
+      );
+
+      // 구독 설정
+      chart.timeScale().subscribeVisibleLogicalRangeChange(handleRangeChange);
+
+      // cleanup 함수에서 구독 해제
+      return () => {
+        chart
+          .timeScale()
+          .unsubscribeVisibleLogicalRangeChange(handleRangeChange);
+        handleRangeChange.cancel(); // throttle 취소
+      };
+    }, [onReachStart]); // onReachStart가 변경될 때마다 새로운 핸들러 등록
 
     useLayoutEffect(() => {
       const currentRef = chartApiRef.current;

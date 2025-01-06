@@ -6,7 +6,7 @@ export const TimeFrame = ({
 }: {
   timeFrameState: {
     timeFrame: string;
-    setTimeFrame: React.Dispatch<React.SetStateAction<TimeFrameType>>;
+    setTimeFrame: React.Dispatch<React.SetStateAction<TimeFrameType | null>>;
   };
 }) => {
   const { timeFrame, setTimeFrame } = timeFrameState;

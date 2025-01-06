@@ -2,8 +2,7 @@ import {
   CandlestickSeriesOptions,
   ISeriesApi,
   DeepPartial,
-  CandlestickData,
-  Time,
+  OhlcData,
 } from "lightweight-charts";
 import {
   forwardRef,
@@ -14,7 +13,7 @@ import {
 } from "react";
 import { ChartContext } from "@/screens/search";
 
-export type CandleData = CandlestickData<Time>;
+export type CandleData = OhlcData & { volume: number };
 
 interface CandleProps {
   data: CandleData[];
