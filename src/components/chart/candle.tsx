@@ -30,20 +30,48 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
 
     const context = useRef<{
       _api: ISeriesApi<"Candlestick"> | undefined;
+      _volumeApi: ISeriesApi<"Histogram"> | undefined; // 볼륨 API 추가
       api: () => ISeriesApi<"Candlestick">;
       free: () => void;
     }>({
-      _api: undefined as ISeriesApi<"Candlestick"> | undefined,
+      _api: undefined,
+      _volumeApi: undefined,
       api() {
         if (!this._api) {
           const { data, options } = props;
-          // shadcn dark theme colors
+
+          // 볼륨 시리즈 먼저 추가
+          this._volumeApi = parent.api().addHistogramSeries({
+            priceFormat: {
+              type: "volume",
+            },
+            priceScaleId: "", // 메인 스케일에 오버레이
+          });
+
+          // 볼륨 데이터 설정
+          const volumeData = data.map((item) => ({
+            time: item.time,
+            value: item.volume,
+            color:
+              item.close >= item.open
+                ? "rgba(34, 197, 94, 0.2)" // 상승봉 - 연한 초록
+                : "rgba(239, 68, 68, 0.2)", // 하락봉 - 연한 빨강
+          }));
+          this._volumeApi.setData(volumeData);
+          this._volumeApi.priceScale().applyOptions({
+            scaleMargins: {
+              top: 0.7,
+              bottom: 0,
+            },
+          });
+
+          // 캔들 시리즈 추가
           this._api = parent.api().addCandlestickSeries({
-            upColor: "#22C55ECC", // green-500 with 80% opacity (상승)
-            downColor: "#EF4444CC", // red-500 with 80% opacity (하락)
+            upColor: "#22C55ECC",
+            downColor: "#EF4444CC",
             borderVisible: false,
-            wickUpColor: "#22C55ECC", // green-500 with 80% opacity (상승 꼬리)
-            wickDownColor: "#EF4444CC", // red-500 with 80% opacity (하락 꼬리)
+            wickUpColor: "#22C55ECC",
+            wickDownColor: "#EF4444CC",
             ...options,
           });
 
@@ -51,9 +79,9 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           parent.api().applyOptions({
             layout: {
               background: {
-                color: "#0A0A0A", // zinc-950 배경색
+                color: "#0A0A0A",
               },
-              textColor: "#FAFAFA", // zinc-200 텍스트
+              textColor: "#FAFAFA",
             },
             grid: {
               vertLines: {
@@ -64,11 +92,11 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
               },
             },
             timeScale: {
-              borderColor: "#27272a", // zinc-800 테두리
+              borderColor: "#27272a",
               timeVisible: true,
             },
             rightPriceScale: {
-              borderColor: "#27272a", // zinc-800 테두리
+              borderColor: "#27272a",
             },
           });
           this._api.setData(data);
@@ -76,9 +104,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
         return this._api;
       },
       free() {
-        // check if parent component was removed already
+        if (this._volumeApi && !parent.isRemoved) {
+          parent.free(this._volumeApi);
+        }
         if (this._api && !parent.isRemoved) {
-          // remove only current series
           parent.free(this._api);
         }
       },
@@ -97,7 +126,22 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       if (options) {
         currentRef.api().applyOptions(options);
       }
+
+      // 캔들 데이터 업데이트
       currentRef.api().setData(data);
+
+      // 볼륨 데이터 업데이트
+      if (currentRef._volumeApi) {
+        const volumeData = data.map((item) => ({
+          time: item.time,
+          value: item.volume,
+          color:
+            item.close >= item.open
+              ? "rgba(34, 197, 94, 0.2)"
+              : "rgba(239, 68, 68, 0.2)",
+        }));
+        currentRef._volumeApi.setData(volumeData);
+      }
     }, [props.data, props.options]);
 
     useImperativeHandle(ref, () => context.current.api(), []);
