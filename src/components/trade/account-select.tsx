@@ -12,7 +12,7 @@ import {
   ExchangeType,
   useAccounts,
 } from "@/hooks/useAccounts";
-import { useExchange } from "@/hooks/useExchange";
+import { useAccountsInfo } from "@/hooks/useAccountsInfo";
 import React, { useEffect } from "react";
 
 export const AccountSelector = ({
@@ -33,10 +33,8 @@ export const AccountSelector = ({
   exchange?: ExchangeType;
 }) => {
   const { useAllDecryptedAccounts } = useAccounts();
-  const {
-    setExchange: { mutate },
-  } = useExchange();
   const decryptedAccounts = useAllDecryptedAccounts();
+  const { data } = useAccountsInfo();
 
   useEffect(() => {
     if (!accounts && decryptedAccounts.data) {
@@ -49,11 +47,8 @@ export const AccountSelector = ({
   }, [decryptedAccounts.data]);
 
   useEffect(() => {
-    if (!!accounts && selected) {
-      const { exchange, apiKey, secretKey } = accounts[selected];
-      mutate({ exchange, apikey: apiKey, secret: secretKey });
-    }
-  }, [selected, accounts]);
+    console.log(data);
+  }, [data]);
 
   return (
     accounts && (
@@ -66,13 +61,23 @@ export const AccountSelector = ({
         <SelectTrigger className="w-32 h-6">
           <SelectValue placeholder="Account" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-48">
           <SelectGroup>
-            {accounts?.map((account, index) => (
-              <SelectItem className="h-5" value={index.toString()}>
-                {account.name}
-              </SelectItem>
-            ))}
+            {accounts?.map((account, index) => {
+              const id = accounts[index].id;
+              const totalBalance = data && (data[id].balance.total as any).USDT;
+              return (
+                <div>
+                  <SelectItem key={id} className="h-5" value={index.toString()}>
+                    {account.name}
+                  </SelectItem>
+                  <div className="text-xs opacity-85 px-2">
+                    <span>Total:{`${totalBalance}`}</span>
+                    <span></span>
+                  </div>
+                </div>
+              );
+            })}
           </SelectGroup>
         </SelectContent>
       </Select>
