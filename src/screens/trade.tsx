@@ -3,6 +3,7 @@ import { AccountSelector } from "@/components/trade/account-select";
 import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";
 import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
+import { TradeComponent } from "@/components/trade/trade-component";
 import { DecryptedAccount } from "@/hooks/useAccounts";
 import { useAppStateCache } from "@/hooks/useAppStateCache";
 import { useChartData } from "@/hooks/useChartData";
@@ -36,7 +37,7 @@ const Trade = () => {
       updateState({ ...appState, data: { timeFrame } });
     }
   }, [isLoading, timeFrame]);
-
+  //TODO: 스켈레톤 로딩으로 바꾸기
   return (
     <div key={chartKey} className="w-[450px] h-max">
       {!isLoading && tickerData && timeFrame ? (
@@ -53,7 +54,7 @@ const Trade = () => {
             </div>
             <ChartComponent timeFrame={timeFrame} tickerData={tickerData} />
           </div>
-          <div className="w-full h-32 bg-slate-900">ddd</div>
+          <TradeComponent />
         </>
       ) : (
         <LoadingSpinner />
