@@ -105,7 +105,6 @@ export const useChartData = ({
   const {
     exchangeData: { data, isLoading },
   } = useExchange();
-  console.log("거래소", exchange);
 
   // 기존 ticker 쿼리
   const fetchTicker = useQuery<TickerWithExchange>({

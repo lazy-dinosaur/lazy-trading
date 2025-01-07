@@ -56,7 +56,6 @@ const Pin = () => {
       // PIN 확인 단계
       if (data.pin === firstPin) {
         console.log("PIN confirmed:", data.pin);
-        // TODO: PIN 저장 로직
         setPin(data.pin);
         setPinCreated(true);
       } else {

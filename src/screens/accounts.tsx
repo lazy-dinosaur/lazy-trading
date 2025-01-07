@@ -5,7 +5,6 @@ const Accounts = () => {
 
   return (
     <>
-      accounts.tsx
       <Button onClick={() => navigate("/accounts")}>accounts</Button>
       <Button onClick={() => navigate("/trade")}>trade</Button>
       <Button onClick={() => navigate("/setup")}>setup</Button>
