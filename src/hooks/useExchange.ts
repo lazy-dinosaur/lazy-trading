@@ -214,7 +214,7 @@ export const useExchange = () => {
     },
   });
 
-  const fetchBalance = useMutation({
+  const fetchValid = useMutation({
     mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
       if (!exchangeInstancesRef.current) {
         throw new Error("Exchange instances not initialized");
@@ -228,25 +228,10 @@ export const useExchange = () => {
     },
   });
 
-  const setExchange = useMutation({
-    mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
-      if (!exchangeInstancesRef.current) {
-        throw new Error("Exchange instances not initialized");
-      }
-
-      const exchangeInstance = exchangeInstancesRef.current[exchange].ccxt;
-      exchangeInstance.apiKey = apikey;
-      exchangeInstance.secret = secret;
-
-      return { success: true };
-    },
-  });
-
   return {
     exchangeData,
     tickerData,
-    fetchBalance,
+    fetchValid,
     marketData,
-    setExchange,
   };
 };

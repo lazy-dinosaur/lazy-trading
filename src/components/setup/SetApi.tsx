@@ -38,7 +38,7 @@ const SetApi = () => {
   const { addAccount, isAccountAdded } = useAccounts();
   const navigate = useNavigate();
   const [validChecking, setValidCheck] = useState(false);
-  const { fetchBalance } = useExchange();
+  const { fetchValid } = useExchange();
 
   useEffect(() => {
     if (isAccountAdded) navigate("/search");
@@ -48,7 +48,7 @@ const SetApi = () => {
     setValidCheck(true);
 
     try {
-      const validCheck = await fetchBalance.mutateAsync({
+      const validCheck = await fetchValid.mutateAsync({
         exchange: data.exchange,
         apikey: data.apiKey,
         secret: data.secretKey,
@@ -63,7 +63,7 @@ const SetApi = () => {
         });
       }
     } catch (err) {
-      fetchBalance.reset();
+      fetchValid.reset();
       //TODO: 에러 알림 표시 구현해야함
       console.log(err);
       form.setValue("apiKey", "");
