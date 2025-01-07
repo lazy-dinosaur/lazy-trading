@@ -5,10 +5,7 @@ import { Chart } from "../chart/chart";
 import { TickerWithExchange } from "../search/columns";
 import { TimeFrameType } from "./time-frame";
 import { useChartData } from "@/hooks/useChartData";
-
-// 테스트 데이터
-
-//TODO: 데이터 정제
+import { LoadingSpinner } from "../loading";
 
 export const ChartComponent = ({
   timeFrame,
@@ -28,9 +25,13 @@ export const ChartComponent = ({
     candle.current.setData(fetchChart.data);
   }, [fetchChart.data]);
 
-  return (
+  return fetchChart.data.length > 0 ? (
     <Chart key={chartKey} onReachStart={fetchChart.handleScroll}>
       <CandleSeries ref={candle} data={fetchChart.data} />
     </Chart>
+  ) : (
+    <div className="w-full h-72 rounded-md overflow-hidden">
+      <LoadingSpinner />
+    </div>
   );
 };
