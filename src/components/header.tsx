@@ -45,7 +45,7 @@ const Header = () => {
               <ArrowLeft className="w-5 h-5" />
             </button>
           )}
-          <div className="text-lg capitalize flex items-center gap-2 px-1">
+          <div className="text-lg capitalize flex items-center gap-2">
             {title ? title : "Dashboard"}
             {isExchangePath && !fetchTicker.isLoading && fetchTicker.data && (
               <span
