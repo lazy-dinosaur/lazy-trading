@@ -6,6 +6,7 @@ import { TickerWithExchange } from "../search/columns";
 import { TimeFrameType } from "./time-frame";
 import { useChartData } from "@/hooks/useChartData";
 import { LoadingSpinner } from "../loading";
+import { getStopLossMarkers } from "@/lib/utils";
 
 export const ChartComponent = ({
   timeFrame,
@@ -23,6 +24,7 @@ export const ChartComponent = ({
   useEffect(() => {
     if (!candle.current) return;
     candle.current.setData(fetchChart.data);
+    candle.current.setMarkers(getStopLossMarkers(fetchChart.data));
   }, [fetchChart.data]);
 
   return fetchChart.data.length > 0 ? (

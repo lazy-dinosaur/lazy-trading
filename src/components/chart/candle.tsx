@@ -12,6 +12,7 @@ import {
   useImperativeHandle,
 } from "react";
 import { ChartContext } from "@/screens/search";
+import { searchingStopLossCandle } from "@/lib/utils";
 
 export type CandleData = OhlcData & { volume: number };
 
@@ -31,11 +32,16 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
     const context = useRef<{
       _api: ISeriesApi<"Candlestick"> | undefined;
       _volumeApi: ISeriesApi<"Histogram"> | undefined; // 볼륨 API 추가
+      _highLineApi: ISeriesApi<"Line"> | undefined;
+      _lowLineApi: ISeriesApi<"Line"> | undefined;
       api: () => ISeriesApi<"Candlestick">;
+      updateStopLossLines: (data: CandleData[]) => void;
       free: () => void;
     }>({
       _api: undefined,
       _volumeApi: undefined,
+      _highLineApi: undefined,
+      _lowLineApi: undefined,
       api() {
         if (!this._api) {
           const { data, options } = props;
@@ -99,16 +105,62 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
               borderColor: "#27272a",
             },
           });
+          // 상단 라인 시리즈 추가
+          this._highLineApi = parent.api().addLineSeries({
+            lastPriceAnimation: 1,
+            color: "#EF4444CC",
+            lineWidth: 1,
+            lineStyle: 2, // 점선
+          });
+
+          // 하단 라인 시리즈 추가
+          this._lowLineApi = parent.api().addLineSeries({
+            lastPriceAnimation: 1,
+            color: "#22C55ECC",
+            lineWidth: 1,
+            lineStyle: 2, // 점선
+          });
+
           this._api.setData(data);
+          this.updateStopLossLines(data);
         }
+
         return this._api;
+      },
+      updateStopLossLines(data: CandleData[]) {
+        if (!this._highLineApi || !this._lowLineApi || data.length < 3) return;
+
+        const highMarker = searchingStopLossCandle(
+          data,
+          data.length - 1,
+          "high",
+        );
+        const lowMarker = searchingStopLossCandle(data, data.length - 1, "low");
+
+        // 상단 라인 데이터 생성
+        const highLineData = data.map((candle) => ({
+          time: candle.time,
+          value: highMarker.high,
+        }));
+
+        // 하단 라인 데이터 생성
+        const lowLineData = data.map((candle) => ({
+          time: candle.time,
+          value: lowMarker.low,
+        }));
+
+        this._highLineApi.setData(highLineData);
+        this._lowLineApi.setData(lowLineData);
       },
       free() {
         if (this._volumeApi && !parent.isRemoved) {
           parent.free(this._volumeApi);
         }
-        if (this._api && !parent.isRemoved) {
-          parent.free(this._api);
+        if (this._highLineApi && !parent.isRemoved) {
+          parent.free(this._highLineApi);
+        }
+        if (this._lowLineApi && !parent.isRemoved) {
+          parent.free(this._lowLineApi);
         }
       },
     });
@@ -142,6 +194,9 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
         }));
         currentRef._volumeApi.setData(volumeData);
       }
+
+      // 스탑로스 라인 업데이트
+      currentRef.updateStopLossLines(data);
     }, [props.data, props.options]);
 
     useImperativeHandle(ref, () => context.current.api(), []);
