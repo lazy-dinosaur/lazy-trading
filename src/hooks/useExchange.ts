@@ -30,8 +30,12 @@ const createExchangeInstances = (): ExchangeInstances => ({
     pro: new ccxt.pro.binance(),
   },
   bitget: {
-    ccxt: new ccxt.bitget(),
-    pro: new ccxt.pro.bitget(),
+    ccxt: new ccxt.bitget({
+      password: "lazytrading",
+    }),
+    pro: new ccxt.pro.bitget({
+      password: "lazytrading",
+    }),
   },
 });
 
@@ -223,6 +227,7 @@ export const useExchange = () => {
       const exchangeInstance = exchangeInstancesRef.current[exchange].ccxt;
       exchangeInstance.apiKey = apikey;
       exchangeInstance.secret = secret;
+      exchangeInstance.password = "lazytrading";
 
       return await exchangeInstance.fetchBalance();
     },
