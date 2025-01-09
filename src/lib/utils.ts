@@ -1,6 +1,7 @@
 import { TimeFrameType } from "@/components/trade/time-frame";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { CandleData } from "@/components/chart/candle";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -110,8 +111,6 @@ export const formatTime = (timestamp: number, timeFrame: TimeFrameType) => {
       return date.toISOString().split("T")[0];
   }
 };
-
-import { CandleData } from "@/components/chart/candle";
 
 /**
  * 최근 캔들 데이터에서 손절 기준이 되는 고점/저점을 찾는 함수
