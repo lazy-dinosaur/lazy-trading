@@ -6,12 +6,14 @@ export const TimeFrame = ({
 }: {
   timeFrameState: {
     timeFrame: string;
-    setTimeFrame: React.Dispatch<React.SetStateAction<TimeFrameType | null>>;
+    setTimeFrame: React.Dispatch<
+      React.SetStateAction<TimeFrameType | undefined>
+    >;
   };
 }) => {
   const { timeFrame, setTimeFrame } = timeFrameState;
   return (
-    <div className="grid grid-flow-col gap-2 text-zinc-400 text-xs">
+    <div className="grid grid-flow-col gap-2 text-muted-foreground text-xs">
       <span
         aria-selected={timeFrame == "5"}
         onClick={() => setTimeFrame("5")}

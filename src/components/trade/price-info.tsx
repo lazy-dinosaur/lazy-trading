@@ -39,27 +39,27 @@ export const PriceInfo = ({ data }: { data: TickerWithExchange }) => {
           {curPrice.price}
         </h1>
         <span className="flex gap-1">
-          <span className="capitalize text-zinc-400">volume</span>
+          <span className="capitalize text-muted-foreground">volume</span>
           <span>{quoteVolume}</span>
         </span>
       </div>
       <div className="">
         <div className="flex w-full items-center justify-between gap-2">
-          <span className="capitalize text-zinc-400">24High</span>
+          <span className="capitalize text-muted-foreground">24High</span>
           <span>{high}</span>
         </div>
         <div className="flex w-full items-center justify-between gap-2">
-          <span className="capitalize text-zinc-400">24Low</span>
+          <span className="capitalize text-muted-foreground">24Low</span>
           <span>{low}</span>
         </div>
         {exchange == "bybit" ? (
           <div className="flex w-full items-center justify-between gap-2">
-            <span className="capitalize text-zinc-400">24Turnover</span>
+            <span className="capitalize text-muted-foreground">24Turnover</span>
             <span>{data.info.turnover24h}</span>
           </div>
         ) : (
           <div className="flex w-full items-center justify-between gap-2">
-            <span className="capitalize text-zinc-400">vwap</span>
+            <span className="capitalize text-muted-foreground">vwap</span>
             <span>{vwap}</span>
           </div>
         )}

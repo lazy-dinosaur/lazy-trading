@@ -1,38 +1,35 @@
 import { useEffect, useRef } from "react";
 import { ISeriesApi } from "lightweight-charts";
-import { CandleSeries } from "../chart/candle";
+import { CandleData, CandleSeries } from "../chart/candle";
 import { Chart } from "../chart/chart";
-import { TickerWithExchange } from "../search/columns";
-import { TimeFrameType } from "./time-frame";
-import { useChartData } from "@/hooks/useChartData";
 import { LoadingSpinner } from "../loading";
 import { getStopLossMarkers } from "@/lib/utils";
 
 export const ChartComponent = ({
-  timeFrame,
-  tickerData,
+  candleData,
+  handleChartScroll,
+  chartKey,
 }: {
-  timeFrame: TimeFrameType;
-  tickerData: TickerWithExchange;
+  candleData: CandleData[];
+  handleChartScroll: () => Promise<void>;
+  chartKey: string;
 }) => {
   const candle = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const chartKey = `${tickerData.exchange}-${tickerData.symbol}-${timeFrame}`;
-
-  const { fetchChart } = useChartData({ timeFrame });
 
   // 차트 데이터 업데이트
   useEffect(() => {
     if (!candle.current) return;
-    candle.current.setData(fetchChart.data);
-    candle.current.setMarkers(getStopLossMarkers(fetchChart.data));
-  }, [fetchChart.data]);
+    candle.current.setData(candleData);
+    candle.current.setMarkers(getStopLossMarkers(candleData));
+    console.log(candleData);
+  }, [candleData]);
 
-  return fetchChart.data.length > 0 ? (
-    <Chart key={chartKey} onReachStart={fetchChart.handleScroll}>
-      <CandleSeries ref={candle} data={fetchChart.data} />
+  return candleData.length > 0 ? (
+    <Chart key={chartKey} onReachStart={handleChartScroll}>
+      <CandleSeries ref={candle} data={candleData} />
     </Chart>
   ) : (
-    <div className="w-full h-72 rounded-md overflow-hidden">
+    <div className="w-full h-64 rounded-md overflow-hidden">
       <LoadingSpinner />
     </div>
   );
