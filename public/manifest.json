@@ -13,20 +13,41 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["storage", "unlimitedStorage"],
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "*://*.binance.com/*",
+    "*://*.upbit.com/*",
+    "*://*.bithumb.com/*",
+    "*://*.bybit.com/*",
+    "*://*.okx.com/*",
+    "*://*.huobi.com/*",
+    "*://*.kucoin.com/*",
+    "*://*.bitget.com/*"
+  ],
   "host_permissions": [
-    "https://*.binance.com/*",
-    "https://*.upbit.com/*",
-    "https://*.bithumb.com/*",
-    "https://*.bybit.com/*",
-    "https://*.okx.com/*",
-    "https://*.huobi.com/*",
-    "https://*.kucoin.com/*"
+    "*://*.binance.com/*",
+    "*://*.upbit.com/*",
+    "*://*.bithumb.com/*",
+    "*://*.bybit.com/*",
+    "*://*.okx.com/*",
+    "*://*.huobi.com/*",
+    "*://*.kucoin.com/*",
+    "*://*.bitget.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
   "icons": {
     "32": "vite.svg"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   }
 }

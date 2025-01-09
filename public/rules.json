@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        {
+          "header": "Access-Control-Allow-Origin",
+          "operation": "set",
+          "value": "*"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": [
+        "*://*.binance.com/*",
+        "*://*.upbit.com/*",
+        "*://*.bithumb.com/*",
+        "*://*.bybit.com/*",
+        "*://*.okx.com/*",
+        "*://*.huobi.com/*",
+        "*://*.kucoin.com/*",
+        "*://*.bitget.com/*"
+      ],
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  }
+]
