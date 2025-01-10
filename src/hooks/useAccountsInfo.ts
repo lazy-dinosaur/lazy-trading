@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAccounts } from "./useAccounts";
 import { useExchange } from "./useExchange";
-import { Balances, Position, Trade, Exchange, Balance } from "ccxt";
+import { Balances, Position, Exchange, Balance, Order } from "ccxt";
 
 interface USDBalance {
   total: number;
@@ -73,12 +73,18 @@ async function calculateUSDBalance(
     free: Math.round(usdBalance.free * 100) / 100,
   };
 }
-export type AccountInfoType = {
-  [keyof: string]: {
-    balance: BalancesType;
-    positions: Position[];
-    trades: Trade[];
+export type AccountInfo = {
+  balance: BalancesType;
+  positions: Position[];
+  positionsHistory: Position[];
+  orders: {
+    open: Order[];
+    closed: Order[];
   };
+};
+
+export type AccountInfoType = {
+  [keyof: string]: AccountInfo;
 };
 
 export const useAccountsInfo = () => {
@@ -87,12 +93,13 @@ export const useAccountsInfo = () => {
     useAllDecryptedAccounts();
   const {
     exchangeData: { data: exchangeData, isLoading: isExchangeLoading },
+    tickerData: { data: tickerData, isLoading: isTickerLoading },
   } = useExchange();
 
   return useQuery({
     queryKey: ["accountsInfo"],
     queryFn: async () => {
-      if (!decryptedAccounts || !exchangeData) {
+      if (!decryptedAccounts || !exchangeData || !tickerData) {
         throw new Error("Accounts or exchange data not available");
       }
 
@@ -113,62 +120,20 @@ export const useAccountsInfo = () => {
               rawBalance,
             );
             const positions = await exchangeInstance.fetchPositions();
-            let trades: Trade[] = [];
-
-            // Bitget인 경우 특별 처리
-            if (account.exchange === "bitget") {
-              try {
-                // 사용 가능한 모든 심볼 가져오기
-                const markets = await exchangeInstance.loadMarkets();
-                const symbols = Object.keys(markets);
-
-                // 각 심볼별로 거래 기록 조회 (병렬 처리)
-                const tradesPromises = symbols.map(async (symbol) => {
-                  try {
-                    const symbolTrades = await exchangeInstance.fetchMyTrades(
-                      symbol,
-                      undefined,
-                      100,
-                    );
-                    return symbolTrades;
-                  } catch (error) {
-                    console.warn(
-                      `Failed to fetch trades for ${symbol}:`,
-                      error,
-                    );
-                    return [];
-                  }
-                });
-
-                // 배치 처리로 API 호출 제한 관리
-                const batchSize = 5; // 한 번에 처리할 심볼 수
-                for (let i = 0; i < tradesPromises.length; i += batchSize) {
-                  const batch = tradesPromises.slice(i, i + batchSize);
-                  const batchResults = await Promise.all(batch);
-                  trades = trades.concat(...batchResults);
-
-                  // API 호출 제한을 위한 딜레이
-                  if (i + batchSize < tradesPromises.length) {
-                    await new Promise((resolve) => setTimeout(resolve, 500));
-                  }
-                }
-
-                // 최신 순으로 정렬
-                trades.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-                // 최근 100개만 유지
-                trades = trades.slice(0, 100);
-              } catch (error) {
-                console.error("Error fetching all trades:", error);
-              }
-            } else {
-              // 다른 거래소는 기존 방식대로 처리
-              trades = await exchangeInstance.fetchMyTrades(
-                undefined,
-                undefined,
-                100,
-              );
-            }
+            // 다른 거래소는 기존 방식대로 처리
+            //
+            const closed = await exchangeInstance.fetchClosedOrders(
+              undefined,
+              undefined,
+              100,
+            );
+            const open = await exchangeInstance.fetchOpenOrders(
+              undefined,
+              undefined,
+              100,
+            );
+            const positionsHistory =
+              await exchangeInstance.fetchPositionsHistory();
 
             // 원래 balance 정보와 USD 환산 정보를 합침
             const balance = {
@@ -180,7 +145,11 @@ export const useAccountsInfo = () => {
             accountsInfo[account.id] = {
               balance,
               positions,
-              trades,
+              positionsHistory,
+              orders: {
+                open,
+                closed,
+              },
             };
           } catch (error) {
             console.error(
@@ -191,7 +160,11 @@ export const useAccountsInfo = () => {
             accountsInfo[account.id] = {
               balance: {} as BalancesType,
               positions: [] as Position[],
-              trades: [] as Trade[],
+              positionsHistory: [] as Position[],
+              orders: {
+                open: [] as Order[],
+                closed: [] as Order[],
+              },
             };
           }
         }),
@@ -199,8 +172,8 @@ export const useAccountsInfo = () => {
 
       return accountsInfo;
     },
-    enabled: !isAccountsLoading && !isExchangeLoading,
-    refetchInterval: 200,
+    enabled: !isAccountsLoading && !isExchangeLoading && !isTickerLoading,
+    refetchInterval: 500,
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchIntervalInBackground: true,
