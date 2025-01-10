@@ -74,7 +74,6 @@ const SetApi = () => {
   };
 
   useEffect(() => {
-    console.log(appState, "appState");
     if (isLoading && appState) {
       form.setValue("exchange", appState.data.exchange);
       form.setValue("name", appState.data.name);
@@ -84,11 +83,19 @@ const SetApi = () => {
     }
   }, [isLoading, form]);
 
-  form.watch((data) => {
-    if (appState && !isLoading) {
-      updateState({ ...appState, data });
-    }
-  });
+  useEffect(() => {
+    const subscription = form.watch((data) => {
+      if (appState && !isLoading) {
+        // debounce를 통해 상태 업데이트 최적화
+        const timeoutId = setTimeout(() => {
+          updateState({ ...appState, data });
+        }, 300);
+        return () => clearTimeout(timeoutId);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [appState, isLoading, form, updateState]);
 
   return (
     <Card className="w-[400px]">
@@ -111,11 +118,10 @@ const SetApi = () => {
                       <Label htmlFor="exchange">Exchanges</Label>
                       <Select
                         value={field.value}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                        }}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
                       >
-                        <SelectTrigger id="framework">
+                        <SelectTrigger id="exchange">
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent position="popper">
@@ -136,10 +142,7 @@ const SetApi = () => {
                     <FormItem>
                       <Label htmlFor="name">Name</Label>
                       <Input
-                        value={field.value}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
+                        {...field}
                         id="name"
                         placeholder="Name for remember"
                       />
@@ -155,11 +158,8 @@ const SetApi = () => {
                     <FormItem>
                       <Label htmlFor="apiKey">Api Key</Label>
                       <Input
+                        {...field}
                         id="apiKey"
-                        value={field.value}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
                         placeholder="Code of your Api"
                       />
                     </FormItem>
@@ -174,11 +174,8 @@ const SetApi = () => {
                     <FormItem>
                       <Label htmlFor="secretKey">Secret</Label>
                       <Input
+                        {...field}
                         id="secret"
-                        value={field.value}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
                         placeholder="Secret of your Api"
                       />
                     </FormItem>
