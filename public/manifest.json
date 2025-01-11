@@ -13,18 +13,7 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": [
-    "storage",
-    "unlimitedStorage",
-    "*://*.binance.com/*",
-    "*://*.upbit.com/*",
-    "*://*.bithumb.com/*",
-    "*://*.bybit.com/*",
-    "*://*.okx.com/*",
-    "*://*.huobi.com/*",
-    "*://*.kucoin.com/*",
-    "*://*.bitget.com/*"
-  ],
+  "permissions": ["storage", "unlimitedStorage", "declarativeNetRequest"],
   "host_permissions": [
     "*://*.binance.com/*",
     "*://*.upbit.com/*",
