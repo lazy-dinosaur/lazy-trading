@@ -10,7 +10,7 @@ const Header = () => {
   const { pathname } = useLocation();
   const { isLoaded } = useAppStateCache();
   const navigate = useNavigate();
-  const { fetchTicker } = useChartData({});
+  const { tickerData } = useChartData({});
   let title = "";
 
   const isExchangePath =
@@ -47,19 +47,19 @@ const Header = () => {
           )}
           <div className="text-lg capitalize flex items-center gap-2">
             {title ? title : "Dashboard"}
-            {isExchangePath && !fetchTicker.isLoading && fetchTicker.data && (
+            {isExchangePath && !tickerData.isLoading && tickerData.data && (
               <span
                 className={cn(
                   "p-1 text-xs rounded-md bg-opacity-50",
-                  fetchTicker.data.percentage && fetchTicker.data.percentage < 0
+                  tickerData.data.percentage && tickerData.data.percentage < 0
                     ? "bg-red-700 text-red-400"
                     : "bg-green-700 text-green-400",
                 )}
               >
-                {fetchTicker.data.percentage &&
-                  fetchTicker.data.percentage >= 0 &&
+                {tickerData.data.percentage &&
+                  tickerData.data.percentage >= 0 &&
                   "+"}
-                {fetchTicker.data.percentage?.toFixed(2)}%
+                {tickerData.data.percentage?.toFixed(2)}%
               </span>
             )}
           </div>

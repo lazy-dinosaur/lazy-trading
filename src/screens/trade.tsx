@@ -4,15 +4,15 @@ import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";
 import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
 import { TradeComponent } from "@/components/trade/trade-component";
-import { DecryptedAccount } from "@/hooks/useAccounts";
 import { useAccountsInfo } from "@/hooks/useAccountsInfo";
 import { useAppStateCache } from "@/hooks/useAppStateCache";
 import { useChartData } from "@/hooks/useChartData";
+import { DecryptedAccount } from "@/lib/appStorage";
 import { useEffect, useState } from "react";
 
 const Trade = () => {
   const {
-    fetchTicker: { data: tickerData, isLoading: isTickerLoading },
+    tickerData: { data: tickerData, isLoading: isTickerLoading },
   } = useChartData({});
   const { appState, updateState } = useAppStateCache();
   const { data: accountsInfo } = useAccountsInfo();

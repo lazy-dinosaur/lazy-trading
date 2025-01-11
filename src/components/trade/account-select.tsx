@@ -6,13 +6,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ExchangeType, useAccounts } from "@/hooks/useAccounts";
 
-import {
-  DecryptedAccount,
-  ExchangeType,
-  useAccounts,
-} from "@/hooks/useAccounts";
 import { AccountInfoType } from "@/hooks/useAccountsInfo";
+import { DecryptedAccount } from "@/lib/appStorage";
 import React, { useEffect } from "react";
 
 export const AccountSelector = ({

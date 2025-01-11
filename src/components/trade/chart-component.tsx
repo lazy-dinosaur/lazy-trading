@@ -21,7 +21,6 @@ export const ChartComponent = ({
     if (!candle.current) return;
     candle.current.setData(candleData);
     candle.current.setMarkers(getStopLossMarkers(candleData));
-    console.log(candleData);
   }, [candleData]);
 
   return candleData.length > 0 ? (

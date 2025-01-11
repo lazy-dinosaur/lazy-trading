@@ -15,7 +15,7 @@ const Dashboard = () => {
       <Button
         onClick={() => {
           deleteAllAccounts();
-          navigate("/setup");
+          navigate("/setup", { replace: true });
         }}
       >
         deleteAllAccounts

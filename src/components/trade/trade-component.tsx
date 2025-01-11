@@ -2,7 +2,12 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { getTradingConfig, setTradingConfig } from "@/lib/appStorage";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { AccountInfoType, BalancesType } from "@/hooks/useAccountsInfo";
+import {
+  AccountInfo,
+  AccountInfoType,
+  BalancesType,
+} from "@/hooks/useAccountsInfo";
+import { useParams } from "react-router";
 
 export const TradeComponent = ({
   id,
@@ -46,14 +51,19 @@ export const TradeComponent = ({
     };
     saveConfig();
   }, [risk]); // risk가 변경될 때만 실행
+  useEffect(() => {
+    console.log(accountsInfo);
+  }, [accountsInfo]);
 
   return (
     <div className="w-full h-40">
-      <div className="h-3/5 w-full grid grid-cols-10 pb-2">
+      <div className="h-3/5 w-full grid grid-cols-12 pb-2 gap-1">
         <AssetInfo
           assets={accountsInfo && !!id ? accountsInfo[id].balance : undefined}
         />
-        <TradingInfo />
+        <TradingInfo
+          accountsInfo={accountsInfo && !!id ? accountsInfo[id] : undefined}
+        />
         <RiskSetting riskState={{ risk, setRisk }} />
       </div>
       <div className="w-full flex justify-between h-2/5 items-center">
@@ -68,32 +78,75 @@ export const TradeComponent = ({
   );
 };
 const AssetInfo = ({ assets }: { assets: BalancesType | undefined }) => {
+  const { base } = useParams();
+  const baseAsset = base?.split(":")[1];
+  const baseAssetInfo = baseAsset && assets && assets?.[baseAsset];
   const total = assets?.usd.total;
   const used = assets?.usd.used;
   const free = assets?.usd.free;
 
   return (
-    <div className="h-full col-span-3">
-      <div className="text-xs text-muted-foreground">AssetsValues</div>
-      {assets ? (
+    <>
+      <div className="h-full col-span-1">
+        <div className="text-xs text-muted-foreground mb-1">Assets</div>
+        <div className="capitalize">total:</div>
+        <div className="capitalize">free:</div>
+        <div className="capitalize">used:</div>
+      </div>
+      <div className="h-full col-span-2">
+        <div className="text-xs text-muted-foreground mb-1">InUSD</div>
+        {assets ? (
+          <>
+            <div className="capitalize">${total}</div>
+            <div className="capitalize">${free}</div>
+            <div className="capitalize">${used}</div>
+          </>
+        ) : (
+          <>
+            <div className="">스켈레톤 로딩 예정</div>
+          </>
+        )}
+      </div>
+      <div className="h-full col-span-2">
+        {assets ? (
+          <>
+            <div className="text-xs text-muted-foreground mb-1">
+              {baseAsset}
+            </div>
+            <div className="capitalize">
+              {baseAssetInfo ? baseAssetInfo.total : 0}
+            </div>
+            <div className="capitalize">
+              {baseAssetInfo ? baseAssetInfo.free : 0}
+            </div>
+            <div className="capitalize">
+              {baseAssetInfo ? baseAssetInfo.free : 0}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="">스켈레톤 로딩 예정</div>
+          </>
+        )}
+      </div>
+    </>
+  );
+};
+
+const TradingInfo = ({ accountsInfo }: { accountsInfo?: AccountInfo }) => {
+  return (
+    <div className="h-full border col-span-5">
+      <div className="text-xs text-muted-foreground mb-1">TradingInfo</div>
+      {accountsInfo ? (
         <>
-          <div className="">Total: ${total}</div>
-          <div className="">Free: ${free}</div>
-          <div className="">used: ${used}</div>
+          <div className="capitalize text-muted-foreground">StopLossHigh</div>
+          <div className="capitalize text-muted-foreground">StopLossLow</div>
         </>
       ) : (
         <>
           <div className="">스켈레톤 로딩 예정</div>
         </>
       )}
-    </div>
-  );
-};
-
-const TradingInfo = () => {
-  return (
-    <div className="h-full border col-span-5">
-      <div className="text-xs text-muted-foreground">TradingInfo</div>
     </div>
   );
 };
@@ -113,13 +166,13 @@ const RiskSetting = ({
       <div className="flex h-full w-full items-center justify-center">
         <span className="flex h-full w-full items-center justify-center flex-col">
           <span className="text-xs text-muted-foreground">Risk</span>
-          <span className="text-lg font-semibold">{risk}%</span>
+          <span className="text-sm font-semibold">{risk}%</span>
         </span>
         <span className="flex h-full w-full items-center justify-center gap-1 flex-col text-center">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 hover:bg-accent border-t"
+            className="h-6 w-6 hover:bg-accent border-t"
             onClick={() =>
               setRisk((value) =>
                 value ? (value + 0.5 > 5 ? 5 : value + 0.5) : 1.5,
@@ -131,7 +184,7 @@ const RiskSetting = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 hover:bg-accent border-b"
+            className="h-6 w-6 hover:bg-accent border-b"
             onClick={() =>
               setRisk((value) =>
                 value ? (value - 0.5 < 0.5 ? 0.5 : value - 0.5) : 1.5,

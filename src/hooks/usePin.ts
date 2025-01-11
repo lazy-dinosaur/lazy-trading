@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPin, setPin, fetchPinCreated, setPinCreated } from "@/lib/utils";
-import { decryptAccount } from "./useAccounts";
+import { decryptAccount } from "@/lib/appStorage";
 
 export const validatePinWithAccounts = async (
   pin: string,
