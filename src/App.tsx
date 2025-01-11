@@ -1,5 +1,4 @@
 import { ThemeProvider } from "@/components/theme-provider";
-// import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { useMiddleware } from "./hooks/useMiddleware";
 

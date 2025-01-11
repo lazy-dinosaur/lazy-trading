@@ -3,7 +3,7 @@ import { ISeriesApi } from "lightweight-charts";
 import { CandleData, CandleSeries } from "../chart/candle";
 import { Chart } from "../chart/chart";
 import { LoadingSpinner } from "../loading";
-import { getStopLossMarkers } from "@/lib/utils";
+import { getStopLossMarkers } from "@/lib/ccxtUtils";
 
 export const ChartComponent = ({
   candleData,

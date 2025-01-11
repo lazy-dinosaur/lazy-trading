@@ -12,7 +12,7 @@ import {
   useImperativeHandle,
 } from "react";
 import { ChartContext } from "@/screens/search";
-import { searchingStopLossCandle } from "@/lib/utils";
+import { searchingStopLossCandle } from "@/lib/ccxtUtils";
 
 export type CandleData = OhlcData & { volume: number };
 
