@@ -1,19 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "LazyTradingChromeExtension",
+  "name": "LazyTrading",
   "description": "Cryptocurrency trading extension",
   "version": "1.0.0",
   "action": {
     "default_popup": "index.html",
+    "default_title:": "LazyTrading",
     "default_icon": {
       "32": "vite.svg"
     }
+  },
+  "side_panel": {
+    "default_path": "index.html"
   },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["storage", "unlimitedStorage", "declarativeNetRequest"],
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "declarativeNetRequest",
+    "sidePanel"
+  ],
   "host_permissions": [
     "*://*.binance.com/*",
     "*://*.upbit.com/*",

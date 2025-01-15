@@ -1,4 +1,8 @@
 // 초기 상태 정의
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 const initialState = {
   currentRoute: null,
   data: {},
