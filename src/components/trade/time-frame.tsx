@@ -1,5 +1,14 @@
 import React from "react";
-export type TimeFrameType = "5" | "15" | "30" | "60" | "240" | "D" | "W" | "M";
+export type TimeFrameType =
+  | "1"
+  | "5"
+  | "15"
+  | "30"
+  | "60"
+  | "240"
+  | "D"
+  | "W"
+  | "M";
 
 export const TimeFrame = ({
   timeFrameState,
@@ -14,6 +23,13 @@ export const TimeFrame = ({
   const { timeframe, setTimeframe } = timeFrameState;
   return (
     <div className="grid grid-flow-col gap-2 text-muted-foreground text-sm">
+      <span
+        aria-selected={timeframe == "1"}
+        onClick={() => setTimeframe("1")}
+        className="aria-selected:text-white aria-selected:font-semibold"
+      >
+        1m
+      </span>
       <span
         aria-selected={timeframe == "5"}
         onClick={() => setTimeframe("5")}
