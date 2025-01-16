@@ -270,6 +270,8 @@ export const useRealtimeOHLCVData = (
     refetchInterval: 200,
     refetchIntervalInBackground: true,
     refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -279,6 +281,8 @@ export const useChart = (
   timeframe: TimeFrameType = "30",
 ) => {
   const [chartData, setChartData] = useState<CandleData[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const historicalOHLCVData = useHistoricalOHLCVData(
     exchange,
     symbol,
@@ -286,32 +290,51 @@ export const useChart = (
   );
   const realtimeOHLCVData = useRealtimeOHLCVData(exchange, symbol, timeframe);
 
-  // 데이터 통합 및 업데이트
+  // 초기 히스토리컬 데이터 로드
   useEffect(() => {
-    const historical =
-      historicalOHLCVData.data?.pages.flatMap((page) => page.data) || [];
-    const realtime = realtimeOHLCVData.data || [];
+    if (!isInitialized && historicalOHLCVData.data) {
+      const historical = historicalOHLCVData.data.pages.flatMap(
+        (page) => page.data,
+      );
+      if (historical.length > 0) {
+        setChartData(historical);
+        setIsInitialized(true);
+      }
+    }
+  }, [historicalOHLCVData.data, isInitialized]);
 
-    // 데이터 병합 및 정렬을 한 번에 처리
-    const merged = new Map();
+  // 실시간 데이터 업데이트
+  useEffect(() => {
+    if (!isInitialized || !realtimeOHLCVData.data?.length) return;
 
-    // 과거 데이터 추가
-    historical.forEach((candle) => {
-      merged.set(candle.time, candle);
+    const realtime = realtimeOHLCVData.data;
+    const lastRealtimeCandle = realtime[realtime.length - 1];
+    const secondLastRealtimeCandle = realtime[realtime.length - 2];
+
+    setChartData((prevData) => {
+      const newData = [...prevData];
+
+      // 마지막 캔들 업데이트 또는 새 캔들 추가
+      const lastIndex = newData.length - 1;
+      if (lastIndex >= 0) {
+        const lastCandle = newData[lastIndex];
+
+        if (lastCandle.time === lastRealtimeCandle.time) {
+          // 현재 진행 중인 캔들 업데이트
+          newData[lastIndex] = lastRealtimeCandle;
+        } else if (lastCandle.time === secondLastRealtimeCandle?.time) {
+          // 이전 캔들 업데이트 및 새 캔들 추가
+          newData[lastIndex] = secondLastRealtimeCandle;
+          newData.push(lastRealtimeCandle);
+        } else if (lastRealtimeCandle.time > lastCandle.time) {
+          // 새로운 캔들 추가
+          newData.push(lastRealtimeCandle);
+        }
+      }
+
+      return newData;
     });
-
-    // 실시간 데이터로 업데이트 (더 최신 데이터)
-    realtime.forEach((candle) => {
-      merged.set(candle.time, candle);
-    });
-
-    // 정렬된 배열로 변환
-    const sortedData = Array.from(merged.values()).sort(
-      (a, b) => (a.time as number) - (b.time as number),
-    );
-
-    setChartData(sortedData);
-  }, [historicalOHLCVData.data, realtimeOHLCVData.data]);
+  }, [realtimeOHLCVData.data, isInitialized]);
 
   const handleScroll = useCallback(async () => {
     if (
@@ -319,7 +342,15 @@ export const useChart = (
       !historicalOHLCVData.isFetchingNextPage
     ) {
       try {
-        await historicalOHLCVData.fetchNextPage();
+        const result = await historicalOHLCVData.fetchNextPage();
+        if (!result.data) return;
+
+        const newData = result.data.pages.flatMap((page) => page.data);
+
+        setChartData((prevData) => {
+          const merged = [...newData, ...prevData];
+          return merged.sort((a, b) => (a.time as number) - (b.time as number));
+        });
       } catch (error) {
         console.error("Error fetching next page:", error);
       }
