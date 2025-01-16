@@ -13,7 +13,7 @@ export type TickerWithExchange = Ticker & { exchange: ExchangeType };
 export const columns: ColumnDef<TickerWithExchange>[] = [
   {
     accessorKey: "exchange",
-    header: "",
+    header: () => "",
     cell: ({ row }) => {
       const exchange = row.getValue("exchange");
       if (exchange == "bybit") {
@@ -50,18 +50,24 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
     },
     filterFn: exchangeFilter,
     enableColumnFilter: true,
+    size: 30,
   },
   {
     accessorKey: "symbol",
-    header: "Symbol",
+    header: () => "Symbol",
     cell: ({ row }) => {
       const symbol = row.getValue("symbol") as string;
-      return symbol.split(":")[0];
+      // 콜론으로 분리 후 첫 번째 부분 선택
+      const baseSymbol = symbol.split(":")[0];
+      // 숫자로 시작하는 부분을 제거하고 실제 심볼만 추출
+      return baseSymbol.replace(/^[0-9]+/, "");
     },
+    size: 200,
   },
   {
     accessorKey: "baseVolume",
-    header: "Volume",
+    header: () => "Volume",
+    size: 150,
   },
   {
     accessorKey: "markPrice",
@@ -72,6 +78,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         return ticker.markPrice;
       }
     },
-    header: "Price",
+    header: () => "Price",
+    size: 100,
   },
 ];

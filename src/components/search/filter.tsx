@@ -12,14 +12,14 @@ import {
 
 const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex items-center justify-between w-full gap-2">
       <Input
         placeholder="Search Coins"
         value={(table.getColumn("symbol")?.getFilterValue() as string) ?? ""}
         onChange={(event) =>
           table.getColumn("symbol")?.setFilterValue(event.target.value)
         }
-        className="max-w-sm"
+        className="max-full"
       />
       <Select
         defaultValue="all"
@@ -31,7 +31,7 @@ const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
           }
         }}
       >
-        <SelectTrigger className="w-[120px]">
+        <SelectTrigger className="w-40">
           <SelectValue placeholder="Exchange" />
         </SelectTrigger>
         <SelectContent>

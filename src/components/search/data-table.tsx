@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/table";
 import { flexRender, Table as TableType } from "@tanstack/react-table";
 import { TickerWithExchange, columns } from "./columns";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useEffect, useRef, useState } from "react";
 
 export const DataTable = ({
   table,
@@ -17,23 +18,57 @@ export const DataTable = ({
   table: TableType<TickerWithExchange>;
 }) => {
   const navigate = useNavigate();
-  const pagination = table.getState().pagination;
-  const filteredRows = table.getFilteredRowModel().rows;
-  const startIndex = pagination.pageIndex * pagination.pageSize + 1;
-  const endIndex = Math.min(
-    startIndex + pagination.pageSize - 1,
-    filteredRows.length,
-  );
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const { rows } = table.getRowModel();
+  const [columnSizes, setColumnSizes] = useState<number[]>([]);
+
+  useEffect(() => {
+    const updateColumnSizes = () => {
+      const headers = document.querySelectorAll("th");
+      const sizes = Array.from(headers).map((header) => header.clientWidth);
+      setColumnSizes(sizes);
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateColumnSizes();
+    });
+
+    if (tableContainerRef.current) {
+      resizeObserver.observe(tableContainerRef.current);
+      updateColumnSizes(); // 초기 사이즈 설정
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 45, // 예상되는 행 높이
+    overscan: 10, // 추가로 렌더링할 행 수
+  });
+
   return (
-    <>
-      <div className="rounded-md border">
-        <Table>
+    <div
+      ref={tableContainerRef}
+      className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-full"
+    >
+      <div className="sticky top-0 bg-background z-10 w-full">
+        <Table className="w-full table-auto">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width:
+                          columnSizes[
+                            table.getAllLeafColumns().indexOf(header.column)
+                          ] || "auto",
+                      }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -46,64 +81,65 @@ export const DataTable = ({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() =>
-                    navigate(
-                      `/${row.getValue("exchange")}/${row.getValue("symbol")}`,
-                    )
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          Showing {startIndex} to {endIndex} of {filteredRows.length} row(s).
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-    </>
+      <Table className="w-full table-auto">
+        <TableBody
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            position: "relative",
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = rows[virtualRow.index];
+            return (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                onClick={() =>
+                  navigate(
+                    `/${row.getValue("exchange")}/${row.getValue("symbol")}`,
+                  )
+                }
+                className="hover:bg-muted/50"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                  display: "flex",
+                }}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    style={{
+                      width:
+                        columnSizes[
+                          table.getAllLeafColumns().indexOf(cell.column)
+                        ] || "auto",
+                      minWidth:
+                        columnSizes[
+                          table.getAllLeafColumns().indexOf(cell.column)
+                        ] || "auto",
+                    }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })}
+          {!rows.length && (
+            <TableRow className="w-full">
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
