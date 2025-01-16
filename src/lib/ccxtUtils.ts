@@ -16,6 +16,7 @@ export const formatTime = (timestamp: number, timeFrame: TimeFrameType) => {
   const date = new Date(timestamp * 1000);
 
   switch (timeFrame) {
+    case "1":
     case "5":
     case "15":
     case "30":
