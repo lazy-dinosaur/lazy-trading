@@ -3,7 +3,14 @@ import { Num } from "ccxt";
 import { useEffect, useState } from "react";
 import { TickerWithExchange } from "../search/columns";
 
-export const PriceInfo = ({ data }: { data: TickerWithExchange }) => {
+export const PriceInfo = ({
+  data,
+  isLoading,
+}: {
+  data: TickerWithExchange;
+  isLoading: boolean;
+}) => {
+  console.log(isLoading);
   const { exchange, high, low, last, vwap, quoteVolume } = data;
   const [curPrice, setCur] = useState<{
     price: Num;
