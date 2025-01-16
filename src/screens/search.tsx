@@ -1,56 +1,53 @@
-import { useExchange } from "@/hooks/useExchange";
 import {
   useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
   ColumnFiltersState,
-  getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
 } from "@tanstack/react-table";
 import { columns } from "@/components/search/columns";
 import Filter from "@/components/search/filter";
 import { DataTable } from "@/components/search/data-table";
 import { LoadingSpinner } from "@/components/loading";
-import { ScreenWrapper } from "@/components/screen-wrapper";
-import { createContext, useState } from "react";
-import { IChartApi, ISeriesApi } from "lightweight-charts";
-
-export interface ChartContextValue {
-  isRemoved: boolean;
-  _api?: IChartApi;
-  api(): IChartApi;
-  free(series: ISeriesApi<any>): void;
-}
-
-export const ChartContext = createContext<ChartContextValue | null>(null);
+import { useState } from "react";
+import { useAllTickers } from "@/hooks/coin";
 
 const Search = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const {
-    tickerData: { data, isLoading },
-  } = useExchange();
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const { data: tickersData, isLoading } = useAllTickers();
 
   const table = useReactTable({
-    data: data ?? [],
+    data: tickersData ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     state: {
       columnFilters,
+      sorting,
     },
     onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
+    enableSorting: true,
   });
 
   return (
-    <>
+    <div
+      className={"w-full space-y-5"}
+      style={{ height: "calc(100vh - 10rem)" }}
+    >
+      <Filter table={table} />
       {!isLoading ? (
-        <ScreenWrapper className={["min-w-full"]}>
-          <Filter table={table} /> <DataTable table={table} />
-        </ScreenWrapper>
+        <DataTable table={table} />
       ) : (
-        <LoadingSpinner />
+        <div className="fixed inset-0 flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
       )}
-    </>
+    </div>
   );
 };
 export default Search;

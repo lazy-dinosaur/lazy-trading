@@ -5,67 +5,67 @@ export const TimeFrame = ({
   timeFrameState,
 }: {
   timeFrameState: {
-    timeFrame: string;
-    setTimeFrame: React.Dispatch<
+    timeframe: string;
+    setTimeframe: React.Dispatch<
       React.SetStateAction<TimeFrameType | undefined>
     >;
   };
 }) => {
-  const { timeFrame, setTimeFrame } = timeFrameState;
+  const { timeframe, setTimeframe } = timeFrameState;
   return (
-    <div className="grid grid-flow-col gap-2 text-muted-foreground text-xs">
+    <div className="grid grid-flow-col gap-2 text-muted-foreground text-sm">
       <span
-        aria-selected={timeFrame == "5"}
-        onClick={() => setTimeFrame("5")}
+        aria-selected={timeframe == "5"}
+        onClick={() => setTimeframe("5")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         5m
       </span>
       <span
-        aria-selected={timeFrame == "15"}
-        onClick={() => setTimeFrame("15")}
+        aria-selected={timeframe == "15"}
+        onClick={() => setTimeframe("15")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         15m
       </span>
       <span
-        aria-selected={timeFrame == "30"}
-        onClick={() => setTimeFrame("30")}
+        aria-selected={timeframe == "30"}
+        onClick={() => setTimeframe("30")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         30m
       </span>
       <span
-        aria-selected={timeFrame == "60"}
-        onClick={() => setTimeFrame("60")}
+        aria-selected={timeframe == "60"}
+        onClick={() => setTimeframe("60")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         1h
       </span>
       <span
-        aria-selected={timeFrame == "240"}
-        onClick={() => setTimeFrame("240")}
+        aria-selected={timeframe == "240"}
+        onClick={() => setTimeframe("240")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         4h
       </span>
       <span
-        aria-selected={timeFrame == "D"}
-        onClick={() => setTimeFrame("D")}
+        aria-selected={timeframe == "D"}
+        onClick={() => setTimeframe("D")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         1D
       </span>
       <span
-        aria-selected={timeFrame == "W"}
-        onClick={() => setTimeFrame("W")}
+        aria-selected={timeframe == "W"}
+        onClick={() => setTimeframe("W")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         1W
       </span>
       <span
-        aria-selected={timeFrame == "M"}
-        onClick={() => setTimeFrame("M")}
+        aria-selected={timeframe == "M"}
+        onClick={() => setTimeframe("M")}
         className="aria-selected:text-white aria-selected:font-semibold"
       >
         1M

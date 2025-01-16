@@ -6,7 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ExchangeType, useAccounts } from "@/hooks/useAccounts";
+import { useAllDecryptedAccounts } from "@/hooks/accounts";
+import { ExchangeType } from "@/hooks/useAccounts";
 
 import { AccountInfoType } from "@/hooks/useAccountsInfo";
 import { DecryptedAccount } from "@/lib/appStorage";
@@ -24,6 +25,7 @@ export const AccountSelector = ({
       React.SetStateAction<DecryptedAccount[] | undefined>
     >;
   };
+
   selectedState: {
     selected: number;
     setSelected: React.Dispatch<React.SetStateAction<number>>;
@@ -31,7 +33,6 @@ export const AccountSelector = ({
   accountsInfo?: AccountInfoType;
   exchange?: ExchangeType;
 }) => {
-  const { useAllDecryptedAccounts } = useAccounts();
   const decryptedAccounts = useAllDecryptedAccounts();
 
   useEffect(() => {
@@ -57,13 +58,13 @@ export const AccountSelector = ({
         </SelectTrigger>
         <SelectContent className="max-h-48">
           <SelectGroup>
-            {accounts?.map((account, index) => {
-              const id = accounts[index].id;
+            {accounts?.map((account) => {
+              const { id } = account;
               const totalBalance =
                 accountsInfo && accountsInfo[id].balance.usd.total;
               return (
                 <div>
-                  <SelectItem key={id} className="h-5" value={index.toString()}>
+                  <SelectItem key={id} className="h-5" value={id}>
                     {account.name}
                   </SelectItem>
                   <div className="text-xs text-muted-foreground px-2">

@@ -32,18 +32,18 @@ export const PriceInfo = ({ data }: { data: TickerWithExchange }) => {
       <div className="">
         <h1
           className={cn(
-            "text-2xl",
+            "text-3xl",
             curPrice.color == "up" ? "text-green-600" : "text-red-600",
           )}
         >
           {curPrice.price}
         </h1>
-        <span className="flex gap-1">
+        <span className="flex gap-1 text-sm">
           <span className="capitalize text-muted-foreground">volume</span>
           <span>{quoteVolume}</span>
         </span>
       </div>
-      <div className="">
+      <div className="text-sm">
         <div className="flex w-full items-center justify-between gap-2">
           <span className="capitalize text-muted-foreground">24High</span>
           <span>{high}</span>

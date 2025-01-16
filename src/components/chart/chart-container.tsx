@@ -13,8 +13,8 @@ import {
   useImperativeHandle,
   useEffect,
 } from "react";
-import { ChartContext } from "@/screens/search";
 import { throttle } from "lodash";
+import { ChartContext } from "@/contexts";
 
 interface ChartContainerProps {
   container: HTMLDivElement;

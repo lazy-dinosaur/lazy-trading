@@ -4,70 +4,88 @@ import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";
 import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
 import { TradeComponent } from "@/components/trade/trade-component";
-import { useAccountsInfo } from "@/hooks/useAccountsInfo";
-import { useAppStateCache } from "@/hooks/useAppStateCache";
-import { useChartData } from "@/hooks/useChartData";
+import { useAccountsDetail } from "@/hooks/accounts";
+import { useFetchCache, useUpdateCache } from "@/hooks/cache";
+import { useChart } from "@/hooks/chart";
+import { useFetchTicker } from "@/hooks/coin";
+import { ExchangeType } from "@/hooks/useAccounts";
 import { DecryptedAccount } from "@/lib/appStorage";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router";
 
 const Trade = () => {
-  const {
-    tickerData: { data: tickerData, isLoading: isTickerLoading },
-  } = useChartData({});
-  const { appState, updateState } = useAppStateCache();
-  const { data: accountsInfo } = useAccountsInfo();
+  const params = useParams();
+  const exchange = params.exchange as ExchangeType;
+  const symbol = `${params.coin}/${params.base}`;
+
+  const { data: ticker, isLoading: isTickerLoading } = useFetchTicker({
+    exchange,
+    symbol,
+  });
+  const { data: accountsDetails } = useAccountsDetail();
+  const { data: cacheData, isLoading: isCacheLoading } = useFetchCache();
+  const { mutate: updateCache } = useUpdateCache();
+
   const [accounts, setAccounts] = useState<DecryptedAccount[]>();
   const [selected, setSelected] = useState<number>(0);
-  const [timeFrame, setTimeFrame] = useState<TimeFrameType | undefined>(
+  const [timeframe, setTimeframe] = useState<TimeFrameType | undefined>(
     undefined,
   );
-  const [isLoading, setLoading] = useState(true);
-  const { fetchChart } = useChartData({ timeFrame });
 
-  const chartKey = `${tickerData?.exchange}-${tickerData?.symbol}-${timeFrame}`;
+  const [isLoading, setLoading] = useState(true);
+  const chartData = useChart(exchange, symbol, timeframe);
+
+  const chartKey = `${ticker?.exchange}-${ticker?.symbol}-${timeframe}`;
 
   useEffect(() => {
-    if (appState && tickerData && !isTickerLoading && !timeFrame && isLoading) {
-      if (appState.data.timeFrame) {
-        setTimeFrame(appState.data.timeFrame);
+    if (
+      cacheData &&
+      ticker &&
+      !isTickerLoading &&
+      !timeframe &&
+      isLoading &&
+      !isCacheLoading
+    ) {
+      if (cacheData.data.timeframe) {
+        setTimeframe(cacheData.data.timeframe);
       } else {
-        setTimeFrame("30");
+        setTimeframe("30");
       }
       setLoading(false);
     }
-  }, [appState, tickerData, isTickerLoading]);
+  }, [cacheData, ticker, isTickerLoading, isCacheLoading]);
 
   useEffect(() => {
-    if (!isLoading && timeFrame) {
-      updateState({ ...appState, data: { timeFrame } });
+    if (!isLoading && timeframe) {
+      updateCache({ ...cacheData, data: { timeframe } });
     }
-  }, [isLoading, timeFrame]);
+  }, [isLoading, timeframe]);
 
   //TODO: 스켈레톤 로딩으로 바꾸기
   return (
-    <div key={chartKey} className="w-[450px] h-max">
-      {!isLoading && tickerData && timeFrame ? (
+    <div key={chartKey} className="w-full h-full">
+      {!isLoading && ticker && timeframe ? (
         <>
           <div className="w-full space-y-3">
-            <PriceInfo data={tickerData} />
+            <PriceInfo data={ticker} />
             <div className="w-full flex items-center justify-between">
-              <TimeFrame timeFrameState={{ timeFrame, setTimeFrame }} />
+              <TimeFrame timeFrameState={{ timeframe, setTimeframe }} />
               <AccountSelector
                 accountState={{ accounts, setAccounts }}
                 selectedState={{ selected, setSelected }}
-                exchange={tickerData.exchange}
-                accountsInfo={accountsInfo}
+                exchange={ticker.exchange}
+                accountsInfo={accountsDetails}
               />
             </div>
             <ChartComponent
               chartKey={chartKey + "-trade"}
-              candleData={fetchChart.data}
-              handleChartScroll={fetchChart.handleScroll}
+              candleData={chartData.data}
+              handleChartScroll={chartData.handleScroll}
             />
           </div>
           <TradeComponent
             id={accounts && accounts[selected]?.id}
-            accountsInfo={accountsInfo}
+            accountsInfo={accountsDetails}
           />
         </>
       ) : (

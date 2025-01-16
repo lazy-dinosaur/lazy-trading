@@ -157,7 +157,7 @@ export const createExchangeInstances = (): ExchangeInstances => ({
   },
 });
 
-const getHistoricalRange = (
+export const getHistoricalRange = (
   exchange: ExchangeType,
   timeFrame: TimeFrameType,
 ) => {
@@ -176,7 +176,7 @@ const getHistoricalRange = (
   }
 };
 
-const getTimeframeMilliseconds = (timeFrame: TimeFrameType) => {
+export const getTimeframeMilliseconds = (timeFrame: TimeFrameType) => {
   switch (timeFrame) {
     case "D":
       return 24 * 60 * 60 * 1000; // 1일

@@ -11,8 +11,8 @@ import {
   useLayoutEffect,
   useImperativeHandle,
 } from "react";
-import { ChartContext } from "@/screens/search";
 import { searchingStopLossCandle } from "@/lib/ccxtUtils";
+import { ChartContext } from "@/contexts";
 
 export type CandleData = OhlcData & { volume: number };
 
