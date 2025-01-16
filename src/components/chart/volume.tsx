@@ -1,3 +1,4 @@
+import { ChartContext } from "@/contexts";
 import { HistogramSeriesOptions, ISeriesApi, Time } from "lightweight-charts";
 import {
   forwardRef,
@@ -6,7 +7,6 @@ import {
   useRef,
   useImperativeHandle,
 } from "react";
-import { ChartContext } from "@/screens/search";
 
 interface VolumeData {
   time: Time;
