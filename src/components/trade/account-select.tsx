@@ -6,18 +6,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAllDecryptedAccounts } from "@/hooks/accounts";
 import { ExchangeType } from "@/hooks/useAccounts";
 
 import { AccountInfoType } from "@/hooks/useAccountsInfo";
 import { DecryptedAccount } from "@/lib/appStorage";
-import React, { useEffect } from "react";
+import React from "react";
 
 export const AccountSelector = ({
-  accountState: { accounts, setAccounts },
+  accountState: { accounts },
   selectedState: { selected, setSelected },
   accountsInfo,
-  exchange,
 }: {
   accountState: {
     accounts?: DecryptedAccount[];
@@ -33,30 +31,22 @@ export const AccountSelector = ({
   accountsInfo?: AccountInfoType;
   exchange?: ExchangeType;
 }) => {
-  const decryptedAccounts = useAllDecryptedAccounts();
-
-  useEffect(() => {
-    if (!accounts && decryptedAccounts.data) {
-      setAccounts(() =>
-        Object.values(decryptedAccounts.data).filter(
-          (value) => value.exchange === exchange,
-        ),
-      );
-    }
-  }, [decryptedAccounts.data]);
-
   return (
-    accounts && (
-      <Select
-        defaultValue={selected.toString()}
-        onValueChange={(value) => {
-          setSelected(Number(value));
-        }}
-      >
-        <SelectTrigger className="w-32 h-6">
-          <SelectValue placeholder="Account" />
-        </SelectTrigger>
-        <SelectContent className="max-h-48">
+    <Select
+      defaultValue={accounts ? accounts[selected]?.name : undefined}
+      onValueChange={(value) => {
+        setSelected(Number(value));
+      }}
+    >
+      <SelectTrigger className="w-32 h-8" disabled={!!accounts}>
+        <SelectValue
+          placeholder={
+            accounts && accounts?.length > 0 ? "Account" : "No Account"
+          }
+        />
+      </SelectTrigger>
+      <SelectContent className="max-h-[30vh]">
+        {accounts && (
           <SelectGroup>
             {accounts?.map((account) => {
               const { id } = account;
@@ -64,18 +54,18 @@ export const AccountSelector = ({
                 accountsInfo && accountsInfo[id].balance.usd.total;
               return (
                 <div>
-                  <SelectItem key={id} className="h-5" value={id}>
+                  <SelectItem key={id} className="h-7" value={id}>
                     {account.name}
                   </SelectItem>
-                  <div className="text-xs text-muted-foreground px-2">
+                  <div className="text-sm text-muted-foreground px-2">
                     <span>Total: ${`${totalBalance}`}</span>
                   </div>
                 </div>
               );
             })}
           </SelectGroup>
-        </SelectContent>
-      </Select>
-    )
+        )}
+      </SelectContent>
+    </Select>
   );
 };
