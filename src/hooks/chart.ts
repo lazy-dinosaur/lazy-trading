@@ -283,6 +283,12 @@ export const useChart = (
   const [chartData, setChartData] = useState<CandleData[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // timeframe이 변경될 때마다 차트 데이터와 초기화 상태를 리셋
+  useEffect(() => {
+    setChartData([]);
+    setIsInitialized(false);
+  }, [timeframe]);
+
   const historicalOHLCVData = useHistoricalOHLCVData(
     exchange,
     symbol,
@@ -297,11 +303,13 @@ export const useChart = (
         (page) => page.data,
       );
       if (historical.length > 0) {
-        setChartData(historical);
+        setChartData(
+          historical.sort((a, b) => (a.time as number) - (b.time as number)),
+        );
         setIsInitialized(true);
       }
     }
-  }, [historicalOHLCVData.data, isInitialized]);
+  }, [historicalOHLCVData.data, isInitialized, timeframe]);
 
   // 실시간 데이터 업데이트
   useEffect(() => {
