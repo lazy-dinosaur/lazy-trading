@@ -21,6 +21,7 @@ export type BalancesType = Balances &
   };
 
 export type AccountInfo = {
+  account: DecryptedAccount;
   balance: BalancesType;
   positions: Position[];
   positionsHistory: Position[];
@@ -118,7 +119,7 @@ export const useAllDecryptedAccounts = () => {
   const { validPin } = usePinValid();
   return useQuery({
     queryKey: ["decryptedAccounts", validPin],
-    queryFn: async () => !!validPin && (await decrypteAllAccounts(validPin)),
+    queryFn: async () => (validPin ? await decrypteAllAccounts(validPin) : {}),
     enabled: !!validPin,
   });
 };
@@ -171,6 +172,7 @@ export const useAccountsDetail = () => {
             console.log(balance);
 
             accountsInfo[account.id] = {
+              account,
               balance,
               positions,
               positionsHistory,
@@ -186,6 +188,7 @@ export const useAccountsDetail = () => {
             );
             // 에러가 발생해도 다른 계정의 정보는 계속 가져올 수 있도록 함
             accountsInfo[account.id] = {
+              account,
               balance: {} as BalancesType,
               positions: [] as Position[],
               positionsHistory: [] as Position[],

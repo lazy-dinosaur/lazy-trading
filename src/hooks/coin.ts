@@ -140,7 +140,7 @@ export const useFetchTicker = ({
   return useQuery({
     queryKey: [exchange, symbol, "ticker"],
     queryFn: async () =>
-      ccxt && (await fetchTicker({ ccxt, exchange, symbol })),
+      ccxt ? await fetchTicker({ ccxt, exchange, symbol }) : undefined,
     enabled: !!ccxt && !isLoading && !!exchange && !!symbol,
     refetchInterval: 500,
     refetchIntervalInBackground: true,
