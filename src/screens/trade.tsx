@@ -4,7 +4,7 @@ import { ChartComponent } from "@/components/trade/chart-component";
 import { PriceInfo } from "@/components/trade/price-info";
 import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
 import { TradeComponent } from "@/components/trade/trade-component";
-import { useAccountsDetail } from "@/hooks/accounts";
+import { useAccountsDetail, useAllDecryptedAccounts } from "@/hooks/accounts";
 import { useFetchCache, useUpdateCache } from "@/hooks/cache";
 import { useChart } from "@/hooks/chart";
 import { useFetchTicker } from "@/hooks/coin";
@@ -14,9 +14,16 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 
 const Trade = () => {
+  const [isLoading, setLoading] = useState(true);
+  const [accounts, setAccounts] = useState<DecryptedAccount[]>();
+  const [selected, setSelected] = useState<number>(0);
+  const [timeframe, setTimeframe] = useState<TimeFrameType | undefined>(
+    undefined,
+  );
   const params = useParams();
   const exchange = params.exchange as ExchangeType;
   const symbol = `${params.coin}/${params.base}`;
+  const chartKey = `${exchange}-${symbol}-${timeframe}`;
 
   const { data: ticker, isLoading: isTickerLoading } = useFetchTicker({
     exchange,
@@ -25,27 +32,22 @@ const Trade = () => {
   const { data: accountsDetails } = useAccountsDetail();
   const { data: cacheData, isLoading: isCacheLoading } = useFetchCache();
   const { mutate: updateCache } = useUpdateCache();
-
-  const [accounts, setAccounts] = useState<DecryptedAccount[]>();
-  const [selected, setSelected] = useState<number>(0);
-  const [timeframe, setTimeframe] = useState<TimeFrameType | undefined>(
-    undefined,
-  );
-
-  const [isLoading, setLoading] = useState(true);
   const chartData = useChart(exchange, symbol, timeframe);
 
-  const chartKey = `${ticker?.exchange}-${ticker?.symbol}-${timeframe}`;
+  const { data: decryptedAccounts, isLoading: isDecryptLoading } =
+    useAllDecryptedAccounts();
 
   useEffect(() => {
-    if (
-      cacheData &&
-      ticker &&
-      !isTickerLoading &&
-      !timeframe &&
-      isLoading &&
-      !isCacheLoading
-    ) {
+    if (decryptedAccounts && !isDecryptLoading)
+      setAccounts(
+        Object.values(decryptedAccounts).filter(
+          (account) => account.exchange == exchange,
+        ),
+      );
+  }, [decryptedAccounts, isDecryptLoading]);
+
+  useEffect(() => {
+    if (cacheData && !isCacheLoading && isLoading) {
       if (cacheData.data.timeframe) {
         setTimeframe(cacheData.data.timeframe);
       } else {
@@ -53,7 +55,7 @@ const Trade = () => {
       }
       setLoading(false);
     }
-  }, [cacheData, ticker, isTickerLoading, isCacheLoading]);
+  }, [cacheData, isCacheLoading, setTimeframe, setLoading, isLoading]);
 
   useEffect(() => {
     if (!isLoading && timeframe) {
@@ -67,13 +69,12 @@ const Trade = () => {
       {!isLoading && ticker && timeframe ? (
         <>
           <div className="w-full space-y-3">
-            <PriceInfo data={ticker} />
+            <PriceInfo data={ticker} isLoading={isTickerLoading} />
             <div className="w-full flex items-center justify-between">
               <TimeFrame timeFrameState={{ timeframe, setTimeframe }} />
               <AccountSelector
                 accountState={{ accounts, setAccounts }}
                 selectedState={{ selected, setSelected }}
-                exchange={ticker.exchange}
                 accountsInfo={accountsDetails}
               />
             </div>
