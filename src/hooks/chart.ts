@@ -5,6 +5,7 @@ import { useCCXT } from "./ccxt";
 import { CandleData } from "@/components/chart/candle";
 import { Exchange } from "ccxt";
 import { useCallback, useEffect, useState } from "react";
+import { Time } from "lightweight-charts";
 
 export interface ExchangeInstances {
   [key: string]: {
@@ -194,6 +195,9 @@ export const useHistoricalOHLCVData = (
       }),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: !!ccxt && !isCCXTLoading,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -203,11 +207,13 @@ export const fetchRealtimeOHLCV = async ({
   exchange,
   timeframe,
   symbol,
+  lastCandleTime,
 }: {
   ccxt?: ExchangeInstances;
   exchange: ExchangeType;
   timeframe: TimeFrameType;
   symbol: string;
+  lastCandleTime?: number;
 }) => {
   if (!ccxt || !ccxt[exchange]) {
     throw new Error("Exchange instances not initialized");
@@ -215,7 +221,14 @@ export const fetchRealtimeOHLCV = async ({
   const exchangeInstance = ccxt[exchange].pro;
   const now = Date.now();
   const timeframeMs = getTimeframeMilliseconds(timeframe);
-  const since = now - timeframeMs * 2;
+
+  // 마지막 캔들 시간이 있으면 그 시점부터, 없으면 최근 2개 캔들만
+  const since = lastCandleTime ? lastCandleTime * 1000 : now - timeframeMs * 2;
+
+  // 누락된 캔들 개수 계산
+  const candleCount = lastCandleTime
+    ? Math.ceil((now - lastCandleTime * 1000) / timeframeMs)
+    : 2;
 
   try {
     const formattedTimeframe = getFormattedTimeframe(exchange, timeframe);
@@ -224,16 +237,16 @@ export const fetchRealtimeOHLCV = async ({
       symbol,
       formattedTimeframe,
       since,
-      2,
+      candleCount,
       {
         // 거래소별 추가 옵션
-        ...(exchange === "binance" && { limit: 2 }),
+        ...(exchange === "binance" && { limit: candleCount }),
         ...(exchange === "bitget" && {
           endTime: now,
-          limit: 2,
+          limit: candleCount,
         }),
         ...(exchange === "bybit" && {
-          limit: 2,
+          limit: candleCount,
         }),
       },
     );
@@ -259,13 +272,20 @@ export const useRealtimeOHLCVData = (
   exchange: ExchangeType,
   symbol: string,
   timeframe: TimeFrameType,
+  lastCandleTime?: number,
 ) => {
   const { data: ccxt, isLoading: isCCXTLoading } = useCCXT();
 
   return useQuery({
-    queryKey: [exchange, symbol, timeframe, "realtime"],
+    queryKey: [exchange, symbol, timeframe, "realtime", lastCandleTime],
     queryFn: async () =>
-      await fetchRealtimeOHLCV({ ccxt, exchange, timeframe, symbol }),
+      await fetchRealtimeOHLCV({
+        ccxt,
+        exchange,
+        timeframe,
+        symbol,
+        lastCandleTime,
+      }),
     enabled: !!ccxt && !isCCXTLoading,
     refetchInterval: 200,
     refetchIntervalInBackground: true,
@@ -282,6 +302,48 @@ export const useChart = (
 ) => {
   const [chartData, setChartData] = useState<CandleData[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const timeframeMs = getTimeframeMilliseconds(timeframe);
+
+  const validateAndFillGaps = useCallback(
+    (data: CandleData[]) => {
+      if (data.length < 2) return data;
+
+      const filledData: CandleData[] = [];
+      const timeframeSeconds = timeframeMs / 1000;
+
+      for (let i = 0; i < data.length - 1; i++) {
+        const currentCandle = data[i];
+        const nextCandle = data[i + 1];
+        filledData.push(currentCandle);
+
+        // 현재 캔들과 다음 캔들 사이의 시간 차이 계산
+        const timeDiff =
+          (nextCandle.time as number) - (currentCandle.time as number);
+        const missingCandles = Math.floor(timeDiff / timeframeSeconds) - 1;
+
+        // 갭이 있는 경우 채우기
+        if (missingCandles > 0) {
+          for (let j = 1; j <= missingCandles; j++) {
+            const missingTime =
+              (currentCandle.time as number) + timeframeSeconds * j;
+            filledData.push({
+              time: missingTime as Time,
+              open: currentCandle.close,
+              high: currentCandle.close,
+              low: currentCandle.close,
+              close: currentCandle.close,
+              volume: 0,
+            });
+          }
+        }
+      }
+
+      // 마지막 캔들 추가
+      filledData.push(data[data.length - 1]);
+      return filledData;
+    },
+    [timeframeMs],
+  );
 
   // timeframe이 변경될 때마다 차트 데이터와 초기화 상태를 리셋
   useEffect(() => {
@@ -294,7 +356,14 @@ export const useChart = (
     symbol,
     timeframe,
   );
-  const realtimeOHLCVData = useRealtimeOHLCVData(exchange, symbol, timeframe);
+  const realtimeOHLCVData = useRealtimeOHLCVData(
+    exchange,
+    symbol,
+    timeframe,
+    chartData.length > 0
+      ? Number(chartData[chartData.length - 1].time)
+      : undefined,
+  );
 
   // 초기 히스토리컬 데이터 로드
   useEffect(() => {
@@ -303,13 +372,15 @@ export const useChart = (
         (page) => page.data,
       );
       if (historical.length > 0) {
-        setChartData(
-          historical.sort((a, b) => (a.time as number) - (b.time as number)),
+        const sortedData = historical.sort(
+          (a, b) => (a.time as number) - (b.time as number),
         );
+        const filledData = validateAndFillGaps(sortedData);
+        setChartData(filledData);
         setIsInitialized(true);
       }
     }
-  }, [historicalOHLCVData.data, isInitialized, timeframe]);
+  }, [historicalOHLCVData.data, isInitialized, timeframe, validateAndFillGaps]);
 
   // 실시간 데이터 업데이트
   useEffect(() => {
@@ -321,23 +392,42 @@ export const useChart = (
 
     setChartData((prevData) => {
       const newData = [...prevData];
-
-      // 마지막 캔들 업데이트 또는 새 캔들 추가
       const lastIndex = newData.length - 1;
-      if (lastIndex >= 0) {
-        const lastCandle = newData[lastIndex];
+      if (lastIndex < 0) return newData;
 
-        if (lastCandle.time === lastRealtimeCandle.time) {
-          // 현재 진행 중인 캔들 업데이트
-          newData[lastIndex] = lastRealtimeCandle;
-        } else if (lastCandle.time === secondLastRealtimeCandle?.time) {
-          // 이전 캔들 업데이트 및 새 캔들 추가
-          newData[lastIndex] = secondLastRealtimeCandle;
-          newData.push(lastRealtimeCandle);
-        } else if (lastRealtimeCandle.time > lastCandle.time) {
-          // 새로운 캔들 추가
-          newData.push(lastRealtimeCandle);
-        }
+      const lastCandle = newData[lastIndex];
+      const lastCandleTime = lastCandle.time as number;
+      const realtimeCandleTime = lastRealtimeCandle.time as number;
+
+      // 갭이 있는 경우 새로운 데이터로 업데이트
+      if (realtime.length > 2) {
+        // 중간에 누락된 캔들들이 포함된 데이터
+        realtime.slice(0, -1).forEach((candle) => {
+          const candleTime = Number(candle.time);
+          const existingIndex = newData.findIndex(
+            (existing) => Number(existing.time) === candleTime,
+          );
+
+          if (existingIndex !== -1) {
+            newData[existingIndex] = candle;
+          } else if (candleTime > lastCandleTime) {
+            newData.push(candle);
+          }
+        });
+      }
+
+      // 실시간 데이터 업데이트
+
+      // 실시간 데이터 업데이트
+      if (lastCandleTime === realtimeCandleTime) {
+        newData[lastIndex] = lastRealtimeCandle;
+      } else if (
+        lastCandleTime === (secondLastRealtimeCandle?.time as number)
+      ) {
+        newData[lastIndex] = secondLastRealtimeCandle;
+        newData.push(lastRealtimeCandle);
+      } else if (realtimeCandleTime > lastCandleTime) {
+        newData.push(lastRealtimeCandle);
       }
 
       return newData;
