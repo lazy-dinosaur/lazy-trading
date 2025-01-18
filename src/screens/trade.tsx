@@ -65,25 +65,23 @@ const Trade = () => {
 
   //TODO: 스켈레톤 로딩으로 바꾸기
   return (
-    <div key={chartKey} className="w-full h-full">
+    <div key={chartKey} className="w-full h-full space-y-3 flex flex-col">
       {!isLoading && ticker && timeframe ? (
         <>
-          <div className="w-full space-y-3">
-            <PriceInfo data={ticker} isLoading={isTickerLoading} />
-            <div className="w-full flex items-center justify-between">
-              <TimeFrame timeFrameState={{ timeframe, setTimeframe }} />
-              <AccountSelector
-                accountState={{ accounts, setAccounts }}
-                selectedState={{ selected, setSelected }}
-                accountsInfo={accountsDetails}
-              />
-            </div>
-            <ChartComponent
-              chartKey={chartKey + "-trade"}
-              candleData={chartData.data}
-              handleChartScroll={chartData.handleScroll}
+          <PriceInfo data={ticker} isLoading={isTickerLoading} />
+          <div className="w-full flex items-center justify-between">
+            <TimeFrame timeFrameState={{ timeframe, setTimeframe }} />
+            <AccountSelector
+              accountState={{ accounts, setAccounts }}
+              selectedState={{ selected, setSelected }}
+              accountsInfo={accountsDetails}
             />
           </div>
+          <ChartComponent
+            chartKey={chartKey + "-trade"}
+            candleData={chartData.data}
+            handleChartScroll={chartData.handleScroll}
+          />
           <TradeComponent
             id={accounts && accounts[selected]?.id}
             accountsInfo={accountsDetails}

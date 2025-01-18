@@ -28,7 +28,7 @@ export const ChartComponent = ({
       <CandleSeries ref={candle} data={candleData} />
     </Chart>
   ) : (
-    <div className="w-full h-[40vh] rounded-md overflow-hidden">
+    <div className="w-full h-1/3 rounded-md overflow-hidden">
       <LoadingSpinner />
     </div>
   );
