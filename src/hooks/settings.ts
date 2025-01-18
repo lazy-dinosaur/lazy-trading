@@ -10,7 +10,15 @@ export const useFetchTradingConfig = () =>
     queryKey: ["tradingConfig"],
     queryFn: async () => {
       const config = await getTradingConfig();
-      return config || { risk: 1.5, riskRatio: 3 };
+      return (
+        config || {
+          risk: 1.5,
+          riskRatio: 3,
+          partialClose: false,
+          closeRatio: 50,
+          stopToEven: true,
+        }
+      );
     },
   });
 
@@ -22,10 +30,16 @@ export const useMutateTradingConfig = () => {
       const currentConfig = (await getTradingConfig()) || {
         risk: 1.5,
         riskRatio: 3,
+        partialClose: false,
+        closeRatio: 50,
+        stopToEven: true,
       };
       const newConfig = {
         risk: currentConfig.risk,
         riskRatio: currentConfig.riskRatio,
+        partialClose: currentConfig.partialClose,
+        closeRatio: currentConfig.closeRatio,
+        stopToEven: currentConfig.stopToEven,
         ...config,
       } satisfies TradingConfigType;
 
@@ -40,7 +54,13 @@ export const useMutateTradingConfig = () => {
 
       // Optimistic update
       queryClient.setQueryData<TradingConfigType>(["tradingConfig"], (old) => ({
-        ...(old || { risk: 1.5, riskRatio: 3 }),
+        ...(old || {
+          risk: 1.5,
+          riskRatio: 3,
+          partialClose: false,
+          closeRatio: 50,
+          stopToEven: true,
+        }),
         ...newConfig,
       }));
 

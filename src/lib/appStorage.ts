@@ -3,6 +3,10 @@ import { decryptApiKey, encryptApiKey, EncryptedData } from "./apiKey";
 
 export type TradingConfigType = {
   risk: number;
+  riskRatio: number;
+  partialClose: boolean;
+  closeRatio: number;
+  stopToEven: boolean;
 };
 
 // 복호화된 계정 타입
@@ -31,6 +35,8 @@ export interface Account {
 export interface Accounts {
   [accountId: string]: Account;
 }
+
+export const getisFirstRun = async () => {};
 
 export const setTradingConfig = async (
   setting: TradingConfigType,
