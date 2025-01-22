@@ -11,25 +11,32 @@ import Dashboard from "./screens/dashboard.tsx";
 import SetPin from "./screens/set-pin.tsx";
 import Locked from "./screens/locked.tsx";
 import Layout from "./components/Layout.tsx";
+import AddAccount from "./screens/add-account.tsx";
+import Providers from "./contexts/contextProviders.tsx";
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <MemoryRouter>
-      <Routes>
-        <Route element={<App />}>
-          <Route path="/" element={<Index />} />
-          <Route path="first-run" element={<SetPin />} />
-          <Route path="locked" element={<Locked />} />
-          <Route element={<Layout />}>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="accounts" element={<Accounts />} />
-            <Route path="search" element={<Search />} />
-            <Route path=":exchange/:coin/:base" element={<Trade />} />
+    <Providers>
+      <MemoryRouter>
+        <Routes>
+          <Route element={<App />}>
+            <Route path="/" element={<Index />} />
+            <Route path="first-run" element={<SetPin />} />
+            <Route path="locked" element={<Locked />} />
+            <Route element={<Layout />}>
+              <Route path="account">
+                <Route path="add/:exchange" element={<AddAccount />} />
+              </Route>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="accounts" element={<Accounts />} />
+              <Route path="search" element={<Search />} />
+              <Route path=":exchange/:coin/:base" element={<Trade />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </MemoryRouter>
+        </Routes>
+      </MemoryRouter>
+    </Providers>
   </QueryClientProvider>,
 );
