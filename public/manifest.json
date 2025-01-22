@@ -21,17 +21,29 @@
     "storage",
     "unlimitedStorage",
     "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
     "sidePanel"
   ],
   "host_permissions": [
-    "*://*.binance.com/*",
-    "*://*.upbit.com/*",
-    "*://*.bithumb.com/*",
-    "*://*.bybit.com/*",
-    "*://*.okx.com/*",
-    "*://*.huobi.com/*",
-    "*://*.kucoin.com/*",
-    "*://*.bitget.com/*"
+    "https://*.binance.vision/*",
+    "https://testnet.binance.vision/*",
+    "https://api.bitget.com/*",
+    "https://*.bitget.com/*",
+    "https://api.binance.com/*",
+    "https://*.binance.com/*",
+    "https://api.bybit.com/*",
+    "https://*.bybit.com/*",
+    "https://api-testnet.bybit.com/*",
+    "https://api.upbit.com/*",
+    "https://*.upbit.com/*",
+    "https://api.bithumb.com/*",
+    "https://*.bithumb.com/*",
+    "https://api.okx.com/*",
+    "https://*.okx.com/*",
+    "https://api.huobi.com/*",
+    "https://*.huobi.com/*",
+    "https://api.kucoin.com/*",
+    "https://*.kucoin.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
