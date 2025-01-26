@@ -4,7 +4,6 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useCCXT } from "@/hooks/use-ccxt-context";
 import { ExchangeType } from "@/lib/accounts";
 import { TimeFrameType } from "@/components/trade/time-frame";
-import { CandleData } from "@/components/chart/candle-types";
 import {
   fetchHistoricalOHLCV,
   fetchRealtimeOHLCV,
@@ -12,6 +11,7 @@ import {
 } from "@/lib/chart";
 import { ChartDataContext } from "./chart-data-context-type";
 import { useSearchParams } from "react-router";
+import { CandleData } from "@/components/trade/chart/candle";
 
 export const ChartDataProvider = ({
   children,

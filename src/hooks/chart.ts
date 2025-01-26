@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Time } from "lightweight-charts";
 import { CCXTType, useCCXT } from "./use-ccxt-context";
 import { ExchangeType } from "@/lib/accounts";
-import { CandleData } from "@/components/chart/candle-types";
+import { CandleData } from "@/components/trade/chart/candle";
 
 export interface ExchangeInstances {
   [key: string]: {

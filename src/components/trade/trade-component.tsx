@@ -14,7 +14,8 @@ import { Label } from "../ui/label";
 import { AccountInfo, searchingStopLossCandle } from "@/lib/ccxt";
 import { useMarketInfo } from "@/hooks/coin";
 import { ExchangeType } from "@/lib/accounts";
-import { CandleData } from "../chart/candle-types";
+import { CandleData } from "./chart/candle";
+
 type TradeInfoType =
   | {
       long: number;

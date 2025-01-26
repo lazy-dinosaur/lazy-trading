@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { ISeriesApi } from "lightweight-charts";
-import { Chart } from "../chart/chart";
 import { LoadingSpinner } from "../loading";
 import { getStopLossMarkers } from "@/lib/ccxt";
-import { CandleSeries } from "../chart/candle";
 import { useSearchParams } from "react-router";
 import { useChartData } from "@/hooks/use-chart-data-context";
+import { Chart } from "./chart/chart-wrapper";
+import { CandleSeries } from "./chart/candle";
 
 export const ChartComponent = () => {
   const [searchParams] = useSearchParams();

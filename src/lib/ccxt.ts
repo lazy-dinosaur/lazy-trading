@@ -16,7 +16,7 @@ import BybitPro from "node_modules/ccxt/js/src/pro/bybit";
 import BitgetPro from "node_modules/ccxt/js/src/pro/bitget";
 import BinancePro from "node_modules/ccxt/js/src/pro/binance";
 import { ExchangeType } from "./accounts";
-import { CandleData } from "@/components/chart/candle-types";
+import { CandleData } from "@/components/trade/chart/candle";
 
 export const formatTime = (timestamp: number, timeFrame: TimeFrameType) => {
   const date = new Date(timestamp * 1000);
