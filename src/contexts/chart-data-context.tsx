@@ -11,7 +11,7 @@ import {
 } from "@/lib/chart";
 import { ChartDataContext } from "./chart-data-context-type";
 import { useSearchParams } from "react-router";
-import { CandleData } from "@/components/trade/chart/candle";
+import { CandleData } from "@/components/trade/chart-component/candle";
 
 export const ChartDataProvider = ({
   children,

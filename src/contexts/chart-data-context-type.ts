@@ -1,4 +1,4 @@
-import { CandleData } from "@/components/trade/chart/candle";
+import { CandleData } from "@/components/trade/chart-component/candle";
 import { createContext } from "react";
 
 interface ChartDataContextType {
