@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTrade } from "@/hooks/use-trade-context";
+import { useTrade } from "@/contexts/trade/use";
 import { useSearchParams } from "react-router";
 
 export const AccountSelector = () => {

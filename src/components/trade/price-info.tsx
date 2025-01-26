@@ -1,4 +1,4 @@
-import { useTrade } from "@/hooks/use-trade-context";
+import { useTrade } from "@/contexts/trade/use";
 import { cn } from "@/lib/utils";
 import { Num } from "ccxt";
 import { useEffect, useState } from "react";

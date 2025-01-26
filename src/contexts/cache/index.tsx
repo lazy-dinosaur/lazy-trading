@@ -1,8 +1,8 @@
 import React, { useCallback } from "react";
 import { AppState, getAppState, updateAppState } from "@/lib/app-cache";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { usePin } from "@/hooks/use-pin-context";
-import { CacheContext } from "./cache-context-type";
+import { CacheContext } from "./type";
+import { usePin } from "../pin/use";
 
 export function CacheProvider({ children }: { children: React.ReactNode }) {
   const { validPin } = usePin();

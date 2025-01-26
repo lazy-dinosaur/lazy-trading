@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
-import { PinProvider } from "./pin-context";
-import { CCXTProvider } from "./ccxt-context";
-import { AccountsProvider } from "./accounts-context";
-import { CacheProvider } from "./cache-context";
+import { PinProvider } from "./pin";
+import { CCXTProvider } from "./ccxt";
+import { AccountsProvider } from "./accounts";
+import { CacheProvider } from "./cache";
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (

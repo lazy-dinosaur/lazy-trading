@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Time } from "lightweight-charts";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useCCXT } from "@/hooks/use-ccxt-context";
 import { ExchangeType } from "@/lib/accounts";
 import { TimeFrameType } from "@/components/trade/time-frame";
 import {
@@ -9,9 +8,10 @@ import {
   fetchRealtimeOHLCV,
   getTimeframeMilliseconds,
 } from "@/lib/chart";
-import { ChartDataContext } from "./chart-data-context-type";
 import { useSearchParams } from "react-router";
 import { CandleData } from "@/components/trade/chart-component/candle";
+import { useCCXT } from "../ccxt/use";
+import { ChartDataContext } from "./type";
 
 export const ChartDataProvider = ({
   children,

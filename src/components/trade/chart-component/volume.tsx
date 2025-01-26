@@ -1,4 +1,4 @@
-import { ChartContext } from "@/contexts/chart-context-type";
+import { ChartContext } from "@/contexts/chart/type";
 import { HistogramSeriesOptions, ISeriesApi, Time } from "lightweight-charts";
 import {
   forwardRef,

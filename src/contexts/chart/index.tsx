@@ -1,5 +1,5 @@
 import { PropsWithChildren } from "react";
-import { ChartContext, ChartContextValue } from "./chart-context-type";
+import { ChartContextValue, ChartContext } from "./type";
 
 interface ChartProviderProps extends PropsWithChildren {
   value: ChartContextValue;

@@ -11,7 +11,7 @@ import { TimeFrame } from "@/components/trade/time-frame";
 // import { ExchangeType } from "@/lib/accounts";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import { PriceInfo } from "@/components/trade/price-info";
-import { useTrade } from "@/hooks/use-trade-context";
+import { useTrade } from "@/contexts/trade/use";
 import { useSearchParams } from "react-router";
 import { ChartComponent } from "@/components/trade/chart-component";
 // import { useEffect } from "react";

@@ -1,9 +1,5 @@
 import { useContext } from "react";
-import {
-  CCXTContext,
-  supportExchanges,
-  CCXTType,
-} from "@/contexts/ccxt-context-type";
+import { CCXTContext, supportExchanges, CCXTType } from "@/contexts/ccxt/type";
 
 export const useCCXT = () => {
   const context = useContext(CCXTContext);

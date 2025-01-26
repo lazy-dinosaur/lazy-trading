@@ -1,5 +1,3 @@
-import { useCCXT } from "@/hooks/use-ccxt-context";
-import { usePin } from "@/hooks/use-pin-context";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   fetchAccounts,
@@ -10,11 +8,10 @@ import {
   addAccount,
 } from "./app-storage";
 
-import {
-  AccountInfoType,
-  BalancesType,
-} from "@/contexts/accounts-context-type";
+import { AccountInfoType, BalancesType } from "@/contexts/accounts/type";
 import { BalanceMutationParams } from "./ccxt";
+import { useCCXT } from "@/contexts/ccxt/use";
+import { usePin } from "@/contexts/pin/use";
 
 export type ExchangeType = "bitget" | "binance" | "bybit";
 

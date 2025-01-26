@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/input-otp";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { usePin } from "@/hooks/use-pin-context";
+import { usePin } from "@/contexts/pin/use";
 
 const formSchema = z.object({
   pin: z.string().length(4, {

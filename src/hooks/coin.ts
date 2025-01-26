@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { TickerWithExchange } from "@/lib/ccxt";
-import { CCXTType, supportExchanges, useCCXT } from "./use-ccxt-context";
+import { CCXTType, supportExchanges, useCCXT } from "../contexts/ccxt/use";
 import { ExchangeType } from "@/lib/accounts";
 const fetchAllTickers = async (ccxt: CCXTType) => {
   if (ccxt) {

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { PinContext, VERIFICATION_STRING } from "@/contexts/pin-context-type";
+import { PinContext, VERIFICATION_STRING } from "./type";
 
 export const usePin = () => {
   const context = useContext(PinContext);

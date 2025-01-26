@@ -5,7 +5,7 @@ import {
   useAddAccount,
   useIsAccountValid,
 } from "@/lib/accounts";
-import { AccountsContext } from "./accounts-context-type";
+import { AccountsContext } from "./type";
 
 export function AccountsProvider({ children }: { children: React.ReactNode }) {
   const fetchAccountQuery = useFetchAccount();

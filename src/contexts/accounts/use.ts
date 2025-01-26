@@ -1,5 +1,5 @@
+import { AccountsContext } from "@/contexts/accounts/type";
 import { useContext } from "react";
-import { AccountsContext } from "@/contexts/accounts-context-type";
 
 export const useAccounts = () => {
   const context = useContext(AccountsContext);
@@ -29,4 +29,4 @@ export type {
   AccountInfo,
   AccountInfoType,
   BalancesType,
-} from "@/contexts/accounts-context-type";
+} from "@/contexts/accounts/type";

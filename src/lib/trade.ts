@@ -1,6 +1,7 @@
-import { CCXTType, useCCXT } from "@/hooks/use-ccxt-context";
 import { useQuery } from "@tanstack/react-query";
 import { ExchangeType } from "./accounts";
+import { CCXTType } from "@/contexts/ccxt/type";
+import { useCCXT } from "@/contexts/ccxt/use";
 
 export const fetchTradingFees = async (
   ccxt: CCXTType,

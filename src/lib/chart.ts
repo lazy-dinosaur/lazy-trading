@@ -1,7 +1,7 @@
 import { ExchangeType } from "@/lib/accounts";
 import { TimeFrameType } from "@/components/trade/time-frame";
-import { CCXTType } from "@/hooks/use-ccxt-context";
 import { CandleData } from "@/components/trade/chart-component/candle";
+import { CCXTType } from "@/contexts/ccxt/type";
 
 export const getFormattedTimeframe = (
   exchange: ExchangeType,

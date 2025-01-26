@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { ExchangeInstances, createExchangeInstances } from "@/lib/ccxt";
-import { CCXTType, CCXTContext } from "./ccxt-context-type";
+import { CCXTType, CCXTContext } from "./type";
 
 export function CCXTProvider({ children }: { children: React.ReactNode }) {
   const exchangeInstancesRef = useRef<ExchangeInstances | null>(null);

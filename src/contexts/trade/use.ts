@@ -1,4 +1,4 @@
-import { TradeContext } from "@/contexts/trade-context-type";
+import { TradeContext } from "@/contexts/trade/type";
 import { useContext } from "react";
 
 export const useTrade = () => {

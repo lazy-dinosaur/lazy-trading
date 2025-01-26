@@ -1,5 +1,5 @@
 import { LoadingSpinner } from "@/components/loading";
-import { useCache } from "@/hooks/use-cache-context";
+import { useCache } from "@/contexts/cache/use";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 

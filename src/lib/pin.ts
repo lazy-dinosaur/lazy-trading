@@ -1,6 +1,6 @@
-import { VERIFICATION_STRING } from "@/contexts/pin-context-type";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { encryptKey, EncryptedData, decryptKey } from "./cryptography";
+import { VERIFICATION_STRING } from "@/contexts/pin/use";
 
 export const usePinCreated = () =>
   useQuery({

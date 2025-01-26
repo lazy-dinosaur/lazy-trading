@@ -4,7 +4,7 @@ import {
   useGetPin,
   usePinValid,
 } from "@/lib/pin";
-import { PinContext } from "./pin-context-type";
+import { PinContext } from "./type";
 
 export function PinProvider({ children }: { children: React.ReactNode }) {
   const isPinCreatedQuery = usePinCreated();

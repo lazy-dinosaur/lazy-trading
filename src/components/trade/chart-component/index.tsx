@@ -3,9 +3,9 @@ import { ISeriesApi } from "lightweight-charts";
 import { LoadingSpinner } from "../../loading";
 import { getStopLossMarkers } from "@/lib/ccxt";
 import { useSearchParams } from "react-router";
-import { useChartData } from "@/hooks/use-chart-data-context";
 import { Chart } from "./chart-wrapper";
 import { CandleSeries } from "./candle";
+import { useChartData } from "@/contexts/chart-data/use";
 
 export const ChartComponent = () => {
   const [searchParams] = useSearchParams();

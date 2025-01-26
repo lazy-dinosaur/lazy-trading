@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useCache } from "@/hooks/use-cache-context";
+import { useCache } from "@/contexts/cache/use";
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router";
 

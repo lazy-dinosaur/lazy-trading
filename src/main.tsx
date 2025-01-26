@@ -12,9 +12,9 @@ import SetPin from "./screens/set-pin.tsx";
 import Locked from "./screens/locked.tsx";
 import Layout from "./components/Layout.tsx";
 import AddAccount from "./screens/add-account.tsx";
-import Providers from "./contexts/contexts-providers.tsx";
-import { TradeProvider } from "./contexts/trade-context.tsx";
-import { ChartDataProvider } from "./contexts/chart-data-context.tsx";
+import Providers from "./contexts/providers.tsx";
+import { TradeProvider } from "./contexts/trade/index.tsx";
+import { ChartDataProvider } from "./contexts/chart-data/index.tsx";
 
 const queryClient = new QueryClient();
 

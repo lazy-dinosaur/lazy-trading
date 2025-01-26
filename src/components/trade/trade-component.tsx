@@ -7,7 +7,6 @@ import {
   useMutateTradingConfig,
 } from "@/hooks/settings";
 import { Link, useParams } from "react-router";
-import { useTradingFees } from "@/hooks/chart";
 import { useEffect, useState } from "react";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
@@ -15,6 +14,7 @@ import { AccountInfo, searchingStopLossCandle } from "@/lib/ccxt";
 import { useMarketInfo } from "@/hooks/coin";
 import { ExchangeType } from "@/lib/accounts";
 import { CandleData } from "./chart-component/candle";
+import { useTradingFees } from "@/lib/trade";
 
 type TradeInfoType =
   | {

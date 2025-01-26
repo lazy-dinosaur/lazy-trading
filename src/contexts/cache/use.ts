@@ -1,4 +1,4 @@
-import { CacheContext } from "@/contexts/cache-context-type";
+import { CacheContext } from "@/contexts/cache/type";
 import { useContext } from "react";
 
 // Custom hook to use the cache context

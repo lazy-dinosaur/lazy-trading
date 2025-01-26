@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import { usePin } from "./hooks/use-pin-context";
+import { usePin } from "./contexts/pin/use";
 
 //초기 로딩과 초기 셋업 불러오기
 //로딩 스크린 넣기

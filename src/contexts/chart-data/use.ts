@@ -1,5 +1,5 @@
-import { ChartDataContext } from "@/contexts/chart-data-context-type";
 import { useContext } from "react";
+import { ChartDataContext } from "./type";
 
 export const useChartData = () => {
   const context = useContext(ChartDataContext);
