@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { CCXTType, supportExchanges, useCCXT } from "./ccxt";
-import { TickerWithExchange } from "@/lib/ccxtUtils";
-import { ExchangeType } from "./useAccounts";
+import { TickerWithExchange } from "@/lib/ccxt";
+import { CCXTType, supportExchanges, useCCXT } from "./use-ccxt-context";
+import { ExchangeType } from "@/lib/accounts";
 const fetchAllTickers = async (ccxt: CCXTType) => {
   if (ccxt) {
     const { bybit, binance, bitget } = ccxt;
@@ -104,12 +104,12 @@ const fetchAllTickers = async (ccxt: CCXTType) => {
 
 // 티커 정보 전용 쿼리
 export const useAllTickers = () => {
-  const { data: ccxt, isLoading } = useCCXT();
+  const ccxt = useCCXT();
   return useQuery({
     queryKey: ["allTickers", supportExchanges],
     queryFn: async () => ccxt && (await fetchAllTickers(ccxt)),
     refetchInterval: 1000 * 30, // 30초마다 자동 갱신
-    enabled: !isLoading && !!ccxt,
+    enabled: !!ccxt,
   });
 };
 
@@ -125,7 +125,7 @@ export const fetchTicker = async ({
   if (ccxt) {
     const exchangeInstance = ccxt[exchange].ccxt;
     const ticker = await exchangeInstance.fetchTicker(symbol);
-    return { ...ticker, exchange };
+    return ticker;
   }
 };
 
@@ -136,14 +136,48 @@ export const useFetchTicker = ({
   exchange: ExchangeType;
   symbol: string;
 }) => {
-  const { data: ccxt, isLoading } = useCCXT();
+  const ccxt = useCCXT();
   return useQuery({
     queryKey: [exchange, symbol, "ticker"],
     queryFn: async () =>
       ccxt ? await fetchTicker({ ccxt, exchange, symbol }) : undefined,
-    enabled: !!ccxt && !isLoading && !!exchange && !!symbol,
+    enabled: !!ccxt && !!exchange && !!symbol,
     refetchInterval: 500,
     refetchIntervalInBackground: true,
     refetchOnMount: true,
+  });
+};
+
+export const fetchMarketInfo = async (
+  ccxt: any,
+  exchange: ExchangeType,
+  symbol: string,
+) => {
+  if (!ccxt?.[exchange]) {
+    throw new Error("Exchange instance not initialized");
+  }
+
+  try {
+    const exchangeInstance = ccxt[exchange].pro;
+    await exchangeInstance.loadMarkets();
+    const market = exchangeInstance.market(symbol);
+
+    return {
+      maxLeverage: market.limits?.leverage?.max || 0,
+      // 기타 필요한 마켓 정보들
+    };
+  } catch (error) {
+    console.error(`Error fetching market info:`, error);
+    return null;
+  }
+};
+
+export const useMarketInfo = (exchange: ExchangeType, symbol: string) => {
+  const ccxt = useCCXT();
+
+  return useQuery({
+    queryKey: [exchange, symbol, "market"],
+    queryFn: () => fetchMarketInfo(ccxt, exchange, symbol),
+    enabled: !!ccxt && !!exchange && !!symbol,
   });
 };

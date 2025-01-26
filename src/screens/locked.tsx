@@ -14,10 +14,9 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { usePinValid } from "@/hooks/pin";
-import { useGetPin } from "@/hooks/pin";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { usePin } from "@/hooks/use-pin-context";
 
 const formSchema = z.object({
   pin: z.string().length(4, {
@@ -30,8 +29,8 @@ type PinFormValues = z.infer<typeof formSchema>;
 const MAX_ATTEMPTS = 5;
 
 const Locked = () => {
-  const { data: encryptedPin } = useGetPin();
-  const { pinValidation } = usePinValid();
+  const { encryptedPin, validatePin, isLoading } = usePin();
+
   const [attempts, setAttempts] = useState(0);
   const queryClient = useQueryClient();
 
@@ -55,7 +54,7 @@ const Locked = () => {
     if (!encryptedPin) return;
 
     try {
-      const result = await pinValidation.mutateAsync({
+      const result = await validatePin({
         encryptedPin,
         pin: values.pin,
       });
@@ -133,12 +132,8 @@ const Locked = () => {
           />
 
           <div className="space-y-3 pt-6">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={pinValidation.isPending}
-            >
-              {pinValidation.isPending ? "Verifying..." : "Unlock"}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Verifying..." : "Unlock"}
             </Button>
           </div>
         </form>

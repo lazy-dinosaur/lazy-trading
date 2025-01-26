@@ -1,11 +1,12 @@
-import { IChartApi, ISeriesApi } from "lightweight-charts";
-import { createContext } from "react";
+import { PropsWithChildren } from "react";
+import { ChartContext, ChartContextValue } from "./chart-context-type";
 
-export interface ChartContextValue {
-  isRemoved: boolean;
-  _api?: IChartApi;
-  api(): IChartApi;
-  free(series: ISeriesApi<any>): void;
+interface ChartProviderProps extends PropsWithChildren {
+  value: ChartContextValue;
 }
 
-export const ChartContext = createContext<ChartContextValue | null>(null);
+export const ChartProvider = ({ children, value }: ChartProviderProps) => {
+  return (
+    <ChartContext.Provider value={value}>{children}</ChartContext.Provider>
+  );
+};

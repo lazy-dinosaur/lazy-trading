@@ -1,4 +1,4 @@
-import { ExchangeType } from "@/hooks/useAccounts";
+import { ExchangeType } from "@/lib/accounts";
 import { Exchange, Dictionary } from "ccxt";
 import { createContext } from "react";
 

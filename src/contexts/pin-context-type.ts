@@ -3,7 +3,7 @@ import {
   usePinMutation,
   useGetPin,
   usePinValid,
-} from "@/hooks/pin";
+} from "@/lib/pin";
 import { createContext } from "react";
 
 export interface PinContextType {

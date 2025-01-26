@@ -2,23 +2,25 @@ import {
   getTradingConfig,
   setTradingConfig,
   TradingConfigType,
-} from "@/lib/appStorage";
+} from "@/lib/app-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+const initialConfig = {
+  risk: 1.5,
+  riskRatio: 3,
+  partialClose: false,
+  closeRatio: 50,
+  stopToEven: true,
+};
 
 export const useFetchTradingConfig = () =>
   useQuery({
     queryKey: ["tradingConfig"],
     queryFn: async () => {
       const config = await getTradingConfig();
-      return (
-        config || {
-          risk: 1.5,
-          riskRatio: 3,
-          partialClose: false,
-          closeRatio: 50,
-          stopToEven: true,
-        }
-      );
+      if (!config) {
+        await setTradingConfig(initialConfig);
+      }
+      return config || initialConfig;
     },
   });
 
@@ -27,13 +29,7 @@ export const useMutateTradingConfig = () => {
 
   return useMutation({
     mutationFn: async (config: Partial<TradingConfigType>) => {
-      const currentConfig = (await getTradingConfig()) || {
-        risk: 1.5,
-        riskRatio: 3,
-        partialClose: false,
-        closeRatio: 50,
-        stopToEven: true,
-      };
+      const currentConfig = (await getTradingConfig()) || initialConfig;
       const newConfig = {
         risk: currentConfig.risk,
         riskRatio: currentConfig.riskRatio,
@@ -54,13 +50,7 @@ export const useMutateTradingConfig = () => {
 
       // Optimistic update
       queryClient.setQueryData<TradingConfigType>(["tradingConfig"], (old) => ({
-        ...(old || {
-          risk: 1.5,
-          riskRatio: 3,
-          partialClose: false,
-          closeRatio: 50,
-          stopToEven: true,
-        }),
+        ...(old || initialConfig),
         ...newConfig,
       }));
 

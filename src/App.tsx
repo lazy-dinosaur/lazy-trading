@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import { usePinCreated, usePinValid } from "./hooks/pin";
+import { usePin } from "./hooks/use-pin-context";
 
 //초기 로딩과 초기 셋업 불러오기
 //로딩 스크린 넣기
@@ -9,9 +9,7 @@ import { usePinCreated, usePinValid } from "./hooks/pin";
 const App = () => {
   const [isLoaded, setIsloaded] = useState(false);
   const navigation = useNavigate();
-  const { data: isPinCreated, isLoading: isPinCreatedLoading } =
-    usePinCreated();
-  const { validPin } = usePinValid();
+  const { validPin, isPinCreated, isLoading: isPinCreatedLoading } = usePin();
 
   useEffect(() => {
     if (!validPin && !isPinCreatedLoading && !isPinCreated) {

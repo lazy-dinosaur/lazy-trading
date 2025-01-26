@@ -1,5 +1,5 @@
-import { ExchangeType } from "@/hooks/useAccounts";
-import { decryptApiKey, encryptApiKey, EncryptedData } from "./apiKey";
+import { ExchangeType } from "./accounts";
+import { decryptKey, encryptKey, EncryptedData } from "./cryptography";
 
 export type TradingConfigType = {
   risk: number;
@@ -121,8 +121,8 @@ export const decryptAccount = async (
   }
 
   try {
-    const decryptedApiKey = await decryptApiKey(account.apiKey, pin);
-    const decryptedSecretKey = await decryptApiKey(account.secretKey, pin);
+    const decryptedApiKey = await decryptKey(account.apiKey, pin);
+    const decryptedSecretKey = await decryptKey(account.secretKey, pin);
 
     return {
       ...account,
@@ -145,8 +145,8 @@ export const encryptAccount = async (
   }
 
   try {
-    const encryptedApiKey = await encryptApiKey(account.apiKey, pin);
-    const encryptedSecretKey = await encryptApiKey(account.secretKey, pin);
+    const encryptedApiKey = await encryptKey(account.apiKey, pin);
+    const encryptedSecretKey = await encryptKey(account.secretKey, pin);
 
     return {
       ...account,

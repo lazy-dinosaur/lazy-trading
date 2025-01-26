@@ -1,7 +1,8 @@
-import { CandleData } from "@/components/chart/candle";
 import { TimeFrameType } from "@/components/trade/time-frame";
-import { ExchangeType } from "@/hooks/useAccounts";
 import ccxt, {
+  bybit as Bybit,
+  bitget as Bitget,
+  binance as Binance,
   Balance,
   Balances,
   Exchange,
@@ -10,7 +11,12 @@ import ccxt, {
   Ticker,
 } from "ccxt";
 import { MutableRefObject } from "react";
-import { DecryptedAccount } from "./appStorage";
+import { DecryptedAccount } from "./app-storage";
+import BybitPro from "node_modules/ccxt/js/src/pro/bybit";
+import BitgetPro from "node_modules/ccxt/js/src/pro/bitget";
+import BinancePro from "node_modules/ccxt/js/src/pro/binance";
+import { ExchangeType } from "./accounts";
+import { CandleData } from "@/components/chart/candle-types";
 
 export const formatTime = (timestamp: number, timeFrame: TimeFrameType) => {
   const date = new Date(timestamp * 1000);
@@ -134,9 +140,17 @@ export interface TickerWithExchange extends Ticker {
 }
 
 export interface ExchangeInstances {
-  [key: string]: {
-    ccxt: Exchange;
-    pro: Exchange;
+  bybit: {
+    ccxt: Bybit;
+    pro: BybitPro;
+  };
+  binance: {
+    ccxt: Binance;
+    pro: BinancePro;
+  };
+  bitget: {
+    ccxt: Bitget;
+    pro: BitgetPro;
   };
 }
 export const createExchangeInstances = (): ExchangeInstances => ({
@@ -546,7 +560,7 @@ export type BalancesType = Balances &
     usd: USDBalance;
   };
 
-async function calculateUSDBalance(
+export async function calculateUSDBalance(
   exchange: Exchange,
   balance: Balances,
 ): Promise<USDBalance> {

@@ -1,28 +1,25 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import Header from "@/components/header";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useFetchCache, useUpdateCache } from "@/hooks/cache";
+import { useCache } from "@/hooks/use-cache-context";
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router";
 
 export default function Layout() {
-  const { data: cacheData, isLoading: isCacheLoading } = useFetchCache();
-  const { mutate: updateCache } = useUpdateCache();
+  const { cache, isLoading: isCacheLoading, updateCache } = useCache();
   const location = useLocation();
 
   useEffect(() => {
-    if (
-      cacheData &&
-      cacheData.currentRoute != location.pathname &&
-      !isCacheLoading
-    ) {
-      updateCache({ currentRoute: location.pathname });
+    if (cache && !isCacheLoading) {
+      const fullPath = location.pathname + location.search;
+      if (cache.currentRoute !== fullPath) {
+        updateCache({ currentRoute: fullPath });
+      }
     }
-  }, [location, isCacheLoading, updateCache, cacheData]);
+  }, [location.pathname, location.search, isCacheLoading, updateCache, cache]);
+
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="h-[100vh] w-[100vw] flex flex-col space-y-6 p-6">
-        <Header />
         <Outlet />
       </div>
       <AppSidebar />

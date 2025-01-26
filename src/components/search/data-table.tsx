@@ -51,7 +51,8 @@ export const DataTable = ({
   return (
     <div
       ref={tableContainerRef}
-      className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-full"
+      className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-full h-[calc(100vh - 10rem)]"
+      style={{ height: "calc(100vh - 10rem)" }}
     >
       <div className="sticky top-0 bg-background z-10 w-full">
         <Table className="w-full table-auto">
@@ -96,11 +97,12 @@ export const DataTable = ({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                onClick={() =>
+                onClick={() => {
+                  const symbol = encodeURIComponent(row.getValue("symbol"));
                   navigate(
-                    `/${row.getValue("exchange")}/${row.getValue("symbol")}`,
-                  )
-                }
+                    `/trade?exchange=${row.getValue("exchange")}&symbol=${symbol}`,
+                  );
+                }}
                 className="hover:bg-muted/50"
                 style={{
                   position: "absolute",
@@ -125,7 +127,12 @@ export const DataTable = ({
                         ] || "auto",
                     }}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <span className="flex w-full h-full items-center">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </span>
                   </TableCell>
                 ))}
               </TableRow>

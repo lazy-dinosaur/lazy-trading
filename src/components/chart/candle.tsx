@@ -1,3 +1,5 @@
+import { ChartContext } from "@/contexts/chart-context-type";
+import { searchingStopLossCandle } from "@/lib/ccxt";
 import {
   CandlestickSeriesOptions,
   ISeriesApi,
@@ -11,8 +13,6 @@ import {
   useLayoutEffect,
   useImperativeHandle,
 } from "react";
-import { searchingStopLossCandle } from "@/lib/ccxtUtils";
-import { ChartContext } from "@/contexts";
 
 export type CandleData = OhlcData & { volume: number };
 

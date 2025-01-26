@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { DecryptedAccount } from "@/lib/appStorage";
+import { DecryptedAccount } from "@/lib/app-storage";
 import { Position, Order, Balance, Balances } from "ccxt";
 import {
   useFetchAccount,
@@ -7,7 +7,7 @@ import {
   useAccountsDetail,
   useAddAccount,
   useIsAccountValid,
-} from "@/hooks/accounts";
+} from "@/lib/accounts";
 
 export interface USDBalance {
   total: number;

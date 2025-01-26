@@ -12,6 +12,7 @@ import { DataTable } from "@/components/search/data-table";
 import { LoadingSpinner } from "@/components/loading";
 import { useState } from "react";
 import { useAllTickers } from "@/hooks/coin";
+import { ScreenWrapper } from "@/components/screen-wrapper";
 
 const Search = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -35,10 +36,7 @@ const Search = () => {
   });
 
   return (
-    <div
-      className={"w-full space-y-5"}
-      style={{ height: "calc(100vh - 10rem)" }}
-    >
+    <ScreenWrapper headerProps={{ title: "Search" }} className={["space-y-5"]}>
       <Filter table={table} />
       {!isLoading ? (
         <DataTable table={table} />
@@ -47,7 +45,7 @@ const Search = () => {
           <LoadingSpinner />
         </div>
       )}
-    </div>
+    </ScreenWrapper>
   );
 };
 export default Search;

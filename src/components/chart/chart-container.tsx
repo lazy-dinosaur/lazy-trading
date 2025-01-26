@@ -14,7 +14,7 @@ import {
   useEffect,
 } from "react";
 import { throttle } from "lodash";
-import { ChartContext } from "@/contexts";
+import { ChartContext } from "@/contexts/chart-context-type";
 
 interface ChartContainerProps {
   container: HTMLDivElement;

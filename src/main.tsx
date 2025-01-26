@@ -12,7 +12,8 @@ import SetPin from "./screens/set-pin.tsx";
 import Locked from "./screens/locked.tsx";
 import Layout from "./components/Layout.tsx";
 import AddAccount from "./screens/add-account.tsx";
-import Providers from "./contexts/contextProviders.tsx";
+import Providers from "./contexts/contexts-providers.tsx";
+import { TradeProvider } from "./contexts/trade-context.tsx";
 
 const queryClient = new QueryClient();
 
@@ -27,12 +28,19 @@ createRoot(document.getElementById("root")!).render(
             <Route path="locked" element={<Locked />} />
             <Route element={<Layout />}>
               <Route path="account">
-                <Route path="add/:exchange" element={<AddAccount />} />
+                <Route path="add" element={<AddAccount />} />
               </Route>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="accounts" element={<Accounts />} />
               <Route path="search" element={<Search />} />
-              <Route path=":exchange/:coin/:base" element={<Trade />} />
+              <Route
+                path="trade"
+                element={
+                  <TradeProvider>
+                    <Trade />
+                  </TradeProvider>
+                }
+              />
             </Route>
           </Route>
         </Routes>

@@ -1,24 +1,24 @@
+import { useTrade } from "@/hooks/use-trade-context";
 import { cn } from "@/lib/utils";
 import { Num } from "ccxt";
 import { useEffect, useState } from "react";
-import { TickerWithExchange } from "../search/columns";
+import { useSearchParams } from "react-router";
 
-export const PriceInfo = ({
-  data,
-  isLoading,
-}: {
-  data: TickerWithExchange;
-  isLoading: boolean;
-}) => {
-  console.log(isLoading);
-  const { exchange, high, low, last, vwap, quoteVolume } = data;
+export const PriceInfo = () => {
+  const [searchParams] = useSearchParams();
+  const exchange = searchParams.get("exchange");
+  const {
+    tickerQuery: { data },
+  } = useTrade();
+
   const [curPrice, setCur] = useState<{
     price: Num;
     color: "default" | "up" | "down";
-  }>({ price: last, color: "default" });
+  }>({ price: data?.last, color: "default" });
 
   useEffect(() => {
-    if (last) {
+    if (data && data.last) {
+      const last = data.last;
       setCur((cur) => {
         if (!cur.price) {
           return { price: last, color: "default" };
@@ -32,7 +32,7 @@ export const PriceInfo = ({
         return cur;
       });
     }
-  }, [last]);
+  }, [data]);
 
   return (
     <div className="w-full flex justify-between items-center">
@@ -47,27 +47,27 @@ export const PriceInfo = ({
         </h1>
         <span className="flex gap-1 text-sm">
           <span className="capitalize text-muted-foreground">volume</span>
-          <span>{quoteVolume}</span>
+          <span>{data?.quoteVolume}</span>
         </span>
       </div>
       <div className="text-sm">
         <div className="flex w-full items-center justify-between gap-2">
           <span className="capitalize text-muted-foreground">24High</span>
-          <span>{high}</span>
+          <span>{data?.high}</span>
         </div>
         <div className="flex w-full items-center justify-between gap-2">
           <span className="capitalize text-muted-foreground">24Low</span>
-          <span>{low}</span>
+          <span>{data?.low}</span>
         </div>
         {exchange == "bybit" ? (
           <div className="flex w-full items-center justify-between gap-2">
             <span className="capitalize text-muted-foreground">24Turnover</span>
-            <span>{data.info.turnover24h}</span>
+            <span>{data?.info.turnover24h}</span>
           </div>
         ) : (
           <div className="flex w-full items-center justify-between gap-2">
             <span className="capitalize text-muted-foreground">vwap</span>
-            <span>{vwap}</span>
+            <span>{data?.vwap}</span>
           </div>
         )}
       </div>

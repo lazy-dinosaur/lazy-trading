@@ -1,11 +1,12 @@
-import { ExchangeType } from "./useAccounts";
 import { TimeFrameType } from "@/components/trade/time-frame";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useCCXT } from "./ccxt";
-import { CandleData } from "@/components/chart/candle";
+
 import { Exchange } from "ccxt";
 import { useCallback, useEffect, useState } from "react";
 import { Time } from "lightweight-charts";
+import { CCXTType, useCCXT } from "./use-ccxt-context";
+import { ExchangeType } from "@/lib/accounts";
+import { CandleData } from "@/components/chart/candle-types";
 
 export interface ExchangeInstances {
   [key: string]: {
@@ -107,7 +108,7 @@ export const fetchHistoricalOHLCV = async ({
   symbol,
 }: {
   pageParam: number;
-  ccxt?: ExchangeInstances;
+  ccxt: CCXTType | null;
   exchange: ExchangeType;
   timeframe: TimeFrameType;
   symbol: string;
@@ -181,7 +182,7 @@ export const useHistoricalOHLCVData = (
   symbol: string,
   timeframe: TimeFrameType,
 ) => {
-  const { data: ccxt, isLoading: isCCXTLoading } = useCCXT();
+  const ccxt = useCCXT();
   return useInfiniteQuery({
     queryKey: [exchange, symbol, timeframe, "historical"],
     initialPageParam: Date.now(),
@@ -194,7 +195,7 @@ export const useHistoricalOHLCVData = (
         symbol,
       }),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!ccxt && !isCCXTLoading,
+    enabled: !!ccxt,
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
@@ -209,7 +210,7 @@ export const fetchRealtimeOHLCV = async ({
   symbol,
   lastCandleTime,
 }: {
-  ccxt?: ExchangeInstances;
+  ccxt?: CCXTType | null;
   exchange: ExchangeType;
   timeframe: TimeFrameType;
   symbol: string;
@@ -274,7 +275,7 @@ export const useRealtimeOHLCVData = (
   timeframe: TimeFrameType,
   lastCandleTime?: number,
 ) => {
-  const { data: ccxt, isLoading: isCCXTLoading } = useCCXT();
+  const ccxt = useCCXT();
 
   return useQuery({
     queryKey: [exchange, symbol, timeframe, "realtime", lastCandleTime],
@@ -286,7 +287,7 @@ export const useRealtimeOHLCVData = (
         symbol,
         lastCandleTime,
       }),
-    enabled: !!ccxt && !isCCXTLoading,
+    enabled: !!ccxt,
     refetchInterval: 200,
     refetchIntervalInBackground: true,
     refetchOnMount: true,
@@ -295,7 +296,7 @@ export const useRealtimeOHLCVData = (
   });
 };
 
-export const useChart = (
+export const useChartData = (
   exchange: ExchangeType,
   symbol: string,
   timeframe: TimeFrameType = "30",
@@ -443,11 +444,24 @@ export const useChart = (
         const result = await historicalOHLCVData.fetchNextPage();
         if (!result.data) return;
 
-        const newData = result.data.pages.flatMap((page) => page.data);
+        // 새로운 데이터만 추출
+        const latestPage = result.data.pages[result.data.pages.length - 1];
+        if (!latestPage?.data.length) return;
 
         setChartData((prevData) => {
-          const merged = [...newData, ...prevData];
-          return merged.sort((a, b) => (a.time as number) - (b.time as number));
+          // 새 데이터에서 중복을 제거
+          const newCandles = latestPage.data.filter((newCandle) => {
+            return !prevData.some(
+              (existingCandle) =>
+                Number(existingCandle.time) === Number(newCandle.time),
+            );
+          });
+
+          // 기존 데이터와 새 데이터 병합
+          const merged = [...newCandles, ...prevData];
+
+          // 시간순 정렬
+          return merged.sort((a, b) => Number(a.time) - Number(b.time));
         });
       } catch (error) {
         console.error("Error fetching next page:", error);
@@ -494,7 +508,6 @@ export const fetchTradingFees = async (
       const exchangeInstance = ccxt[exchange].pro;
 
       // 마켓 정보 로드 (수수료 포함)
-      await exchangeInstance.loadMarkets();
       const market = exchangeInstance.market(symbol);
 
       return {
@@ -512,7 +525,7 @@ export const fetchTradingFees = async (
 };
 
 export const useTradingFees = (exchange: ExchangeType, symbol: string) => {
-  const { data: ccxt } = useCCXT();
+  const ccxt = useCCXT();
 
   return useQuery({
     queryKey: [exchange, symbol, "fees"],

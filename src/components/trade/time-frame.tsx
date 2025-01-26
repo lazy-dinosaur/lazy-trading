@@ -1,4 +1,5 @@
-import React from "react";
+import { useCallback } from "react";
+import { useSearchParams } from "react-router";
 export type TimeFrameType =
   | "1"
   | "5"
@@ -10,17 +11,19 @@ export type TimeFrameType =
   | "W"
   | "M";
 
-export const TimeFrame = ({
-  timeFrameState,
-}: {
-  timeFrameState: {
-    timeframe: string;
-    setTimeframe: React.Dispatch<
-      React.SetStateAction<TimeFrameType | undefined>
-    >;
-  };
-}) => {
-  const { timeframe, setTimeframe } = timeFrameState;
+export const TimeFrame = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const timeframe = searchParams.get("timeframe") as TimeFrameType;
+
+  const setTimeframe = useCallback(
+    (newTimeframe: TimeFrameType) => {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("timeframe", newTimeframe);
+      setSearchParams(newParams);
+    },
+    [searchParams, setSearchParams],
+  );
+
   return (
     <div className="grid grid-flow-col gap-2 text-muted-foreground text-sm">
       <span

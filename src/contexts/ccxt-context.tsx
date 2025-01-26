@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { ExchangeInstances, createExchangeInstances } from "@/lib/ccxtUtils";
+import { ExchangeInstances, createExchangeInstances } from "@/lib/ccxt";
 import { CCXTType, CCXTContext } from "./ccxt-context-type";
 
 export function CCXTProvider({ children }: { children: React.ReactNode }) {
@@ -11,6 +11,7 @@ export function CCXTProvider({ children }: { children: React.ReactNode }) {
 
     if (exchangeInstancesRef.current) {
       const { bybit, binance, bitget } = exchangeInstancesRef.current;
+      // 테스트 계정용
       bybit.ccxt.setSandboxMode(true);
       bybit.pro.setSandboxMode(true);
       binance.ccxt.setSandboxMode(true);

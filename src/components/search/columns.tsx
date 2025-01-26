@@ -1,7 +1,7 @@
-import { ExchangeType } from "@/hooks/useAccounts";
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Ticker } from "ccxt";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ExchangeType } from "@/lib/accounts";
 
 // 필터 함수 정의
 const exchangeFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {

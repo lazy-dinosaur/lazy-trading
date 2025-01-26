@@ -12,7 +12,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { usePinMutation } from "@/hooks/pin";
+import { usePin } from "@/hooks/use-pin-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -34,7 +34,7 @@ const SetPin = () => {
   const [firstPin, setFirstPin] = useState<string>("");
   const [step, setStep] = useState<"create" | "confirm">("create");
   const [attempts, setAttempts] = useState<number>(0);
-  const { mutateAsync } = usePinMutation();
+  const { setPin } = usePin();
   const navigation = useNavigate();
 
   const form = useForm<PinFormValues>({
@@ -54,7 +54,7 @@ const SetPin = () => {
       // PIN 확인 단계
       if (data.pin === firstPin) {
         console.log("PIN confirmed:", data.pin);
-        const res = await mutateAsync(data.pin);
+        const res = await setPin(data.pin);
         if (res) {
           navigation("/dashboard", { replace: true });
         }

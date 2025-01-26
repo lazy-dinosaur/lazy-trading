@@ -1,96 +1,138 @@
-import { LoadingSpinner } from "@/components/loading";
+// import { LoadingSpinner } from "@/components/loading";
 import { AccountSelector } from "@/components/trade/account-select";
-import { ChartComponent } from "@/components/trade/chart-component";
+// import { ChartComponent } from "@/components/trade/chart-component";
+// import { PriceInfo } from "@/components/trade/price-info";
+import { TimeFrame, TimeFrameType } from "@/components/trade/time-frame";
+// import { TradeComponent } from "@/components/trade/trade-component";
+// import { useChart } from "@/hooks/chart";
+// import { useFetchTicker } from "@/hooks/coin";
+// import { useAccounts } from "@/hooks/use-accounts-context";
+// import { useCache } from "@/hooks/use-cache-context";
+// import { ExchangeType } from "@/lib/accounts";
+import { ScreenWrapper } from "@/components/screen-wrapper";
 import { PriceInfo } from "@/components/trade/price-info";
-import { TimeFrameType, TimeFrame } from "@/components/trade/time-frame";
-import { TradeComponent } from "@/components/trade/trade-component";
-import { useAccountsDetail, useAllDecryptedAccounts } from "@/hooks/accounts";
-import { useFetchCache, useUpdateCache } from "@/hooks/cache";
-import { useChart } from "@/hooks/chart";
-import { useFetchTicker } from "@/hooks/coin";
-import { ExchangeType } from "@/hooks/useAccounts";
-import { DecryptedAccount } from "@/lib/appStorage";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useTrade } from "@/hooks/use-trade-context";
+import { useSearchParams } from "react-router";
+import { useChartData } from "@/hooks/chart";
+import { ChartComponent } from "@/components/trade/chart-component";
+import { ExchangeType } from "@/lib/accounts";
+// import { useEffect } from "react";
+// import { DecryptedAccount } from "@/lib/app-storage";
+// import { useEffect, useState } from "react";
 
 const Trade = () => {
-  const [isLoading, setLoading] = useState(true);
-  const [accounts, setAccounts] = useState<DecryptedAccount[]>();
-  const [selected, setSelected] = useState<number>(0);
-  const [timeframe, setTimeframe] = useState<TimeFrameType | undefined>(
-    undefined,
-  );
-  const params = useParams();
-  const exchange = params.exchange as ExchangeType;
-  const symbol = `${params.coin}/${params.base}`;
-  const chartKey = `${exchange}-${symbol}-${timeframe}`;
+  const { tickerQuery } = useTrade();
+  const [searchParams] = useSearchParams();
+  const timeframe = searchParams.get("timeframe")!;
+  const exchange = searchParams.get("exchange")! as ExchangeType;
+  const symbol = searchParams.get("symbol")!;
 
-  const { data: ticker, isLoading: isTickerLoading } = useFetchTicker({
-    exchange,
-    symbol,
-  });
-  const { data: accountsDetails } = useAccountsDetail();
-  const { data: cacheData, isLoading: isCacheLoading } = useFetchCache();
-  const { mutate: updateCache } = useUpdateCache();
-  const chartData = useChart(exchange, symbol, timeframe);
+  // const [isLoading, setLoading] = useState(true);
+  // const [accounts, setAccounts] = useState<DecryptedAccount[]>();
+  // const [selected, setSelected] = useState<string>();
+  // const [timeframe, setTimeframe] = useState<TimeFrameType | undefined>(
+  //   undefined,
+  // );
 
-  const { data: decryptedAccounts, isLoading: isDecryptLoading } =
-    useAllDecryptedAccounts();
+  // const exchangeParam = searchParams.get("exchange") as ExchangeType;
 
-  useEffect(() => {
-    if (decryptedAccounts && !isDecryptLoading)
-      setAccounts(
-        Object.values(decryptedAccounts).filter(
-          (account) => account.exchange == exchange,
-        ),
-      );
-  }, [decryptedAccounts, isDecryptLoading]);
+  // const location = useLocation();
+  // const exchange = location.state.exchange as ExchangeType;
+  // const symbol = location.state.symbol;
+  // const chartKey = `${exchange}-${symbol}-${timeframe}`;
 
-  useEffect(() => {
-    if (cacheData && !isCacheLoading && isLoading) {
-      if (cacheData.data.timeframe) {
-        setTimeframe(cacheData.data.timeframe);
-      } else {
-        setTimeframe("30");
-      }
-      setLoading(false);
-    }
-  }, [cacheData, isCacheLoading, setTimeframe, setLoading, isLoading]);
+  // const {
+  //   // decryptedAccounts,
+  //   accountsDetails,
+  //   isLoading: isAccountsLoading,
+  // } = useAccounts();
+  //
+  // useEffect(() => {
+  //   console.log(accountsDetails);
+  // }, [accountsDetails]);
+  //
+  // const { cache, isLoading: isCacheLoading, updateCache } = useCache();
+  // const chartData = useChart(exchange, symbol, timeframe);
 
-  useEffect(() => {
-    if (!isLoading && timeframe) {
-      updateCache({ ...cacheData, data: { timeframe } });
-    }
-  }, [isLoading, timeframe]);
+  // useEffect(() => {
+  //   if (decryptedAccounts && !isAccountsLoading) {
+  //     const filteredAccounts = Object.values(decryptedAccounts).filter(
+  //       (account) => account.exchange == exchange,
+  //     );
+  //     setAccounts(filteredAccounts);
+  //     if (filteredAccounts && filteredAccounts.length > 0) {
+  //       setSelected(filteredAccounts[0].id);
+  //     }
+  //   }
+  // }, [decryptedAccounts, isAccountsLoading]);
+
+  // useEffect(() => {
+  //   if (cache && !isCacheLoading && isLoading) {
+  //     if (cache.data.timeframe) {
+  //       setTimeframe(cache.data.timeframe);
+  //     } else {
+  //       setTimeframe("30");
+  //     }
+  //     setLoading(false);
+  //   }
+  // }, [cache, isCacheLoading, setTimeframe, setLoading, isLoading]);
+  //
+  // useEffect(() => {
+  //   if (!isLoading && timeframe) {
+  //     updateCache({ ...cache, data: { timeframe } });
+  //   }
+  // }, [isLoading, timeframe]);
+  const chartData = useChartData(exchange, symbol, timeframe as TimeFrameType);
 
   //TODO: 스켈레톤 로딩으로 바꾸기
   return (
-    <div key={chartKey} className="w-full h-full space-y-3 flex flex-col">
-      {!isLoading && ticker && timeframe ? (
-        <>
-          <PriceInfo data={ticker} isLoading={isTickerLoading} />
-          <div className="w-full flex items-center justify-between">
-            <TimeFrame timeFrameState={{ timeframe, setTimeframe }} />
-            <AccountSelector
-              accountState={{ accounts, setAccounts }}
-              selectedState={{ selected, setSelected }}
-              accountsInfo={accountsDetails}
-            />
-          </div>
-          <ChartComponent
-            chartKey={chartKey + "-trade"}
-            candleData={chartData.data}
-            handleChartScroll={chartData.handleScroll}
-          />
-          <TradeComponent
-            id={accounts && accounts[selected]?.id}
-            accountsInfo={accountsDetails}
-          />
-        </>
-      ) : (
-        <LoadingSpinner />
-      )}
-    </div>
+    <ScreenWrapper
+      className={["space-y-3"]}
+      headerProps={{
+        ticker: {
+          symbol: symbol ? symbol : undefined,
+          percentage: tickerQuery.data?.percentage,
+          isTickerLoading: tickerQuery.isLoading,
+        },
+        backButton: true,
+      }}
+    >
+      <PriceInfo />
+      <div className="w-full flex items-center justify-between">
+        <TimeFrame />
+        <AccountSelector />
+      </div>
+      <ChartComponent
+        candleData={chartData.data}
+        handleChartScroll={chartData.handleScroll}
+      />
+      {/* {!isLoading && !isAccountsLoading && ticker && timeframe ? ( */}
+      {/*   <> */}
+      {/*     <PriceInfo data={ticker} isLoading={isTickerLoading} /> */}
+      {/*     <div className="w-full flex items-center justify-between"> */}
+      {/*       <TimeFrame timeFrameState={{ timeframe, setTimeframe }} /> */}
+      {/*       <AccountSelector */}
+      {/*         accountState={{ accounts, setAccounts }} */}
+      {/*         selectedState={{ selected, setSelected }} */}
+      {/*         accountsInfo={accountsDetails} */}
+      {/*         isLoading={isAccountsLoading} */}
+      {/*       /> */}
+      {/*     </div> */}
+      {/*     <ChartComponent */}
+      {/*       chartKey={chartKey + "-trade"} */}
+      {/*       candleData={chartData.data} */}
+      {/*       handleChartScroll={chartData.handleScroll} */}
+      {/*     /> */}
+      {/*     <TradeComponent */}
+      {/*       isLoading={isAccountsLoading} */}
+      {/*       accountsInfo={accountsDetails?.[selected!]} */}
+      {/*       candleData={chartData.data} */}
+      {/*     /> */}
+      {/*   </> */}
+      {/* ) : ( */}
+      {/*   <LoadingSpinner /> */}
+      {/* )} */}
+    </ScreenWrapper>
   );
 };
 export default Trade;

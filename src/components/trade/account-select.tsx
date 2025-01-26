@@ -6,59 +6,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ExchangeType } from "@/hooks/useAccounts";
+import { useTrade } from "@/hooks/use-trade-context";
+import { useSearchParams } from "react-router";
 
-import { AccountInfoType } from "@/hooks/useAccountsInfo";
-import { DecryptedAccount } from "@/lib/appStorage";
-import React from "react";
+export const AccountSelector = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { exchangeAccounts, accountsDetails } = useTrade();
+  const id = searchParams.get("id");
 
-export const AccountSelector = ({
-  accountState: { accounts },
-  selectedState: { selected, setSelected },
-  accountsInfo,
-}: {
-  accountState: {
-    accounts?: DecryptedAccount[];
-    setAccounts: React.Dispatch<
-      React.SetStateAction<DecryptedAccount[] | undefined>
-    >;
-  };
-
-  selectedState: {
-    selected: number;
-    setSelected: React.Dispatch<React.SetStateAction<number>>;
-  };
-  accountsInfo?: AccountInfoType;
-  exchange?: ExchangeType;
-}) => {
   return (
     <Select
-      defaultValue={accounts ? accounts[selected]?.name : undefined}
+      value={id ? id : undefined}
       onValueChange={(value) => {
-        setSelected(Number(value));
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set("id", value);
+        setSearchParams(newParams);
       }}
     >
-      <SelectTrigger className="w-32 h-8" disabled={!!accounts}>
+      <SelectTrigger
+        className="w-32 h-8"
+        disabled={!exchangeAccounts || exchangeAccounts.length == 0}
+      >
         <SelectValue
           placeholder={
-            accounts && accounts?.length > 0 ? "Account" : "No Account"
+            exchangeAccounts && exchangeAccounts.length > 0
+              ? "Account"
+              : "No Account"
           }
         />
       </SelectTrigger>
       <SelectContent className="max-h-[30vh]">
-        {accounts && (
+        {exchangeAccounts && exchangeAccounts.length > 0 && (
           <SelectGroup>
-            {accounts?.map((account) => {
+            {exchangeAccounts.map((account) => {
               const { id } = account;
               const totalBalance =
-                accountsInfo && accountsInfo[id].balance.usd.total;
+                accountsDetails && accountsDetails[id]?.balance?.usd?.total;
               return (
-                <div>
-                  <SelectItem key={id} className="h-7" value={id}>
+                <div key={id}>
+                  <SelectItem className="h-7" value={id}>
                     {account.name}
                   </SelectItem>
                   <div className="text-sm text-muted-foreground px-2">
-                    <span>Total: ${`${totalBalance}`}</span>
+                    <span>Total: ${totalBalance?.toFixed(2) || "0.00"}</span>
                   </div>
                 </div>
               );

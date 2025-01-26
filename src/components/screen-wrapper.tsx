@@ -1,13 +1,24 @@
-import { cn } from "@/lib/utils";
 import { ClassValue } from "clsx";
 import { PropsWithChildren } from "react";
+import Header, { HeaderType } from "./header";
+import { cn } from "@/lib/utils";
 
-type PropsType = PropsWithChildren & { className?: ClassValue[] };
+type PropsType = PropsWithChildren & {
+  className?: ClassValue;
+  headerProps: HeaderType;
+};
 
-export const ScreenWrapper = (props: PropsType) => {
+export const ScreenWrapper = ({
+  children,
+  headerProps,
+  className,
+}: PropsType) => {
   return (
-    <div className={cn("w-max h-max space-y-3", props.className)}>
-      {props.children}
-    </div>
+    <>
+      <Header {...headerProps} />
+      <div className={cn(["w-full h-full flex flex-col", className])}>
+        {children}
+      </div>
+    </>
   );
 };

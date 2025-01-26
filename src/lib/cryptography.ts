@@ -4,7 +4,7 @@ export type EncryptedData = {
   salt: number[];
 };
 // 제안: 더 안전한 암호화 방식 사용
-export const encryptApiKey = async (apiKey: string, pin: string) => {
+export const encryptKey = async (apiKey: string, pin: string) => {
   // PIN으로부터 암호화 키 생성
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
@@ -46,7 +46,7 @@ export const encryptApiKey = async (apiKey: string, pin: string) => {
   };
 };
 
-export const decryptApiKey = async (
+export const decryptKey = async (
   encryptedData: {
     encrypted: number[];
     iv: number[];
