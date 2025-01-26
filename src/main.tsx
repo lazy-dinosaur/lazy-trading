@@ -14,6 +14,7 @@ import Layout from "./components/Layout.tsx";
 import AddAccount from "./screens/add-account.tsx";
 import Providers from "./contexts/contexts-providers.tsx";
 import { TradeProvider } from "./contexts/trade-context.tsx";
+import { ChartDataProvider } from "./contexts/chart-data-context.tsx";
 
 const queryClient = new QueryClient();
 
@@ -36,9 +37,11 @@ createRoot(document.getElementById("root")!).render(
               <Route
                 path="trade"
                 element={
-                  <TradeProvider>
-                    <Trade />
-                  </TradeProvider>
+                  <ChartDataProvider>
+                    <TradeProvider>
+                      <Trade />
+                    </TradeProvider>
+                  </ChartDataProvider>
                 }
               />
             </Route>

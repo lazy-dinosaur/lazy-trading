@@ -2,7 +2,7 @@
 import { AccountSelector } from "@/components/trade/account-select";
 // import { ChartComponent } from "@/components/trade/chart-component";
 // import { PriceInfo } from "@/components/trade/price-info";
-import { TimeFrame, TimeFrameType } from "@/components/trade/time-frame";
+import { TimeFrame } from "@/components/trade/time-frame";
 // import { TradeComponent } from "@/components/trade/trade-component";
 // import { useChart } from "@/hooks/chart";
 // import { useFetchTicker } from "@/hooks/coin";
@@ -13,9 +13,7 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import { PriceInfo } from "@/components/trade/price-info";
 import { useTrade } from "@/hooks/use-trade-context";
 import { useSearchParams } from "react-router";
-import { useChartData } from "@/hooks/chart";
 import { ChartComponent } from "@/components/trade/chart-component";
-import { ExchangeType } from "@/lib/accounts";
 // import { useEffect } from "react";
 // import { DecryptedAccount } from "@/lib/app-storage";
 // import { useEffect, useState } from "react";
@@ -23,8 +21,6 @@ import { ExchangeType } from "@/lib/accounts";
 const Trade = () => {
   const { tickerQuery } = useTrade();
   const [searchParams] = useSearchParams();
-  const timeframe = searchParams.get("timeframe")!;
-  const exchange = searchParams.get("exchange")! as ExchangeType;
   const symbol = searchParams.get("symbol")!;
 
   // const [isLoading, setLoading] = useState(true);
@@ -82,7 +78,6 @@ const Trade = () => {
   //     updateCache({ ...cache, data: { timeframe } });
   //   }
   // }, [isLoading, timeframe]);
-  const chartData = useChartData(exchange, symbol, timeframe as TimeFrameType);
 
   //TODO: 스켈레톤 로딩으로 바꾸기
   return (
@@ -102,10 +97,7 @@ const Trade = () => {
         <TimeFrame />
         <AccountSelector />
       </div>
-      <ChartComponent
-        candleData={chartData.data}
-        handleChartScroll={chartData.handleScroll}
-      />
+      <ChartComponent />
       {/* {!isLoading && !isAccountsLoading && ticker && timeframe ? ( */}
       {/*   <> */}
       {/*     <PriceInfo data={ticker} isLoading={isTickerLoading} /> */}

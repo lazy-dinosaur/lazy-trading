@@ -467,11 +467,7 @@ export const useChartData = (
         console.error("Error fetching next page:", error);
       }
     }
-  }, [
-    historicalOHLCVData.hasNextPage,
-    historicalOHLCVData.isFetchingNextPage,
-    historicalOHLCVData.fetchNextPage,
-  ]);
+  }, [historicalOHLCVData]);
   return {
     data: chartData,
     isLoading: historicalOHLCVData.isLoading || realtimeOHLCVData.isLoading,

@@ -42,7 +42,7 @@ const Header = ({
           </button>
         )}
         <div className="text-xl capitalize flex items-center gap-2">
-          {title ?? ticker?.symbol}
+          {title ?? ticker?.symbol?.replace(/^[0-9]+/, "")}
           {ticker && (
             <span
               className={cn(

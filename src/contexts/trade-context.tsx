@@ -31,6 +31,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
     symbol,
   });
 
+  //초기 시간봉 설정
   useEffect(() => {
     if (!isLoaded && !timeframe && !isCacheLoading) {
       setSearchParams((prev) => {
@@ -48,6 +49,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
     timeframe,
   ]);
 
+  // 초기 계정 설정
   useEffect(() => {
     if (!isAccountsLoading && !isLoaded && timeframe) {
       if (decryptedAccounts) {
