@@ -119,7 +119,7 @@ export const fetchTicker = async ({
 };
 
 export const fetchMarketInfo = async (
-  ccxt: any,
+  ccxt: CCXTType,
   exchange: ExchangeType,
   symbol: string,
 ) => {
@@ -130,12 +130,7 @@ export const fetchMarketInfo = async (
   try {
     const exchangeInstance = ccxt[exchange].pro;
     await exchangeInstance.loadMarkets();
-    const market = exchangeInstance.market(symbol);
-
-    return {
-      maxLeverage: market.limits?.leverage?.max || 0,
-      // 기타 필요한 마켓 정보들
-    };
+    return exchangeInstance.market(symbol);
   } catch (error) {
     console.error(`Error fetching market info:`, error);
     return null;
