@@ -1,7 +1,6 @@
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
-import { Ticker } from "ccxt";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ExchangeType } from "@/lib/accounts";
+import { TickerWithExchange } from "@/lib/ccxt";
 
 // 필터 함수 정의
 const exchangeFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
@@ -9,7 +8,6 @@ const exchangeFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
   return row.getValue(columnId) === value;
 };
 
-export type TickerWithExchange = Ticker & { exchange: ExchangeType };
 export const columns: ColumnDef<TickerWithExchange>[] = [
   {
     accessorKey: "exchange",

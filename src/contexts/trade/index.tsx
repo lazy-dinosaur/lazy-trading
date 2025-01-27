@@ -1,10 +1,9 @@
 import { useFetchTicker } from "@/hooks/coin";
-import { ExchangeType } from "@/lib/accounts";
+import { DecryptedAccount, ExchangeType } from "@/lib/accounts";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useCache } from "@/contexts/cache/use";
 import { useAccounts } from "@/contexts/accounts/use";
-import { DecryptedAccount } from "@/lib/app-storage";
 import { TradeContext } from "./type";
 
 export const TradeProvider = ({ children }: { children: React.ReactNode }) => {

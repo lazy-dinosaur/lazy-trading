@@ -1,5 +1,5 @@
 import { ChartContext } from "@/contexts/chart/type";
-import { searchingStopLossCandle } from "@/lib/ccxt";
+import { searchingStopLossCandle } from "@/lib/chart";
 import {
   CandlestickSeriesOptions,
   ISeriesApi,

@@ -1,6 +1,5 @@
 import { Input } from "@/components/ui/input";
 import { Table } from "@tanstack/react-table";
-import { TickerWithExchange } from "./columns";
 import {
   Select,
   SelectContent,
@@ -9,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TickerWithExchange } from "@/lib/ccxt";
 
 const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
   return (

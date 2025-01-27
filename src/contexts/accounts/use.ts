@@ -29,4 +29,4 @@ export type {
   AccountInfo,
   AccountInfoType,
   BalancesType,
-} from "@/contexts/accounts/type";
+} from "@/lib/accounts";

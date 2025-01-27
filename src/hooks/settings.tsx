@@ -2,8 +2,10 @@ import {
   getTradingConfig,
   setTradingConfig,
   TradingConfigType,
-} from "@/lib/app-storage";
+} from "@/lib/settings";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 const initialConfig = {
   risk: 1.5,
   riskRatio: 3,

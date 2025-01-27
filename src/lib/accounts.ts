@@ -1,26 +1,183 @@
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import {
-  fetchAccounts,
-  Accounts,
-  DecryptedAccount,
-  decryptAccount,
-  RawAccountInput,
-  addAccount,
-} from "./app-storage";
+import { CCXTType } from "@/contexts/ccxt/type";
+import { EncryptedData, decryptKey, encryptKey } from "./cryptography";
+import { Balances, Balance, Exchange, Order, Position } from "ccxt";
 
-import { AccountInfoType, BalancesType } from "@/contexts/accounts/type";
-import { BalanceMutationParams } from "./ccxt";
-import { useCCXT } from "@/contexts/ccxt/use";
-import { usePin } from "@/contexts/pin/use";
+export interface BalanceMutationParams {
+  exchange: ExchangeType;
+  apikey: string;
+  secret: string;
+}
+
+// 복호화된 계정 타입
+export interface DecryptedAccount
+  extends Omit<Account, "apiKey" | "secretKey"> {
+  apiKey: string;
+  secretKey: string;
+}
+
+// 암호화되지 않은 계정 입력 타입
+export interface RawAccountInput
+  extends Omit<Account, "apiKey" | "secretKey" | "id" | "createdAt"> {
+  apiKey: string;
+  secretKey: string;
+}
+
+export interface Account {
+  id: string; // 고유 식별자
+  name: string; // 계정 이름
+  exchange: ExchangeType; // 거래소 종류
+  apiKey: EncryptedData;
+  secretKey: EncryptedData;
+  createdAt: number; // 생성 시간 timestamp
+}
+
+export interface Accounts {
+  [accountId: string]: Account;
+}
+
+export interface USDBalance {
+  total: number;
+  used: number;
+  free: number;
+}
+
+export type BalancesType = Balances &
+  Balance & {
+    [keyof: string]: any;
+    usd: USDBalance;
+  };
+
+export type AccountInfo = {
+  account: DecryptedAccount;
+  balance: BalancesType;
+  positions: Position[];
+  positionsHistory: Position[];
+  orders: {
+    open: Order[];
+    closed: Order[];
+  };
+};
+
+export type AccountInfoType = {
+  [keyof: string]: AccountInfo;
+};
 
 export type ExchangeType = "bitget" | "binance" | "bybit";
+export type DecryptedAccountObj = { [key: string]: DecryptedAccount };
 
-export const useFetchAccount = () =>
-  useQuery({
-    queryKey: ["accounts"],
-    queryFn: fetchAccounts,
-    refetchInterval: 200,
-  });
+// 모든 계정 조회
+export const fetchAccounts = async (): Promise<Accounts> => {
+  try {
+    const result = await chrome.storage.local.get(["accounts"]);
+    return result.accounts || {};
+  } catch (error) {
+    console.error("Failed to fetch accounts:", error);
+    return {};
+  }
+};
+
+// 계정 추가/수정
+export const setAccount = async (account: Account): Promise<boolean> => {
+  try {
+    const currentAccounts = await fetchAccounts();
+    const updatedAccounts = {
+      ...currentAccounts,
+      [account.id]: account,
+    };
+    await chrome.storage.local.set({ accounts: updatedAccounts });
+    return true;
+  } catch (error) {
+    console.error("Failed to set account:", error);
+    return false;
+  }
+};
+
+// 계정 삭제
+export const deleteAccount = async (accountId: string): Promise<boolean> => {
+  try {
+    const currentAccounts = await fetchAccounts();
+    delete currentAccounts[accountId];
+    await chrome.storage.local.set({ accounts: currentAccounts });
+    return true;
+  } catch (error) {
+    console.error("Failed to delete account:", error);
+    return false;
+  }
+};
+
+// 모든 계정 삭제
+export const deleteAllAccounts = async (): Promise<boolean> => {
+  try {
+    await chrome.storage.local.set({ accounts: {} });
+    return true;
+  } catch (error) {
+    console.error("Failed to delete all accounts:", error);
+    return false;
+  }
+};
+
+export const decryptAccount = async (
+  account: Account,
+  pin: string,
+): Promise<DecryptedAccount | null> => {
+  if (!pin) {
+    console.warn("PIN is not set");
+    return null;
+  }
+
+  try {
+    const decryptedApiKey = await decryptKey(account.apiKey, pin);
+    const decryptedSecretKey = await decryptKey(account.secretKey, pin);
+
+    return {
+      ...account,
+      apiKey: decryptedApiKey,
+      secretKey: decryptedSecretKey,
+    };
+  } catch (error) {
+    console.error(`Failed to decrypt account ${account.id}:`, error);
+    return null;
+  }
+};
+
+export const encryptAccount = async (
+  account: RawAccountInput,
+  pin: string | null | undefined,
+): Promise<Account | null> => {
+  if (!pin) {
+    console.warn("PIN is not set");
+    return null;
+  }
+
+  try {
+    const encryptedApiKey = await encryptKey(account.apiKey, pin);
+    const encryptedSecretKey = await encryptKey(account.secretKey, pin);
+
+    return {
+      ...account,
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      apiKey: encryptedApiKey,
+      secretKey: encryptedSecretKey,
+    };
+  } catch (error) {
+    console.error("Failed to encrypt account:", error);
+    return null;
+  }
+};
+export const addAccount = async ({
+  rawAccount,
+  pin,
+}: {
+  rawAccount: RawAccountInput;
+  pin: string | null | undefined;
+}) => {
+  const encryptedAccount = await encryptAccount(rawAccount, pin);
+  if (!encryptedAccount) {
+    throw new Error("Failed to encrypt account");
+  }
+  return setAccount(encryptedAccount);
+};
 
 export const decrypteAllAccounts = async (
   validPin: string,
@@ -38,121 +195,142 @@ export const decrypteAllAccounts = async (
   return decrypted;
 };
 
-export const useAllDecryptedAccounts = () => {
-  const { validPin } = usePin();
-  const { data: accounts, isLoading } = useFetchAccount();
-  return useQuery({
-    queryKey: ["decryptedAccounts", validPin],
-    queryFn: async () =>
-      validPin && accounts ? await decrypteAllAccounts(validPin, accounts) : {},
-    enabled: !!validPin && !isLoading && !!accounts,
-    refetchInterval: 200,
-  });
-};
+export async function calculateUSDBalance(
+  exchange: Exchange,
+  balance: Balances,
+): Promise<USDBalance> {
+  const usdBalance: USDBalance = {
+    total: 0,
+    used: 0,
+    free: 0,
+  };
 
-export const useAccountsDetail = () => {
-  const { data, isLoading: isDecrypting } = useAllDecryptedAccounts();
-  const ccxt = useCCXT();
-  return useQuery({
-    queryKey: ["accountsDetails"],
-    queryFn: async () => {
-      if (!data || !ccxt)
-        throw new Error("Accounts or exchange data not available");
+  try {
+    const assets = Object.entries(balance).filter(
+      ([, value]) => (value.free ?? 0) > 0 || (value.used ?? 0) > 0,
+    );
 
-      const accountsInfo: AccountInfoType = {};
-      const accounts = Object.values(data);
+    await Promise.all(
+      assets.map(async ([currency, value]) => {
+        try {
+          let price = 1; // USDT/USD의 경우 기본값 1
 
-      await Promise.all(
-        accounts.map(async (account) => {
-          try {
-            const exchangeInstance =
-              ccxt[account.exchange as ExchangeType].ccxt;
-            exchangeInstance.apiKey = account.apiKey;
-            exchangeInstance.secret = account.secretKey;
-
-            const rawBalance = await exchangeInstance.fetchBalance();
-
-            // const usdBalance = await calculateUSDBalance(
-            //   exchangeInstance,
-            //   rawBalance,
-            // );
-
-            const positions = await exchangeInstance.fetchPositions();
-            const closed = await exchangeInstance.fetchClosedOrders(
-              undefined,
-              undefined,
-              100,
-            );
-            const open = await exchangeInstance.fetchOpenOrders(
-              undefined,
-              undefined,
-              100,
-            );
-            const positionsHistory =
-              await exchangeInstance.fetchPositionsHistory();
-
-            const balance = {
-              ...rawBalance,
-              // usd: usdBalance,
-            } as BalancesType;
-
-            accountsInfo[account.id] = {
-              account,
-              balance,
-              positions,
-              positionsHistory,
-              orders: { open, closed },
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching balance for account ${account.id}:`,
-              error,
-            );
+          if (currency !== "USDT" && currency !== "USD") {
+            try {
+              const ticker = await exchange.fetchTicker(`${currency}/USDT`);
+              if (ticker && ticker.last) {
+                price = ticker.last;
+              }
+            } catch {
+              // USDT 마켓이 없는 경우 USD 마켓 시도
+              try {
+                const ticker = await exchange.fetchTicker(`${currency}/USD`);
+                if (ticker && ticker.last) {
+                  price = ticker.last;
+                }
+              } catch {
+                console.warn(`No USD/USDT market found for ${currency}`);
+                return; // 이 자산은 건너뜀
+              }
+            }
           }
-        }),
-      );
-      return accountsInfo;
-    },
-    enabled: !!data && !isDecrypting && !!ccxt,
-    refetchInterval: 500,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    refetchIntervalInBackground: true,
-  });
-};
 
-export const useAddAccount = () => {
-  const queryClient = useQueryClient();
-  const { validPin } = usePin();
-  return useMutation({
-    mutationKey: ["addaccount"],
-    mutationFn: async (rawAccount: RawAccountInput) =>
-      await addAccount({ rawAccount, pin: validPin }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["accountsDetail"] });
-      queryClient.invalidateQueries({ queryKey: ["decryptedAccounts"] });
-    },
-  });
-};
+          usdBalance.free += (value.free || 0) * price;
+          usdBalance.used += (value.used || 0) * price;
+          usdBalance.total += (value.total || 0) * price;
+        } catch (error) {
+          console.warn(`Failed to calculate USD value for ${currency}:`, error);
+        }
+      }),
+    );
+  } catch (error) {
+    console.error("Error calculating USD balance:", error);
+  }
 
-export const useIsAccountValid = () => {
-  const ccxt = useCCXT();
-  return useMutation({
-    mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
-      if (!ccxt) throw new Error("Exchange instances not initialized");
+  // 소수점 2자리까지 반올림
+  return {
+    total: Math.round(usdBalance.total * 100) / 100,
+    used: Math.round(usdBalance.used * 100) / 100,
+    free: Math.round(usdBalance.free * 100) / 100,
+  };
+}
 
-      const exchangeInstance = ccxt[exchange].ccxt;
-      exchangeInstance.apiKey = apikey;
-      exchangeInstance.secret = secret;
-      exchangeInstance.password = "lazytrading";
-      if (exchange == "binance") {
-        exchangeInstance.options.headers = {
-          "X-MBX-APIKEY": apikey,
+export const fetchAccountsDetail = async (
+  ccxt: CCXTType | null,
+  data?: DecryptedAccountObj,
+) => {
+  if (!data || !ccxt)
+    throw new Error("Accounts or exchange data not available");
+
+  const accountsInfo: AccountInfoType = {};
+  const accounts = Object.values(data);
+
+  await Promise.all(
+    accounts.map(async (account) => {
+      try {
+        const exchangeInstance = ccxt[account.exchange as ExchangeType].ccxt;
+        exchangeInstance.apiKey = account.apiKey;
+        exchangeInstance.secret = account.secretKey;
+
+        const rawBalance = await exchangeInstance.fetchBalance();
+
+        // const usdBalance = await calculateUSDBalance(
+        //   exchangeInstance,
+        //   rawBalance,
+        // );
+
+        const positions = await exchangeInstance.fetchPositions();
+        const closed = await exchangeInstance.fetchClosedOrders(
+          undefined,
+          undefined,
+          100,
+        );
+        const open = await exchangeInstance.fetchOpenOrders(
+          undefined,
+          undefined,
+          100,
+        );
+        const positionsHistory = await exchangeInstance.fetchPositionsHistory();
+
+        const balance = {
+          ...rawBalance,
+          // usd: usdBalance,
+        } as BalancesType;
+
+        accountsInfo[account.id] = {
+          account,
+          balance,
+          positions,
+          positionsHistory,
+          orders: { open, closed },
         };
+      } catch (error) {
+        console.error(
+          `Error fetching balance for account ${account.id}:`,
+          error,
+        );
       }
+    }),
+  );
+  return accountsInfo;
+};
+export const isAccountValid = async ({
+  exchange,
+  apikey,
+  secret,
+  ccxt,
+}: BalanceMutationParams & { ccxt: CCXTType | null }) => {
+  if (!ccxt) throw new Error("Exchange instances not initialized");
 
-      return await exchangeInstance.fetchBalance();
-    },
-  });
+  const exchangeInstance = ccxt[exchange].ccxt;
+  exchangeInstance.apiKey = apikey;
+  exchangeInstance.secret = secret;
+  exchangeInstance.password = "lazytrading";
+  if (exchange == "binance") {
+    exchangeInstance.options.headers = {
+      "X-MBX-APIKEY": apikey,
+    };
+  }
+
+  return await exchangeInstance.fetchBalance();
 };

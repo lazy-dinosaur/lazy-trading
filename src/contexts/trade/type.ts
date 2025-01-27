@@ -1,7 +1,6 @@
 import { useFetchTicker } from "@/hooks/coin";
-import { DecryptedAccount } from "@/lib/app-storage";
 import { createContext } from "react";
-import { AccountInfoType } from "../accounts/type";
+import { AccountInfoType, DecryptedAccount } from "@/lib/accounts";
 
 export interface TradeContextType {
   tickerQuery: ReturnType<typeof useFetchTicker>;

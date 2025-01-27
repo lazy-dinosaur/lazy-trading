@@ -3,7 +3,7 @@ import {
   usePinMutation,
   useGetPin,
   usePinValid,
-} from "@/lib/pin";
+} from "@/hooks/pin";
 import { PinContext } from "./type";
 
 export function PinProvider({ children }: { children: React.ReactNode }) {

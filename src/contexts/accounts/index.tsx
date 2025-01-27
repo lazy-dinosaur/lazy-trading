@@ -4,7 +4,7 @@ import {
   useAccountsDetail,
   useAddAccount,
   useIsAccountValid,
-} from "@/lib/accounts";
+} from "@/hooks/accounts";
 import { AccountsContext } from "./type";
 
 export function AccountsProvider({ children }: { children: React.ReactNode }) {

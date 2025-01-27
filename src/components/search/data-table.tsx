@@ -7,10 +7,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { flexRender, Table as TableType } from "@tanstack/react-table";
-import { TickerWithExchange, columns } from "./columns";
+import { columns } from "./columns";
 import { useNavigate } from "react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
+import { TickerWithExchange } from "@/lib/ccxt";
 
 export const DataTable = ({
   table,
