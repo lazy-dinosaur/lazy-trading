@@ -5,7 +5,7 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import {
   useFetchTradingConfig,
   useMutateTradingConfig,
-} from "@/hooks/settings";
+} from "@/hooks/trading-config";
 import { Link, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { Switch } from "../ui/switch";
