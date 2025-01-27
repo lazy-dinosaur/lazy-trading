@@ -6,13 +6,14 @@ import { Chart } from "./chart-wrapper";
 import { CandleSeries } from "./candle";
 import { useChartData } from "@/contexts/chart-data/use";
 import { getStopLossMarkers } from "@/lib/chart";
+import { ExchangeType } from "@/lib/accounts";
 
 export const ChartComponent = () => {
   const [searchParams] = useSearchParams();
-  const { data, handleScroll } = useChartData();
+  const { data, handleScroll, chartformat } = useChartData();
 
   const timeframe = searchParams.get("timeframe")!;
-  const exchange = searchParams.get("exchange")!;
+  const exchange = searchParams.get("exchange")! as ExchangeType;
   const symbol = searchParams.get("symbol")!;
 
   const candle = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -21,10 +22,14 @@ export const ChartComponent = () => {
   useEffect(() => {
     if (!candle.current) return;
     candle.current.setData(data);
-    console.log(data);
-    console.log(candle.current.data());
     candle.current.setMarkers(getStopLossMarkers(data));
-  }, [data]);
+    candle.current.applyOptions({
+      priceFormat: {
+        type: "price",
+        ...chartformat,
+      },
+    });
+  }, [data, chartformat]);
 
   return data.length > 0 ? (
     <Chart

@@ -1,4 +1,6 @@
+import { useCCXT } from "@/contexts/ccxt/use";
 import { useTrade } from "@/contexts/trade/use";
+import { ExchangeType } from "@/lib/accounts";
 import { cn } from "@/lib/utils";
 import { Num } from "ccxt";
 import { useEffect, useState } from "react";
@@ -6,7 +8,11 @@ import { useSearchParams } from "react-router";
 
 export const PriceInfo = () => {
   const [searchParams] = useSearchParams();
-  const exchange = searchParams.get("exchange");
+  const exchange = searchParams.get("exchange") as ExchangeType;
+  const symbol = searchParams.get("symbol")!;
+
+  const ccxt = useCCXT();
+
   const {
     tickerQuery: { data },
   } = useTrade();
@@ -43,7 +49,11 @@ export const PriceInfo = () => {
             curPrice.color == "up" ? "text-green-600" : "text-red-600",
           )}
         >
-          {curPrice.price}
+          {curPrice.price &&
+            ccxt?.[exchange]?.ccxt.priceToPrecision(
+              symbol,
+              Number(curPrice.price),
+            )}
         </h1>
         <span className="flex gap-1 text-sm">
           <span className="capitalize text-muted-foreground">volume</span>
@@ -67,7 +77,13 @@ export const PriceInfo = () => {
         ) : (
           <div className="flex w-full items-center justify-between gap-2">
             <span className="capitalize text-muted-foreground">vwap</span>
-            <span>{data?.vwap}</span>
+            <span>
+              {data?.vwap &&
+                ccxt?.[exchange]?.ccxt.priceToPrecision(
+                  symbol,
+                  Number(data.vwap),
+                )}
+            </span>
           </div>
         )}
       </div>
