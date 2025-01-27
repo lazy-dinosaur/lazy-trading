@@ -214,11 +214,23 @@ export const ChartDataProvider = ({
     }
   }, [historicalOHLCVData]);
 
+  const getChartFormat = (symbol: string) => {
+    return {
+      precision:
+        ccxt?.[exchange]?.ccxt
+          ?.market(symbol)
+          ?.precision?.price?.toString()
+          .split(".")[1]?.length ?? 2,
+      minMove: ccxt?.[exchange]?.ccxt?.market(symbol)?.precision?.price ?? 0.01,
+    };
+  };
+
   const value = {
     data: chartData,
     isLoading: historicalOHLCVData.isLoading || realtimeOHLCVData.isLoading,
     hasNextPage: historicalOHLCVData.hasNextPage,
     isFetchingNextPage: historicalOHLCVData.isFetchingNextPage,
+    chartformat: getChartFormat(symbol),
     handleScroll,
   };
 

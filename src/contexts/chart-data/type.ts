@@ -7,6 +7,10 @@ interface ChartDataContextType {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   handleScroll: () => Promise<void>;
+  chartformat: {
+    precision: number;
+    minMove: number;
+  };
 }
 
 export const ChartDataContext = createContext<ChartDataContextType | null>(
