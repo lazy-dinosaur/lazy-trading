@@ -1,6 +1,6 @@
 import { CCXTType } from "@/contexts/ccxt/type";
 import { EncryptedData, decryptKey, encryptKey } from "./cryptography";
-import { Balances, Balance, Exchange, Order, Position } from "ccxt";
+import { Balances, Balance, Exchange, Position } from "ccxt";
 
 export interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -52,10 +52,10 @@ export type AccountInfo = {
   balance: BalancesType;
   positions: Position[];
   positionsHistory: Position[];
-  orders: {
-    open: Order[];
-    closed: Order[];
-  };
+  // orders: {
+  //   open: Order[];
+  //   closed: Order[];
+  // };
 };
 
 export type AccountInfoType = {
@@ -206,53 +206,116 @@ export async function calculateUSDBalance(
   };
 
   try {
-    const assets = Object.entries(balance).filter(
-      ([, value]) => (value.free ?? 0) > 0 || (value.used ?? 0) > 0,
-    );
+    // console.log("Raw balance:", balance);
+
+    // balance 객체에서 실제 자산 데이터만 필터링
+    const assets = Object.entries(balance).filter(([key, value]) => {
+      // 메타데이터 필드 제외
+      if (
+        ["info", "timestamp", "datetime", "free", "used", "total"].includes(key)
+      ) {
+        return false;
+      }
+      // value가 객체이고 필요한 속성을 가지고 있는지 확인
+      return (
+        value &&
+        typeof value === "object" &&
+        ("free" in value || "used" in value || "total" in value) &&
+        ((value.free ?? 0) > 0 || (value.used ?? 0) > 0)
+      );
+    });
+
+    // console.log("Filtered assets:", assets);
 
     await Promise.all(
       assets.map(async ([currency, value]) => {
         try {
+          // console.log(`Processing ${currency}:`, value);
+
           let price = 1; // USDT/USD의 경우 기본값 1
 
           if (currency !== "USDT" && currency !== "USD") {
+            const symbol = `${currency}/USDT`;
+            // console.log(`Fetching ticker for ${symbol}`);
+
             try {
-              const ticker = await exchange.fetchTicker(`${currency}/USDT`);
+              const ticker = await exchange.fetchTicker(symbol);
+              // console.log(`Ticker for ${symbol}:`, ticker);
+
               if (ticker && ticker.last) {
                 price = ticker.last;
+                // console.log(`Price found for ${currency}: ${price}`);
               }
-            } catch {
+            } catch (error) {
+              console.log(
+                `Failed to fetch USDT ticker for ${currency}:`,
+                error,
+              );
               // USDT 마켓이 없는 경우 USD 마켓 시도
               try {
-                const ticker = await exchange.fetchTicker(`${currency}/USD`);
+                const usdSymbol = `${currency}/USD`;
+                // console.log(`Trying USD market: ${usdSymbol}`);
+
+                const ticker = await exchange.fetchTicker(usdSymbol);
+                // console.log(`USD Ticker for ${usdSymbol}:`, ticker);
+
                 if (ticker && ticker.last) {
                   price = ticker.last;
+                  // console.log(`USD Price found for ${currency}: ${price}`);
                 }
-              } catch {
-                console.warn(`No USD/USDT market found for ${currency}`);
+              } catch (error) {
+                console.warn(
+                  `No USD/USDT market found for ${currency}:`,
+                  error,
+                );
                 return; // 이 자산은 건너뜀
               }
             }
           }
 
-          usdBalance.free += (value.free || 0) * price;
-          usdBalance.used += (value.used || 0) * price;
-          usdBalance.total += (value.total || 0) * price;
+          const freeValue = (value.free || 0) * price;
+          const usedValue = (value.used || 0) * price;
+          const totalValue = (value.total || 0) * price;
+
+          // console.log(`Calculated values for ${currency}:`, {
+          //   free: freeValue,
+          //   used: usedValue,
+          //   total: totalValue,
+          //   price,
+          // });
+
+          usdBalance.free += freeValue;
+          usdBalance.used += usedValue;
+          usdBalance.total += totalValue;
+
+          // console.log("Current running totals:", {
+          //   free: usdBalance.free,
+          //   used: usdBalance.used,
+          //   total: usdBalance.total,
+          // });
         } catch (error) {
-          console.warn(`Failed to calculate USD value for ${currency}:`, error);
+          console.error(
+            `Failed to calculate USD value for ${currency}:`,
+            error,
+          );
         }
       }),
     );
+
+    // console.log("Final USD balance before rounding:", usdBalance);
   } catch (error) {
     console.error("Error calculating USD balance:", error);
   }
 
   // 소수점 2자리까지 반올림
-  return {
+  const result = {
     total: Math.round(usdBalance.total * 100) / 100,
     used: Math.round(usdBalance.used * 100) / 100,
     free: Math.round(usdBalance.free * 100) / 100,
   };
+
+  // console.log("Final rounded USD balance:", result);
+  return result;
 }
 
 export const fetchAccountsDetail = async (
@@ -274,27 +337,39 @@ export const fetchAccountsDetail = async (
 
         const rawBalance = await exchangeInstance.fetchBalance();
 
-        // const usdBalance = await calculateUSDBalance(
-        //   exchangeInstance,
-        //   rawBalance,
-        // );
+        const usdBalance = await calculateUSDBalance(
+          exchangeInstance,
+          rawBalance,
+        );
+        // console.log("usd:", usdBalance);
 
-        const positions = await exchangeInstance.fetchPositions();
-        const closed = await exchangeInstance.fetchClosedOrders(
-          undefined,
-          undefined,
-          100,
-        );
-        const open = await exchangeInstance.fetchOpenOrders(
-          undefined,
-          undefined,
-          100,
-        );
-        const positionsHistory = await exchangeInstance.fetchPositionsHistory();
+        // 포지션 조회
+        let positions: Position[] = [];
+        try {
+          positions = await exchangeInstance.fetchPositions();
+        } catch (error) {
+          console.warn(
+            `Failed to fetch positions for ${account.exchange}:`,
+            error,
+          );
+        }
+
+        // 포지션 히스토리 조회 (바이낸스는 미지원)
+        let positionsHistory: Position[] = [];
+        if (account.exchange !== "binance") {
+          try {
+            positionsHistory = await exchangeInstance.fetchPositionsHistory();
+          } catch (error) {
+            console.warn(
+              `Failed to fetch positions history for ${account.exchange}:`,
+              error,
+            );
+          }
+        }
 
         const balance = {
           ...rawBalance,
-          // usd: usdBalance,
+          usd: usdBalance,
         } as BalancesType;
 
         accountsInfo[account.id] = {
@@ -302,7 +377,7 @@ export const fetchAccountsDetail = async (
           balance,
           positions,
           positionsHistory,
-          orders: { open, closed },
+          // orders: { open, closed },
         };
       } catch (error) {
         console.error(
