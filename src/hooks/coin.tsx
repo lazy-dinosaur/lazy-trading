@@ -38,7 +38,7 @@ export const useMarketInfo = (exchange: ExchangeType, symbol: string) => {
 
   return useQuery({
     queryKey: [exchange, symbol, "market"],
-    queryFn: () => fetchMarketInfo(ccxt, exchange, symbol),
+    queryFn: () => ccxt && fetchMarketInfo(ccxt, exchange, symbol),
     enabled: !!ccxt && !!exchange && !!symbol,
   });
 };
