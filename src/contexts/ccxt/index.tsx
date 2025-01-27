@@ -19,23 +19,41 @@ export function CCXTProvider({ children }: { children: React.ReactNode }) {
       binance.ccxt.options.defaultType = "swap";
       binance.pro.options.defaultType = "swap";
 
-      setExchanges({
-        bybit: {
-          ccxt: bybit.ccxt,
-          pro: bybit.pro,
-          features: bybit.ccxt.features,
-        },
-        binance: {
-          ccxt: binance.ccxt,
-          pro: binance.pro,
-          features: binance.ccxt.features,
-        },
-        bitget: {
-          ccxt: bitget.ccxt,
-          pro: bitget.pro,
-          features: bitget.ccxt.features,
-        },
-      });
+      const loadMarkets = async () => {
+        try {
+          const [bybitMarkets, binanceMarkets, bitgetMarkets] =
+            await Promise.all([
+              bybit.ccxt.loadMarkets(),
+              binance.ccxt.loadMarkets(),
+              bitget.ccxt.loadMarkets(),
+            ]);
+
+          setExchanges({
+            bybit: {
+              ccxt: bybit.ccxt,
+              pro: bybit.pro,
+              features: bybit.ccxt.features,
+              markets: bybitMarkets,
+            },
+            binance: {
+              ccxt: binance.ccxt,
+              pro: binance.pro,
+              features: binance.ccxt.features,
+              markets: binanceMarkets,
+            },
+            bitget: {
+              ccxt: bitget.ccxt,
+              pro: bitget.pro,
+              features: bitget.ccxt.features,
+              markets: bitgetMarkets,
+            },
+          });
+        } catch (error) {
+          console.error("Error loading markets:", error);
+        }
+      };
+
+      loadMarkets();
     }
 
     return () => {
