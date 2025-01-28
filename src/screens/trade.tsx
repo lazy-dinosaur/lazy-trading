@@ -14,6 +14,7 @@ import { PriceInfo } from "@/components/trade/price-info";
 import { useTrade } from "@/contexts/trade/use";
 import { useSearchParams } from "react-router";
 import { ChartComponent } from "@/components/trade/chart-component";
+import { TradeComponent } from "@/components/trade/trade-component";
 // import { useEffect } from "react";
 // import { DecryptedAccount } from "@/lib/app-storage";
 // import { useEffect, useState } from "react";
@@ -98,32 +99,7 @@ const Trade = () => {
         <AccountSelector />
       </div>
       <ChartComponent />
-      {/* {!isLoading && !isAccountsLoading && ticker && timeframe ? ( */}
-      {/*   <> */}
-      {/*     <PriceInfo data={ticker} isLoading={isTickerLoading} /> */}
-      {/*     <div className="w-full flex items-center justify-between"> */}
-      {/*       <TimeFrame timeFrameState={{ timeframe, setTimeframe }} /> */}
-      {/*       <AccountSelector */}
-      {/*         accountState={{ accounts, setAccounts }} */}
-      {/*         selectedState={{ selected, setSelected }} */}
-      {/*         accountsInfo={accountsDetails} */}
-      {/*         isLoading={isAccountsLoading} */}
-      {/*       /> */}
-      {/*     </div> */}
-      {/*     <ChartComponent */}
-      {/*       chartKey={chartKey + "-trade"} */}
-      {/*       candleData={chartData.data} */}
-      {/*       handleChartScroll={chartData.handleScroll} */}
-      {/*     /> */}
-      {/*     <TradeComponent */}
-      {/*       isLoading={isAccountsLoading} */}
-      {/*       accountsInfo={accountsDetails?.[selected!]} */}
-      {/*       candleData={chartData.data} */}
-      {/*     /> */}
-      {/*   </> */}
-      {/* ) : ( */}
-      {/*   <LoadingSpinner /> */}
-      {/* )} */}
+      <TradeComponent />
     </ScreenWrapper>
   );
 };

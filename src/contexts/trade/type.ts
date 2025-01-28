@@ -17,6 +17,7 @@ export type TradeInfoType =
   | undefined;
 
 export interface TradeContextType {
+  tradeInfo: TradeInfoType;
   tickerQuery: ReturnType<typeof useFetchTicker>;
   marketInfoQuery: ReturnType<typeof useMarketInfo>;
   exchangeAccounts?: DecryptedAccount[];

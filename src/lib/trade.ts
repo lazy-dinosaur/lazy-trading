@@ -62,17 +62,18 @@ interface StopLossInfo {
   price: number;
   percentage: string;
   formatted: string;
-  leverage: number;
 }
 
 interface TargetInfo {
   price: number;
   percentage: string;
+  formatted: string;
 }
 
 export interface PositionInfo {
   stoploss: StopLossInfo;
   target: TargetInfo;
+  leverage: number;
   position?: {
     size: number;
     margin: number;
@@ -101,7 +102,21 @@ export const calculateStopLossPercentage = (
 export const calculateLeverage = (
   risk: number,
   stopLossPercentage: number,
+  tradingFee?: TradingFeeInfo,
 ): number => {
+  if (tradingFee) {
+    // 수수료 비율 계산 (진입 + 청산)
+    const totalFeeRate = (tradingFee.taker + tradingFee.taker) * 100;
+
+    // 이전 방식과 동일하게 계산
+    // 레버리지 = 리스크% / (스탑로스% + 수수료%)
+    return (
+      Math.round((risk / (Math.abs(stopLossPercentage) + totalFeeRate)) * 10) /
+      10
+    );
+  }
+
+  // 수수료 정보가 없는 경우 기존 방식으로 계산
   return Math.round((risk / Math.abs(stopLossPercentage)) * 10) / 10;
 };
 
@@ -124,23 +139,41 @@ export const calculateTargetPercentage = (
   return (((targetPrice - currentPrice) / currentPrice) * 100).toFixed(2);
 };
 
-export const calculatePositionInfo = (
-  currentPrice: number,
-  stopLossPrice: number,
-  riskRatio: number,
-  risk: number,
-  ccxtInstance: Exchange,
-  symbol: string,
-  isLong: boolean,
-  availableBalance?: number,
-  tradingFee?: TradingFeeInfo,
-): PositionInfo => {
+export const calculatePositionInfo = ({
+  currentPrice,
+  stopLossPrice,
+  riskRatio,
+  risk,
+  ccxtInstance,
+  symbol,
+  isLong,
+  maxLeverage,
+  availableBalance,
+  tradingFee,
+}: {
+  currentPrice: number;
+  stopLossPrice: number;
+  riskRatio: number;
+  risk: number;
+  ccxtInstance: Exchange;
+  symbol: string;
+  isLong: boolean;
+  maxLeverage: number;
+  availableBalance?: number;
+  tradingFee?: TradingFeeInfo;
+}): PositionInfo => {
   const stopLossPercentage = calculateStopLossPercentage(
     currentPrice,
     stopLossPrice,
     isLong,
   );
-  const leverage = calculateLeverage(risk, parseFloat(stopLossPercentage));
+  // 계산된 레버리지와 최대 레버리지 중 작은 값 사용
+  const calculatedLeverage = calculateLeverage(
+    risk,
+    parseFloat(stopLossPercentage),
+    tradingFee,
+  );
+  const leverage = Math.min(calculatedLeverage, maxLeverage);
   const targetPrice = calculateTargetPrice(
     currentPrice,
     stopLossPrice,
@@ -153,12 +186,13 @@ export const calculatePositionInfo = (
       price: stopLossPrice,
       percentage: stopLossPercentage,
       formatted: ccxtInstance.priceToPrecision(symbol, stopLossPrice),
-      leverage: leverage,
     },
     target: {
       price: targetPrice,
       percentage: calculateTargetPercentage(currentPrice, targetPrice),
+      formatted: ccxtInstance.priceToPrecision(symbol, targetPrice),
     },
+    leverage: leverage,
   };
 
   // 계정 잔고 정보가 있을 때만 포지션 계산
@@ -184,10 +218,10 @@ export const calculatePositionInfo = (
     const totalLoss = riskAmount + totalFee;
 
     result.position = {
-      size: Number(ccxtInstance.amountToPrecision(symbol, positionSize)),
-      margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
-      fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
-      totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
+      size: positionSize,
+      margin: margin,
+      fee: totalFee,
+      totalLoss: totalLoss,
     };
   }
 
