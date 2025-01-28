@@ -69,3 +69,13 @@ export const openPopupPanel = async () => {
     console.error("Failed to open side panel:", error);
   }
 };
+
+export const formatUSDValue = (value: number | null | undefined) => {
+  if (!value) return "0.00";
+
+  return new Intl.NumberFormat("en-US", {
+    notation: value >= 10000 ? "compact" : "standard",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  }).format(value);
+};
