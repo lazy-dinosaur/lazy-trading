@@ -2,6 +2,11 @@ import { useFetchTicker, useMarketInfo } from "@/hooks/coin";
 import { createContext } from "react";
 import { AccountInfoType, DecryptedAccount } from "@/lib/accounts";
 import { PositionInfo } from "@/lib/trade";
+export type FormattedCurrecy = {
+  total: string | number;
+  used: string | number;
+  free: string | number;
+};
 
 export type TradeInfoType =
   | {
@@ -25,6 +30,10 @@ export interface TradeContextType {
   isAccountsLoading: boolean;
   id?: string;
   isLoaded: boolean;
+  balanceInfo?: {
+    base: FormattedCurrecy & { name: string };
+    usd: FormattedCurrecy;
+  };
 }
 
 export const TradeContext = createContext<TradeContextType | undefined>(
