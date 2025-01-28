@@ -1,6 +1,6 @@
 import { CCXTType } from "@/contexts/ccxt/type";
 import { EncryptedData, decryptKey, encryptKey } from "./cryptography";
-import { Balances, Balance, Exchange, Position } from "ccxt";
+import { Balances, Exchange, Position } from "ccxt";
 
 export interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -41,11 +41,72 @@ export interface USDBalance {
   free: number;
 }
 
-export type BalancesType = Balances &
-  Balance & {
-    [keyof: string]: any;
-    usd: USDBalance;
-  };
+interface CoinInfo {
+  availableToBorrow?: string;
+  bonus?: string;
+  accruedInterest?: string;
+  availableToWithdraw?: string;
+  totalOrderIM?: string;
+  equity?: string;
+  totalPositionMM?: string;
+  usdValue?: string;
+  unrealisedPnl?: string;
+  collateralSwitch?: boolean;
+  spotHedgingQty?: string;
+  borrowAmount?: string;
+  totalPositionIM?: string;
+  walletBalance?: string;
+  cumRealisedPnl?: string;
+  locked?: string;
+  marginCollateral?: boolean;
+  coin?: string;
+}
+
+interface BalanceInfo {
+  totalEquity?: string;
+  accountIMRate?: string;
+  totalMarginBalance?: string;
+  totalInitialMargin?: string;
+  accountType?: string;
+  totalAvailableBalance?: string;
+  accountMMRate?: string;
+  totalPerpUPL?: string;
+  totalWalletBalance?: string;
+  accountLTV?: string;
+  totalMaintenanceMargin?: string;
+  coin?: CoinInfo[];
+}
+
+interface BalanceResult {
+  list?: BalanceInfo[];
+}
+
+interface BalanceResponse {
+  retCode?: string;
+  retMsg?: string;
+  result?: BalanceResult;
+  retExtInfo?: any;
+  time?: string;
+}
+
+export type BalancesType = {
+  info: BalanceResponse;
+  timestamp: number;
+  datetime: string;
+  [currency: string]:
+    | {
+        free: number;
+        used: number;
+        total: number;
+        debt: number;
+      }
+    | any;
+  free: { [currency: string]: number };
+  used: { [currency: string]: number };
+  total: { [currency: string]: number };
+  debt: { [currency: string]: number };
+  usd: USDBalance;
+};
 
 export type AccountInfo = {
   account: DecryptedAccount;
