@@ -128,9 +128,13 @@ export const fetchMarketInfo = async (
   }
 
   try {
-    const exchangeInstance = ccxt[exchange].pro;
+    const exchangeInstance = ccxt[exchange].ccxt;
     await exchangeInstance.loadMarkets();
-    return exchangeInstance.market(symbol);
+    const market = exchangeInstance.market(symbol);
+
+    const maxLeverage = market.limits.leverage?.max;
+
+    return { ...market, maxLeverage };
   } catch (error) {
     console.error(`Error fetching market info:`, error);
     return null;
