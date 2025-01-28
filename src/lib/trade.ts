@@ -103,20 +103,35 @@ export const calculateLeverage = (
   risk: number,
   stopLossPercentage: number,
   tradingFee?: TradingFeeInfo,
+  availableBalance?: number,
+  currentPrice?: number,
 ): number => {
-  if (tradingFee) {
-    // 수수료 비율 계산 (진입 + 청산)
+  // 사용 가능한 자본이 있는 경우
+  if (availableBalance && currentPrice && tradingFee) {
+    const riskAmount = availableBalance * (risk / 100); // 허용된 리스크 금액
+    const stopLossDistance = Math.abs(stopLossPercentage);
     const totalFeeRate = (tradingFee.taker + tradingFee.taker) * 100;
 
-    // 이전 방식과 동일하게 계산
-    // 레버리지 = 리스크% / (스탑로스% + 수수료%)
+    // 전체 자본을 사용한다고 가정했을 때 필요한 레버리지 계산
+    // riskAmount = availableBalance * (stopLossDistance/100 + totalFeeRate/100) * leverage
+    // leverage = riskAmount / (availableBalance * (stopLossDistance/100 + totalFeeRate/100))
+    const calculatedLeverage =
+      riskAmount /
+      (availableBalance * (stopLossDistance / 100 + totalFeeRate / 100));
+
+    // 소수점 첫째자리까지 반올림
+    return Math.round(calculatedLeverage * 10) / 10;
+  }
+
+  // 사용 가능한 자본이 없는 경우 기존 방식으로 계산
+  if (tradingFee) {
+    const totalFeeRate = (tradingFee.taker + tradingFee.taker) * 100;
     return (
       Math.round((risk / (Math.abs(stopLossPercentage) + totalFeeRate)) * 10) /
       10
     );
   }
 
-  // 수수료 정보가 없는 경우 기존 방식으로 계산
   return Math.round((risk / Math.abs(stopLossPercentage)) * 10) / 10;
 };
 
@@ -162,23 +177,26 @@ export const calculatePositionInfo = ({
   availableBalance?: number;
   tradingFee?: TradingFeeInfo;
 }): PositionInfo => {
+  // UI 표시용 기본 정보
   const stopLossPercentage = calculateStopLossPercentage(
     currentPrice,
     stopLossPrice,
     isLong,
   );
-  // 계산된 레버리지와 최대 레버리지 중 작은 값 사용
-  const calculatedLeverage = calculateLeverage(
-    risk,
-    parseFloat(stopLossPercentage),
-    tradingFee,
-  );
-  const leverage = Math.min(calculatedLeverage, maxLeverage);
+
   const targetPrice = calculateTargetPrice(
     currentPrice,
     stopLossPrice,
     riskRatio,
     isLong,
+  );
+
+  const calculatedLeverage = calculateLeverage(
+    risk, // risk로 수정 (riskRatio가 아님)
+    parseFloat(stopLossPercentage),
+    tradingFee,
+    availableBalance,
+    currentPrice,
   );
 
   const result: PositionInfo = {
@@ -192,37 +210,60 @@ export const calculatePositionInfo = ({
       percentage: calculateTargetPercentage(currentPrice, targetPrice),
       formatted: ccxtInstance.priceToPrecision(symbol, targetPrice),
     },
-    leverage: leverage,
+    //이건 보여주기용 레버리지야 그래서 계산되어야 하는데?
+    leverage: Math.min(calculatedLeverage, maxLeverage),
   };
+  console.log(availableBalance);
 
-  // 계정 잔고 정보가 있을 때만 포지션 계산
+  // 실제 매매 정보 계산
   if (availableBalance && tradingFee) {
-    const stopLossPercentageNum = parseFloat(stopLossPercentage);
-    const riskAmount = availableBalance * (risk / 100); // 리스크 금액
+    const riskAmount = availableBalance * (risk / 100); // 허용된 리스크 금액
 
-    // 포지션 사이즈 계산 (P = R / (SL% / L))
-    // R: 리스크 금액, SL%: 스탑로스 퍼센트, L: 레버리지
-    const positionSize = riskAmount / (stopLossPercentageNum / leverage);
+    // 진입가와 손절가 사이의 거리 계산 (퍼센트)
+    const stopLossDistance = Math.abs(
+      ((currentPrice - stopLossPrice) / currentPrice) * 100,
+    );
+
+    // 총 수수료율 (진입 + 청산)
+    const totalFeeRate = tradingFee.taker + tradingFee.taker;
+
+    // 수수료를 포함한 포지션 사이즈 계산
+    // riskAmount = positionSize * (stopLossDistance/100 + totalFeeRate)
+    // positionSize = riskAmount / (stopLossDistance/100 + totalFeeRate)
+    const positionSize =
+      (riskAmount / (stopLossDistance / 100 + totalFeeRate)) * maxLeverage;
 
     // 필요 증거금 계산
-    const margin = positionSize / leverage;
+    const margin = positionSize / maxLeverage;
 
-    // 진입 수수료
-    const entryFee = positionSize * tradingFee.taker;
-    // 청산 수수료
-    const exitFee = positionSize * tradingFee.taker;
-    // 총 수수료
+    // 수수료 계산
+    const entryFee = positionSize * tradingFee.taker; // 진입 수수료
+    const exitFee = positionSize * tradingFee.taker; // 청산 수수료
     const totalFee = entryFee + exitFee;
 
-    // 스탑로스 도달 시 손실금액 (수수료 포함)
-    const totalLoss = riskAmount + totalFee;
+    // 스탑로스에서의 순수 손실
+    const stopLossLoss = positionSize * (stopLossDistance / 100);
 
+    // 총 손실 (스탑로스 손실 + 총 수수료) = 리스크 금액
+    const totalLoss = stopLossLoss + totalFee;
+
+    // 최종 포지션 정보
     result.position = {
       size: positionSize,
       margin: margin,
       fee: totalFee,
       totalLoss: totalLoss,
     };
+
+    console.log({
+      riskAmount,
+      positionSize,
+      stopLossDistance,
+      stopLossLoss,
+      totalFee,
+      totalLoss,
+      // totalLoss와 riskAmount가 같아야 함
+    });
   }
 
   return result;

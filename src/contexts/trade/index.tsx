@@ -17,19 +17,30 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
   const exchange = searchParams.get("exchange") as ExchangeType;
   const symbol = decodeURIComponent(searchParams.get("symbol")!) as string;
   const id = searchParams.get("id")!;
+  const base = symbol?.split(":")[1];
 
   const {
     accountsDetails,
     decryptedAccounts,
     isLoading: isAccountsLoading,
   } = useAccounts();
+
   const balanceInfo = useBalanceInfo(id, symbol, exchange);
+
   const { data: maxLeverage } = useMaxLeverage(
     exchange,
     symbol,
     id ? decryptedAccounts?.[id] : undefined,
   );
-  const tradeInfo = useTradeInfo(exchange, symbol, maxLeverage);
+
+  const tradeInfo = useTradeInfo(
+    exchange,
+    symbol,
+    maxLeverage,
+    accountsDetails?.[id]?.balance[base].free
+      ? Number(accountsDetails[id]?.balance[base].free)
+      : 0,
+  );
 
   const marketInfoQuery = useMarketInfo(exchange, symbol);
   const tickerQuery = useFetchTicker({ exchange, symbol });

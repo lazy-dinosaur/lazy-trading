@@ -140,6 +140,7 @@ export const useTradeInfo = (
   exchange: ExchangeType,
   symbol: string,
   maxLeverage?: number,
+  availableBalance?: number,
 ) => {
   const [tradeInfo, setTradeInfo] = useState<TradeInfoType>();
   const ccxt = useCCXT();
@@ -195,6 +196,7 @@ export const useTradeInfo = (
         ccxtInstance: ccxt[exchange].ccxt,
         symbol,
         isLong: true,
+        availableBalance,
         maxLeverage,
         tradingFee: tradingFees,
       });
@@ -207,6 +209,7 @@ export const useTradeInfo = (
         ccxtInstance: ccxt[exchange].ccxt,
         symbol,
         isLong: false,
+        availableBalance,
         maxLeverage,
         tradingFee: tradingFees,
       });
@@ -222,6 +225,7 @@ export const useTradeInfo = (
       }
     }
   }, [
+    availableBalance,
     ccxt,
     exchange,
     symbol,
