@@ -29,18 +29,28 @@ export interface ExchangeInstances {
 }
 export const createExchangeInstances = (): ExchangeInstances => ({
   bybit: {
-    ccxt: new ccxt.bybit(),
-    pro: new ccxt.pro.bybit(),
+    ccxt: new ccxt.bybit({
+      enableRateLimit: true,
+    }),
+    pro: new ccxt.pro.bybit({
+      enableRateLimit: true,
+    }),
   },
   binance: {
-    ccxt: new ccxt.binance(),
-    pro: new ccxt.pro.binance(),
+    ccxt: new ccxt.binance({
+      enableRateLimit: true,
+    }),
+    pro: new ccxt.pro.binance({
+      enableRateLimit: true,
+    }),
   },
   bitget: {
     ccxt: new ccxt.bitget({
+      enableRateLimit: true,
       password: "lazytrading",
     }),
     pro: new ccxt.pro.bitget({
+      enableRateLimit: true,
       password: "lazytrading",
     }),
   },
