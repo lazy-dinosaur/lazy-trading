@@ -8,7 +8,7 @@ import { DecryptedAccount, ExchangeType } from "@/lib/accounts";
 import { searchingStopLossCandle } from "@/lib/chart";
 import { useTradingFees, calculatePositionInfo } from "@/lib/trade";
 import { formatUSDValue } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMarketInfo } from "./coin";
@@ -279,4 +279,82 @@ export const useMaxLeverage = (
     },
     enabled: !!symbol && !!exchange && !!ccxt,
   });
+};
+
+export const useOrder = ({
+  exchange,
+  account,
+  symbol,
+  tradeInfo,
+}: {
+  exchange?: ExchangeType;
+  account?: DecryptedAccount;
+  symbol: string;
+  tradeInfo: TradeInfoType;
+}) => {
+  const ccxt = useCCXT();
+
+  const createOrder = useMutation({
+    mutationKey: ["order"],
+    mutationFn: async ({
+      isLong,
+      partialClose,
+    }: {
+      isLong: boolean;
+      partialClose?: {
+        portion: number;
+        slToEven: boolean;
+      };
+    }) => {
+      if (
+        !ccxt ||
+        !exchange ||
+        !symbol ||
+        !tradeInfo ||
+        !tradeInfo.short.position ||
+        !tradeInfo.long.position ||
+        !account
+      ) {
+        console.log("Required parameters missing"); // 어떤 조건에서 실패했는지 확인
+        return;
+      }
+      const ccxtInstance = ccxt[exchange].ccxt;
+      ccxtInstance.apiKey = account.apiKey;
+      ccxtInstance.secret = account.secretKey;
+      const side = isLong ? "buy" : "sell";
+      const { stoploss, target, position } =
+        tradeInfo[isLong ? "long" : "short"];
+
+      const stopLossPrice = stoploss.price;
+      const targetPrice = target.price;
+      const positionSize = position!.size;
+      console.log(targetPrice);
+      console.log(partialClose);
+
+      const setLeverage = await ccxtInstance.setLeverage(
+        tradeInfo?.maxLeverage,
+        symbol,
+        { category: "linear" },
+      );
+      console.log(setLeverage);
+      console.log("exchange", exchange);
+      console.log("positionSize", positionSize);
+      //createOrder
+      if (exchange == "bybit") {
+        const positionIdx = isLong ? 1 : 2;
+        const order = await ccxtInstance.createOrder(
+          symbol,
+          "market",
+          side,
+          positionSize,
+          undefined,
+          { stopLossPrice, positionIdx },
+        );
+        console.log(order);
+        return order;
+      }
+    },
+  });
+
+  return createOrder;
 };

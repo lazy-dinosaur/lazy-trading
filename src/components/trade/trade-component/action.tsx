@@ -2,15 +2,23 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAccounts } from "@/contexts/accounts/use";
+import { useCCXT } from "@/contexts/ccxt/use";
 import { useTradingConfig } from "@/contexts/settings/use";
+import { useTrade } from "@/contexts/trade/use";
+import { ExchangeType } from "@/lib/accounts";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useSearchParams } from "react-router";
 
 export const TradingAction = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
-  const { accountsDetails } = useAccounts();
+  const exchange = searchParams.get("exchange") as ExchangeType;
+  const symbol = searchParams.get("symbol");
+  const { accountsDetails, decryptedAccounts } = useAccounts();
+  const { tradeInfo } = useTrade();
+  const ccxt = useCCXT();
   const accountInfo = !!(id && accountsDetails) && accountsDetails[id];
+  const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
   return (
     <div className="flex w-1/3 min-w-32 max-w-64 flex-col items-center justify-between h-full space-y-3">
       <div className="w-full text-sm text-muted-foreground capitalize">
@@ -20,7 +28,42 @@ export const TradingAction = () => {
       <RiskSetting />
       <TradingSetting />
       <div className="flex flex-col w-full gap-2">
-        <Button variant={"long"} className="opacity-90" disabled={!accountInfo}>
+        <Button
+          variant={"long"}
+          className="opacity-90"
+          disabled={!accountInfo}
+          onClick={async () => {
+            if (
+              !accountInfo ||
+              !account ||
+              !symbol ||
+              !exchange ||
+              !ccxt ||
+              !tradeInfo
+            )
+              return;
+            const ccxtInstance = ccxt[exchange].ccxt;
+            ccxtInstance.apiKey = account.apiKey;
+            ccxtInstance.secret = account.secretKey;
+            console.log(tradeInfo.maxLeverage);
+            // const setLeverage = await ccxtInstance.setLeverage(
+            //   tradeInfo.maxLeverage,
+            //   symbol,
+            // );
+            // console.log(setLeverage);
+            console.log(tradeInfo);
+
+            const order = await ccxtInstance.createOrder(
+              symbol,
+              "market",
+              "buy",
+              tradeInfo.long.position!.size,
+              tradeInfo.currentPrice,
+              { positionIdx: 1 },
+            );
+            console.log(order);
+          }}
+        >
           LONG
         </Button>
         <Button

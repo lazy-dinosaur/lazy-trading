@@ -4,6 +4,7 @@ import {
   useBalanceInfo,
   useMaxLeverage,
   useTradeInfo,
+  useOrder,
 } from "@/hooks/trade";
 import { ExchangeType } from "@/lib/accounts";
 import { useSearchParams } from "react-router";
@@ -37,10 +38,17 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
     exchange,
     symbol,
     maxLeverage,
-    accountsDetails?.[id]?.balance[base].free
-      ? Number(accountsDetails[id]?.balance[base].free)
+    accountsDetails?.[id]?.balance[base]?.free
+      ? Number(accountsDetails[id]?.balance[base]?.free)
       : 0,
   );
+
+  const createOrder = useOrder({
+    exchange,
+    account: id ? decryptedAccounts?.[id] : undefined,
+    symbol,
+    tradeInfo,
+  });
 
   const marketInfoQuery = useMarketInfo(exchange, symbol);
   const tickerQuery = useFetchTicker({ exchange, symbol });
@@ -56,6 +64,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
         isAccountsLoading,
         isLoaded,
         balanceInfo,
+        createOrder,
       }}
     >
       {children}
