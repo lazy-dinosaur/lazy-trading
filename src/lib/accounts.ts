@@ -1,6 +1,12 @@
-import { CCXTType } from "@/contexts/ccxt/type";
 import { EncryptedData, decryptKey, encryptKey } from "./cryptography";
-import { Balances, Exchange, Position } from "ccxt";
+import ccxt, {
+  Balances,
+  binance,
+  bitget,
+  bybit,
+  Exchange,
+  Position,
+} from "ccxt";
 
 export interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -13,6 +19,10 @@ export interface DecryptedAccount
   extends Omit<Account, "apiKey" | "secretKey"> {
   apiKey: string;
   secretKey: string;
+  exchangeInstance: {
+    ccxt: bitget | binance | bybit;
+    pro: bitget | binance | bybit;
+  };
 }
 
 // 암호화되지 않은 계정 입력 타입
@@ -189,11 +199,17 @@ export const decryptAccount = async (
   try {
     const decryptedApiKey = await decryptKey(account.apiKey, pin);
     const decryptedSecretKey = await decryptKey(account.secretKey, pin);
+    const exchangeInstance = await createAccountInstance(
+      account.exchange,
+      decryptedApiKey,
+      decryptedSecretKey,
+    );
 
     return {
       ...account,
       apiKey: decryptedApiKey,
       secretKey: decryptedSecretKey,
+      exchangeInstance,
     };
   } catch (error) {
     console.error(`Failed to decrypt account ${account.id}:`, error);
@@ -379,12 +395,8 @@ export async function calculateUSDBalance(
   return result;
 }
 
-export const fetchAccountsDetail = async (
-  ccxt: CCXTType | null,
-  data?: DecryptedAccountObj,
-) => {
-  if (!data || !ccxt)
-    throw new Error("Accounts or exchange data not available");
+export const fetchAccountsDetail = async (data?: DecryptedAccountObj) => {
+  if (!data) throw new Error("Accounts or exchange data not available");
 
   const accountsInfo: AccountInfoType = {};
   const accounts = Object.values(data);
@@ -392,11 +404,10 @@ export const fetchAccountsDetail = async (
   await Promise.all(
     accounts.map(async (account) => {
       try {
-        const exchangeInstance = ccxt[account.exchange as ExchangeType].ccxt;
-        exchangeInstance.apiKey = account.apiKey;
-        exchangeInstance.secret = account.secretKey;
+        const exchangeInstance = account.exchangeInstance.ccxt;
 
         const rawBalance = await exchangeInstance.fetchBalance();
+        console.log(rawBalance);
 
         const usdBalance = await calculateUSDBalance(
           exchangeInstance,
@@ -450,23 +461,97 @@ export const fetchAccountsDetail = async (
   );
   return accountsInfo;
 };
+
 export const isAccountValid = async ({
   exchange,
   apikey,
   secret,
-  ccxt,
-}: BalanceMutationParams & { ccxt: CCXTType | null }) => {
-  if (!ccxt) throw new Error("Exchange instances not initialized");
+}: BalanceMutationParams): Promise<boolean> => {
+  try {
+    // 임시 CCXT 인스턴스 생성
+    const exchangeInstance = new ccxt[exchange]({
+      apiKey: apikey,
+      secret: secret,
+      enableRateLimit: true,
+      options: {
+        defaultType: "swap",
+      },
+    });
 
-  const exchangeInstance = ccxt[exchange].ccxt;
-  exchangeInstance.apiKey = apikey;
-  exchangeInstance.secret = secret;
-  exchangeInstance.password = "lazytrading";
-  if (exchange == "binance") {
-    exchangeInstance.options.headers = {
-      "X-MBX-APIKEY": apikey,
-    };
+    // Bitget의 경우 password 설정
+    if (exchange === "bitget") {
+      exchangeInstance.password = "lazytrading";
+    }
+
+    // Binance의 경우 헤더 설정
+    if (exchange === "binance") {
+      exchangeInstance.options.headers = {
+        "X-MBX-APIKEY": apikey,
+      };
+    }
+
+    try {
+      // 잔고 확인
+      await exchangeInstance.fetchBalance();
+      return true;
+    } finally {
+      // 인스턴스 정리
+      if (exchangeInstance.close) {
+        await exchangeInstance.close();
+      }
+    }
+  } catch (error) {
+    console.error("Account validation failed:", error);
+    return false;
+  }
+};
+
+// 계정별 CCXT 인스턴스 생성 함수 (별도 파일로 분리 추천)
+export const createAccountInstance = async (
+  exchange: ExchangeType,
+  apiKey: string,
+  secret: string,
+) => {
+  const exchangeCCXT = new ccxt[exchange]({
+    apiKey,
+    secret,
+    enableRateLimit: true,
+    options: {
+      defaultType: "swap",
+    },
+  });
+
+  const exchangePro = new ccxt.pro[exchange]({
+    apiKey,
+    secret,
+    enableRateLimit: true,
+    options: {
+      defaultType: "swap",
+    },
+  });
+  if (exchange != "bitget") {
+    exchangeCCXT.setSandboxMode(true);
+    exchangePro.setSandboxMode(true);
   }
 
-  return await exchangeInstance.fetchBalance();
+  if (exchange == "bitget") {
+    exchangeCCXT.password = "lazytrading";
+    exchangePro.password = "lazytrading";
+  }
+  if (exchange == "binance") {
+    exchangeCCXT.options.headers = {
+      "X-MBX-APIKEY": apiKey,
+    };
+    exchangeCCXT.options.defaultType = "swap";
+    exchangePro.options.headers = {
+      "X-MBX-APIKEY": apiKey,
+    };
+
+    exchangePro.options.defaultType = "swap";
+  }
+
+  return {
+    ccxt: exchangeCCXT,
+    pro: exchangePro,
+  };
 };

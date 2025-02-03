@@ -27,6 +27,7 @@ export interface ExchangeInstances {
     pro: BitgetPro;
   };
 }
+
 export const createExchangeInstances = (): ExchangeInstances => ({
   bybit: {
     ccxt: new ccxt.bybit({

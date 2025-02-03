@@ -1,6 +1,4 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-
-import { useCCXT } from "@/contexts/ccxt/use";
 import { usePin } from "@/contexts/pin/use";
 import {
   addAccount,
@@ -33,11 +31,10 @@ export const useAllDecryptedAccounts = () => {
 
 export const useAccountsDetail = () => {
   const { data, isLoading: isDecrypting } = useAllDecryptedAccounts();
-  const ccxt = useCCXT();
   return useQuery({
     queryKey: ["accountsDetails"],
-    queryFn: async () => await fetchAccountsDetail(ccxt, data),
-    enabled: !!data && !isDecrypting && !!ccxt,
+    queryFn: async () => await fetchAccountsDetail(data),
+    enabled: !!data && !isDecrypting,
     refetchInterval: 1500,
     refetchOnMount: true,
     refetchOnReconnect: true,
@@ -61,10 +58,9 @@ export const useAddAccount = () => {
 };
 
 export const useIsAccountValid = () => {
-  const ccxt = useCCXT();
   return useMutation({
     mutationFn: async ({ exchange, apikey, secret }: BalanceMutationParams) => {
-      return isAccountValid({ exchange, apikey, secret, ccxt });
+      return isAccountValid({ exchange, apikey, secret });
     },
   });
 };
