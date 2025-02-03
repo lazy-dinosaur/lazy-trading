@@ -2,11 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAccounts } from "@/contexts/accounts/use";
-import { useCCXT } from "@/contexts/ccxt/use";
 import { useTradingConfig } from "@/contexts/settings/use";
 import { useTrade } from "@/contexts/trade/use";
 import { ExchangeType } from "@/lib/accounts";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import React from "react";
 import { useSearchParams } from "react-router";
 
 export const TradingAction = () => {
@@ -16,9 +16,77 @@ export const TradingAction = () => {
   const symbol = searchParams.get("symbol");
   const { accountsDetails, decryptedAccounts } = useAccounts();
   const { tradeInfo } = useTrade();
-  const ccxt = useCCXT();
   const accountInfo = !!(id && accountsDetails) && accountsDetails[id];
   const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
+  const { config } = useTradingConfig();
+
+  const handleTrade = async (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    if (
+      !accountInfo ||
+      !account ||
+      !symbol ||
+      !exchange ||
+      !tradeInfo ||
+      !tradeInfo.long ||
+      !tradeInfo.short ||
+      !config
+    )
+      return;
+
+    const ccxtInstance = account.exchangeInstance.pro;
+    const tradeType = event.currentTarget.value as "long" | "short";
+    console.log(tradeType);
+    const isusdt = symbol.split(":")[1] == "USDT";
+    const positionIdx = isusdt ? (tradeType == "long" ? 1 : 2) : 0;
+    const side = tradeType == "long" ? "buy" : "sell";
+    const info = tradeInfo[tradeType];
+    if (!info.position) return;
+
+    try {
+      await ccxtInstance.setLeverage(tradeInfo.maxLeverage, symbol);
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      await ccxtInstance.setMarginMode("cross");
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      const order = await ccxtInstance.createOrder(
+        symbol,
+        "market",
+        side,
+        info.position.size,
+        undefined,
+        {
+          positionIdx,
+          stopLoss: {
+            triggerPrice: tradeInfo.long.stoploss.price,
+          },
+        },
+      );
+      console.log(order);
+      const target = await ccxtInstance.createOrder(
+        symbol,
+        "limit",
+        "sell",
+        config.partialClose
+          ? info.position.size * (config.closeRatio / 100)
+          : info.position.size,
+        info.target.price,
+        {
+          positionIdx,
+          reduceOnly: true,
+        },
+      );
+      console.log(target);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <div className="flex w-1/3 min-w-32 max-w-64 flex-col items-center justify-between h-full space-y-3">
       <div className="w-full text-sm text-muted-foreground capitalize">
@@ -29,47 +97,20 @@ export const TradingAction = () => {
       <TradingSetting />
       <div className="flex flex-col w-full gap-2">
         <Button
+          value={"long"}
           variant={"long"}
           className="opacity-90"
           disabled={!accountInfo}
-          onClick={async () => {
-            if (
-              !accountInfo ||
-              !account ||
-              !symbol ||
-              !exchange ||
-              !ccxt ||
-              !tradeInfo
-            )
-              return;
-            const ccxtInstance = ccxt[exchange].ccxt;
-            ccxtInstance.apiKey = account.apiKey;
-            ccxtInstance.secret = account.secretKey;
-            console.log(tradeInfo.maxLeverage);
-            // const setLeverage = await ccxtInstance.setLeverage(
-            //   tradeInfo.maxLeverage,
-            //   symbol,
-            // );
-            // console.log(setLeverage);
-            console.log(tradeInfo);
-
-            const order = await ccxtInstance.createOrder(
-              symbol,
-              "market",
-              "buy",
-              tradeInfo.long.position!.size,
-              tradeInfo.currentPrice,
-              { positionIdx: 1 },
-            );
-            console.log(order);
-          }}
+          onClick={handleTrade}
         >
           LONG
         </Button>
         <Button
+          value={"short"}
           variant={"short"}
           className="opacity-90"
           disabled={!accountInfo}
+          onClick={handleTrade}
         >
           SHORT
         </Button>
@@ -98,19 +139,6 @@ const CloseSetting = () => {
       </div>
       {config?.partialClose && (
         <>
-          <div className="w-full px-2 flex items-center gap-2 justify-center">
-            <Switch
-              id="stop-to-even"
-              checked={config?.stopToEven}
-              onCheckedChange={(stopToEven) => {
-                updateConfig({ stopToEven });
-              }}
-              disabled={isLoading}
-            />
-            <Label htmlFor="stop-to-even" className="text-sm">
-              S/L To Even
-            </Label>
-          </div>
           <div className="flex w-full items-center justify-center">
             <span className="flex h-full w-full items-center justify-center flex-col">
               <span className="text-xs text-muted-foreground">C/R</span>

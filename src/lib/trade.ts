@@ -142,20 +142,24 @@ export const calculateTargetPrice = (
   isLong: boolean,
   tradingFee?: TradingFeeInfo,
 ): number => {
-  const distance = Math.abs(currentPrice - stopLossPrice);
-  const baseTargetPrice = isLong
-    ? currentPrice + distance * riskRatio
-    : currentPrice - distance * riskRatio;
+  // 스탑로스까지의 거리 계산
+  const stopLossDistance = Math.abs(currentPrice - stopLossPrice);
 
-  // 수수료가 있는 경우, 메이커 수수료를 고려하여 타겟 가격 조정
+  // 수수료를 고려한 실제 타겟 거리 계산
   if (tradingFee) {
-    const totalFeeRate = tradingFee.maker * 2; // 진입(테이커) + 청산(메이커) 수수료
+    const totalFeeRate = tradingFee.maker * 1; // 진입 + 청산 수수료
+    const feeAdjustedDistance = stopLossDistance * (1 + totalFeeRate);
+
+    // 수수료를 감안한 타겟 가격 계산
     return isLong
-      ? baseTargetPrice * (1 + totalFeeRate) // 롱의 경우 수수료만큼 더 올라가야 함
-      : baseTargetPrice * (1 - totalFeeRate); // 숏의 경우 수수료만큼 더 내려가야 함
+      ? currentPrice + feeAdjustedDistance * riskRatio
+      : currentPrice - feeAdjustedDistance * riskRatio;
   }
 
-  return baseTargetPrice;
+  // 수수료가 없는 경우 기본 계산
+  return isLong
+    ? currentPrice + stopLossDistance * riskRatio
+    : currentPrice - stopLossDistance * riskRatio;
 };
 
 export const calculateTargetPercentage = (
@@ -245,13 +249,30 @@ export const calculatePositionInfo = ({
       const stopLossLoss = positionSizeUSDT * (stopLossDistance / 100);
       const totalLoss = stopLossLoss + totalFee;
 
-      // 최종 포지션 정보
-      result.position = {
-        size: Number(ccxtInstance.amountToPrecision(symbol, positionSize)),
-        margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
-        fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
-        totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
-      };
+      try {
+        result.position = {
+          size: Number(ccxtInstance.amountToPrecision(symbol, positionSize)),
+          margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
+          fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
+          totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
+        };
+
+        console.log({
+          symbol,
+          isUSDTContract,
+          availableBalance,
+          riskAmount,
+          currentPrice,
+          position: result.position,
+          stopLossDistance,
+          totalFee: result.position.fee,
+          totalLoss: result.position.totalLoss,
+        });
+      } catch (error) {
+        console.error("Failed to calculate position details:", error);
+        // position 정보 없이 기본 정보만 반환
+        delete result.position;
+      }
     } else {
       // BTC/USD의 경우
       // availableBalance는 BTC
@@ -264,26 +285,31 @@ export const calculatePositionInfo = ({
       const stopLossLoss = positionSize * (stopLossDistance / 100);
       const totalLoss = stopLossLoss + totalFee;
 
-      // 최종 포지션 정보
-      result.position = {
-        size: Number(ccxtInstance.amountToPrecision(symbol, positionSize)),
-        margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
-        fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
-        totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
-      };
-    }
+      try {
+        result.position = {
+          size: Number(ccxtInstance.amountToPrecision(symbol, positionSize)),
+          margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
+          fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
+          totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
+        };
 
-    console.log({
-      symbol,
-      isUSDTContract,
-      availableBalance,
-      riskAmount,
-      currentPrice,
-      position: result.position,
-      stopLossDistance,
-      totalFee: result.position.fee,
-      totalLoss: result.position.totalLoss,
-    });
+        console.log({
+          symbol,
+          isUSDTContract,
+          availableBalance,
+          riskAmount,
+          currentPrice,
+          position: result.position,
+          stopLossDistance,
+          totalFee: result.position.fee,
+          totalLoss: result.position.totalLoss,
+        });
+      } catch (error) {
+        console.error("Failed to calculate position details:", error);
+        // position 정보 없이 기본 정보만 반환
+        delete result.position;
+      }
+    }
   }
 
   return result;
