@@ -41,8 +41,10 @@ export const TradingAction = () => {
     const isusdt = symbol.split(":")[1] == "USDT";
     const positionIdx = isusdt ? (tradeType == "long" ? 1 : 2) : 0;
     const side = tradeType == "long" ? "buy" : "sell";
+    const oppside = tradeType == "long" ? "sell" : "buy";
     const info = tradeInfo[tradeType];
     if (!info.position) return;
+    console.log(positionIdx);
 
     try {
       await ccxtInstance.setLeverage(tradeInfo.maxLeverage, symbol);
@@ -64,7 +66,7 @@ export const TradingAction = () => {
         {
           positionIdx,
           stopLoss: {
-            triggerPrice: tradeInfo.long.stoploss.price,
+            triggerPrice: info.stoploss.price,
           },
         },
       );
@@ -72,7 +74,7 @@ export const TradingAction = () => {
       const target = await ccxtInstance.createOrder(
         symbol,
         "limit",
-        "sell",
+        oppside,
         config.partialClose
           ? info.position.size * (config.closeRatio / 100)
           : info.position.size,
