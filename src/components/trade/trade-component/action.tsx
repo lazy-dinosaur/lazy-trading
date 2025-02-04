@@ -35,58 +35,126 @@ export const TradingAction = () => {
     )
       return;
 
-    const ccxtInstance = account.exchangeInstance.pro;
+    const ccxtInstance = account.exchangeInstance.ccxt;
     const tradeType = event.currentTarget.value as "long" | "short";
-    console.log(tradeType);
     const isusdt = symbol.split(":")[1] == "USDT";
-    const positionIdx = isusdt ? (tradeType == "long" ? 1 : 2) : 0;
     const side = tradeType == "long" ? "buy" : "sell";
     const oppside = tradeType == "long" ? "sell" : "buy";
     const info = tradeInfo[tradeType];
     if (!info.position) return;
-    console.log(positionIdx);
+    console.log(info);
 
-    try {
-      await ccxtInstance.setLeverage(tradeInfo.maxLeverage, symbol);
-    } catch (error) {
-      console.log(error);
-    }
-    try {
-      await ccxtInstance.setMarginMode("cross");
-    } catch (error) {
-      console.log(error);
-    }
-    try {
-      const order = await ccxtInstance.createOrder(
-        symbol,
-        "market",
-        side,
-        info.position.size,
-        undefined,
-        {
-          positionIdx,
-          stopLoss: {
-            triggerPrice: info.stoploss.price,
+    if (exchange == "binance") {
+      console.log("binance");
+      try {
+        await ccxtInstance.setLeverage(tradeInfo.maxLeverage, symbol);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
+        await ccxtInstance.setMarginMode("cross", symbol);
+      } catch (error) {
+        console.log(error);
+      }
+
+      try {
+        const order = await ccxtInstance.createOrder(
+          symbol,
+          "market",
+          side,
+          info.position.size / 100,
+          undefined,
+          {
+            marginMode: "cross",
+            positionSide: tradeType.toUpperCase(),
+            hedged: true,
           },
-        },
-      );
-      console.log(order);
-      const target = await ccxtInstance.createOrder(
-        symbol,
-        "limit",
-        oppside,
-        config.partialClose
-          ? info.position.size * (config.closeRatio / 100)
-          : info.position.size,
-        info.target.price,
-        {
-          positionIdx,
-          reduceOnly: true,
-        },
-      );
-      console.log(target);
-    } catch (error) {
-      console.log(error);
+        );
+        console.log(order);
+
+        const stoploss = await ccxtInstance.createOrder(
+          symbol,
+          "market",
+          oppside,
+          info.position.size / 100,
+          undefined,
+          {
+            marginMode: "cross",
+            reduceOnly: true,
+            positionSide: tradeType.toUpperCase(),
+            stopLossPrice: info.stoploss.price,
+            hedged: true,
+          },
+        );
+
+        console.log(stoploss);
+
+        const target = await ccxtInstance.createOrder(
+          symbol,
+          "limit",
+          oppside,
+          config.partialClose
+            ? (info.position.size / 100) * (config.closeRatio / 100)
+            : info.position.size,
+          info.target.price,
+          {
+            marginMode: "cross",
+            reduceOnly: true,
+            positionSide: tradeType.toUpperCase(),
+            takeProfitPrice: info.target.price,
+            hedged: true,
+          },
+        );
+        console.log(target);
+      } catch (error) {
+        console.log(error);
+      }
+    } else if (exchange == "bybit") {
+      const positionIdx = isusdt ? (tradeType == "long" ? 1 : 2) : 0;
+      try {
+        await ccxtInstance.setLeverage(tradeInfo.maxLeverage);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
+        await ccxtInstance.setMarginMode("cross", symbol);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
+        const order = await ccxtInstance.createOrder(
+          symbol,
+          "market",
+          side,
+          info.position.size,
+          undefined,
+          {
+            positionIdx,
+            stopLoss: {
+              triggerPrice: info.stoploss.price,
+            },
+          },
+        );
+        console.log(order);
+        const target = await ccxtInstance.createOrder(
+          symbol,
+          "limit",
+          oppside,
+          config.partialClose
+            ? info.position.size * (config.closeRatio / 100)
+            : info.position.size,
+          info.target.price,
+          {
+            positionIdx,
+            reduceOnly: true,
+          },
+        );
+        console.log(target);
+      } catch (error) {
+        console.log(error);
+      }
+    } else if (exchange == "bitget") {
+      console.log(exchange);
     }
   };
   return (
