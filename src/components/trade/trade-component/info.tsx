@@ -91,12 +91,26 @@ export const TradeInfo = () => {
           <span className="text-xs text-muted-foreground capitalize ">
             {balanceInfo.base.name ?? 0}
           </span>
-          <span className="text-sm capitalize col-span-2">
-            {balanceInfo.base.total ?? 0}
-          </span>
-          <span className="text-sm capitalize col-span-2">
-            {balanceInfo.base.free ?? 0}
-          </span>
+          {/* 바이낸스 밸런스 데이터 토탈이랑 프리 반대로 나옴 임시 해결 */}
+          {exchange == "binance" ? (
+            <>
+              <span className="text-sm capitalize col-span-2">
+                {balanceInfo.base.free ?? 0}
+              </span>
+              <span className="text-sm capitalize col-span-2">
+                {balanceInfo.base.total ?? 0}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-sm capitalize col-span-2">
+                {balanceInfo.base.total ?? 0}
+              </span>
+              <span className="text-sm capitalize col-span-2">
+                {balanceInfo.base.free ?? 0}
+              </span>
+            </>
+          )}
           <span className="text-sm capitalize col-span-2">
             {balanceInfo.base.used ?? 0}
           </span>

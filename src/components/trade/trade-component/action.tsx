@@ -47,6 +47,11 @@ export const TradingAction = () => {
     if (exchange == "binance") {
       console.log("binance");
       try {
+        await ccxtInstance.setPositionMode(true, symbol);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
         await ccxtInstance.setLeverage(tradeInfo.maxLeverage, symbol);
       } catch (error) {
         console.log(error);
@@ -112,6 +117,11 @@ export const TradingAction = () => {
     } else if (exchange == "bybit") {
       const positionIdx = isusdt ? (tradeType == "long" ? 1 : 2) : 0;
       try {
+        await ccxtInstance.setPositionMode(true, symbol);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
         await ccxtInstance.setLeverage(tradeInfo.maxLeverage);
       } catch (error) {
         console.log(error);
@@ -155,6 +165,21 @@ export const TradingAction = () => {
       }
     } else if (exchange == "bitget") {
       console.log(exchange);
+      try {
+        await ccxtInstance.setPositionMode(true, symbol);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
+        await ccxtInstance.setLeverage(tradeInfo.maxLeverage);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
+        await ccxtInstance.setMarginMode("cross", symbol);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
   return (

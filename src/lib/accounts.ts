@@ -350,9 +350,14 @@ export async function calculateUSDBalance(
             }
           }
 
-          const freeValue = (value.free || 0) * price;
+          let freeValue = (value.free || 0) * price;
           const usedValue = (value.used || 0) * price;
-          const totalValue = (value.total || 0) * price;
+          let totalValue = (value.total || 0) * price;
+
+          // Swap free and total for Binance
+          if (exchange.id === "binance") {
+            [freeValue, totalValue] = [totalValue, freeValue];
+          }
 
           // console.log(`Calculated values for ${currency}:`, {
           //   free: freeValue,
