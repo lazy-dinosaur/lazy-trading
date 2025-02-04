@@ -24,62 +24,6 @@ const Trade = () => {
   const [searchParams] = useSearchParams();
   const symbol = searchParams.get("symbol")!;
 
-  // const [isLoading, setLoading] = useState(true);
-  // const [accounts, setAccounts] = useState<DecryptedAccount[]>();
-  // const [selected, setSelected] = useState<string>();
-  // const [timeframe, setTimeframe] = useState<TimeFrameType | undefined>(
-  //   undefined,
-  // );
-
-  // const exchangeParam = searchParams.get("exchange") as ExchangeType;
-
-  // const location = useLocation();
-  // const exchange = location.state.exchange as ExchangeType;
-  // const symbol = location.state.symbol;
-  // const chartKey = `${exchange}-${symbol}-${timeframe}`;
-
-  // const {
-  //   // decryptedAccounts,
-  //   accountsDetails,
-  //   isLoading: isAccountsLoading,
-  // } = useAccounts();
-  //
-  // useEffect(() => {
-  //   console.log(accountsDetails);
-  // }, [accountsDetails]);
-  //
-  // const { cache, isLoading: isCacheLoading, updateCache } = useCache();
-  // const chartData = useChart(exchange, symbol, timeframe);
-
-  // useEffect(() => {
-  //   if (decryptedAccounts && !isAccountsLoading) {
-  //     const filteredAccounts = Object.values(decryptedAccounts).filter(
-  //       (account) => account.exchange == exchange,
-  //     );
-  //     setAccounts(filteredAccounts);
-  //     if (filteredAccounts && filteredAccounts.length > 0) {
-  //       setSelected(filteredAccounts[0].id);
-  //     }
-  //   }
-  // }, [decryptedAccounts, isAccountsLoading]);
-
-  // useEffect(() => {
-  //   if (cache && !isCacheLoading && isLoading) {
-  //     if (cache.data.timeframe) {
-  //       setTimeframe(cache.data.timeframe);
-  //     } else {
-  //       setTimeframe("30");
-  //     }
-  //     setLoading(false);
-  //   }
-  // }, [cache, isCacheLoading, setTimeframe, setLoading, isLoading]);
-  //
-  // useEffect(() => {
-  //   if (!isLoading && timeframe) {
-  //     updateCache({ ...cache, data: { timeframe } });
-  //   }
-  // }, [isLoading, timeframe]);
-
   //TODO: 스켈레톤 로딩으로 바꾸기
   return (
     <ScreenWrapper
