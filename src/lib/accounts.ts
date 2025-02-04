@@ -481,13 +481,15 @@ export const isAccountValid = async ({
     // Bitget의 경우 password 설정
     if (exchange === "bitget") {
       exchangeInstance.password = "lazytrading";
-    }
+    } else {
+      exchangeInstance.setSandboxMode(true);
 
-    // Binance의 경우 헤더 설정
-    if (exchange === "binance") {
-      exchangeInstance.options.headers = {
-        "X-MBX-APIKEY": apikey,
-      };
+      // Binance의 경우 헤더 설정
+      if (exchange === "binance") {
+        exchangeInstance.options.headers = {
+          "X-MBX-APIKEY": apikey,
+        };
+      }
     }
 
     try {
