@@ -27,6 +27,8 @@
   "host_permissions": [
     "https://*.binance.vision/*",
     "https://testnet.binance.vision/*",
+    "https://testnet.binancefuture.com/*",
+    "https://*.binancefuture.com/*",
     "https://api.bitget.com/*",
     "https://*.bitget.com/*",
     "https://api.binance.com/*",
