@@ -3,6 +3,7 @@ import ccxt, {
   bitget as Bitget,
   binance as Binance,
   Ticker,
+  Exchange,
 } from "ccxt";
 import BybitPro from "node_modules/ccxt/js/src/pro/bybit";
 import BitgetPro from "node_modules/ccxt/js/src/pro/bitget";
@@ -56,3 +57,39 @@ export const createExchangeInstances = (): ExchangeInstances => ({
     }),
   },
 });
+
+export const ccxtHelper = async (
+  exchange: ExchangeType,
+  apiKey: string,
+  secret: string,
+  callback: (exchangeInstance: Exchange) => Promise<any>,
+) => {
+  const exchangeInstance = new ccxt[exchange]({
+    apiKey,
+    secret,
+    enableRateLimit: true,
+    options: {
+      defaultType: "swap",
+    },
+  });
+
+  if (exchange !== "bitget") {
+    exchangeInstance.setSandboxMode(true);
+  }
+
+  if (exchange === "bitget") {
+    exchangeInstance.password = "lazytrading";
+  } else if (exchange === "binance") {
+    exchangeInstance.options.headers = {
+      "X-MBX-APIKEY": apiKey,
+    };
+  }
+
+  try {
+    return await callback(exchangeInstance);
+  } finally {
+    if (exchangeInstance.close) {
+      await exchangeInstance.close();
+    }
+  }
+};
