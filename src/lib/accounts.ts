@@ -272,6 +272,12 @@ export const decrypteAllAccounts = async (
   return decrypted;
 };
 
+/**
+ * 계정의 잔고를 USD 가치로 환산합니다
+ * @param exchange - CCXT 거래소 인스턴스
+ * @param balance - 계정의 현재 잔고 정보
+ * @returns USD 기준으로 환산된 잔고 정보
+ */
 export async function calculateUSDBalance(
   exchange: Exchange,
   balance: Balances,
