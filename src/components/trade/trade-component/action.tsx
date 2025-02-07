@@ -8,6 +8,7 @@ import { ExchangeType } from "@/lib/accounts";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "react-router";
+import { useTradeMutation } from "@/hooks/use-trade-mutation";
 
 export const TradingAction = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ export const TradingAction = () => {
   const accountInfo = !!(id && accountsDetails) && accountsDetails[id];
   const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
   const { config } = useTradingConfig();
+  const tradeMutation = useTradeMutation();
 
   const handleTrade = async (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -37,185 +39,25 @@ export const TradingAction = () => {
 
     const ccxtInstance = account.exchangeInstance.ccxt;
     const tradeType = event.currentTarget.value as "long" | "short";
-    const isusdt = symbol.split(":")[1] == "USDT";
-    const side = tradeType == "long" ? "buy" : "sell";
-    const oppside = tradeType == "long" ? "sell" : "buy";
     const info = tradeInfo[tradeType];
+
     if (!info.position) return;
-    console.log(info);
 
-    if (exchange == "binance") {
-      console.log("binance");
-      try {
-        await ccxtInstance.setPositionMode(true, symbol);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        await ccxtInstance.setLeverage(tradeInfo.maxLeverage, symbol);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        await ccxtInstance.setMarginMode("cross", symbol);
-      } catch (error) {
-        console.log(error);
-      }
-
-      try {
-        const order = await ccxtInstance.createOrder(
-          symbol,
-          "market",
-          side,
-          info.position.size / 100,
-          undefined,
-          {
-            marginMode: "cross",
-            positionSide: tradeType.toUpperCase(),
-            hedged: true,
-          },
-        );
-        console.log(order);
-
-        const stoploss = await ccxtInstance.createOrder(
-          symbol,
-          "market",
-          oppside,
-          info.position.size / 100,
-          undefined,
-          {
-            marginMode: "cross",
-            reduceOnly: true,
-            positionSide: tradeType.toUpperCase(),
-            stopLossPrice: info.stoploss.price,
-            hedged: true,
-          },
-        );
-
-        console.log(stoploss);
-
-        const target = await ccxtInstance.createOrder(
-          symbol,
-          "limit",
-          oppside,
-          config.partialClose
-            ? (info.position.size / 100) * (config.closeRatio / 100)
-            : info.position.size,
-          info.target.price,
-          {
-            marginMode: "cross",
-            reduceOnly: true,
-            positionSide: tradeType.toUpperCase(),
-            takeProfitPrice: info.target.price,
-            hedged: true,
-          },
-        );
-        console.log(target);
-      } catch (error) {
-        console.log(error);
-      }
-    } else if (exchange == "bybit") {
-      const positionIdx = isusdt ? (tradeType == "long" ? 1 : 2) : 0;
-      try {
-        await ccxtInstance.setPositionMode(true, symbol);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        await ccxtInstance.setLeverage(tradeInfo.maxLeverage);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        await ccxtInstance.setMarginMode("cross", symbol);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        const order = await ccxtInstance.createOrder(
-          symbol,
-          "market",
-          side,
-          info.position.size,
-          undefined,
-          {
-            positionIdx,
-            stopLoss: {
-              triggerPrice: info.stoploss.price,
-            },
-          },
-        );
-        console.log(order);
-        const target = await ccxtInstance.createOrder(
-          symbol,
-          "limit",
-          oppside,
-          config.partialClose
-            ? info.position.size * (config.closeRatio / 100)
-            : info.position.size,
-          info.target.price,
-          {
-            positionIdx,
-            reduceOnly: true,
-          },
-        );
-        console.log(target);
-      } catch (error) {
-        console.log(error);
-      }
-    } else if (exchange == "bitget") {
-      console.log(exchange);
-      try {
-        await ccxtInstance.setPositionMode(true, symbol);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        await ccxtInstance.setLeverage(tradeInfo.maxLeverage);
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        await ccxtInstance.setMarginMode("cross", symbol);
-      } catch (error) {
-        console.log(error);
-      }
-
-      try {
-        const order = await ccxtInstance.createOrder(
-          symbol,
-          "market",
-          side,
-          info.position.size,
-          undefined,
-          {
-            stopLoss: {
-              triggerPrice: info.stoploss.price,
-            },
-            hedged: true,
-          },
-        );
-        console.log(order);
-        const target = await ccxtInstance.createOrder(
-          symbol,
-          "limit",
-          oppside,
-          config.partialClose
-            ? info.position.size * (config.closeRatio / 100)
-            : info.position.size,
-          info.target.price,
-          {
-            holdSide: tradeType,
-            reduceOnly: true,
-            hedged: true,
-          },
-        );
-        console.log(target);
-      } catch (error) {
-        console.log(error);
-      }
+    try {
+      await tradeMutation.mutateAsync({
+        ccxtInstance,
+        symbol,
+        tradeType,
+        exchange,
+        info,
+        config,
+        maxLeverage: tradeInfo.maxLeverage,
+      });
+    } catch (error) {
+      console.error("Trade execution failed:", error);
     }
   };
+
   return (
     <div className="flex w-1/3 min-w-32 max-w-64 flex-col items-center justify-between h-full space-y-3">
       <div className="w-full text-sm text-muted-foreground capitalize">
@@ -229,19 +71,19 @@ export const TradingAction = () => {
           value={"long"}
           variant={"long"}
           className="opacity-90"
-          disabled={!accountInfo}
+          disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
         >
-          LONG
+          {tradeMutation.isPending ? "처리중..." : "LONG"}
         </Button>
         <Button
           value={"short"}
           variant={"short"}
           className="opacity-90"
-          disabled={!accountInfo}
+          disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
         >
-          SHORT
+          {tradeMutation.isPending ? "처리중..." : "SHORT"}
         </Button>
       </div>
     </div>

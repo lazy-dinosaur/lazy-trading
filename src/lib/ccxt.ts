@@ -9,6 +9,8 @@ import BybitPro from "node_modules/ccxt/js/src/pro/bybit";
 import BitgetPro from "node_modules/ccxt/js/src/pro/bitget";
 import BinancePro from "node_modules/ccxt/js/src/pro/binance";
 import { ExchangeType } from "./accounts";
+import { useState, useEffect } from "react";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 export interface TickerWithExchange extends Ticker {
   exchange: ExchangeType;
@@ -92,4 +94,42 @@ export const ccxtHelper = async (
       await exchangeInstance.close();
     }
   }
+};
+
+export const useCcxtHelper = <T>(
+  key: Array<string>,
+  exchange: ExchangeType,
+  callback: (exchangeInstance: Exchange, { ...vars }) => Promise<T>,
+  vars: any,
+  apiKey?: string,
+  secret?: string,
+): UseQueryResult<T> => {
+  const [exchangeInstance, setExchangeInstance] = useState<Exchange | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const instance = new ccxt[exchange]({
+      apiKey,
+      secret,
+      enableRateLimit: true,
+    });
+
+    setExchangeInstance(instance);
+
+    return () => {
+      if (instance.close) {
+        instance.close();
+      }
+    };
+  }, [exchange, apiKey, secret]);
+
+  return useQuery<T>({
+    queryKey: key,
+    queryFn: () =>
+      exchangeInstance
+        ? callback(exchangeInstance, { ...vars })
+        : Promise.reject(new Error("Exchange instance is not ready")),
+    enabled: !!exchangeInstance,
+  });
 };
