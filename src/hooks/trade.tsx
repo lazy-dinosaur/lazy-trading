@@ -249,35 +249,33 @@ export const useMaxLeverage = (
   symbol: string,
   account?: DecryptedAccount,
 ) => {
-  const ccxt = useCCXT();
-
   return useQuery({
     queryKey: ["maxLeverage", exchange, symbol, account?.id],
     queryFn: async () => {
-      if (!ccxt) return;
+      if (!account?.exchangeInstance) return;
+      const exchangeInstance = account.exchangeInstance;
 
       if (exchange !== "binance") {
-        return ccxt[exchange].ccxt.market(symbol).limits.leverage?.max;
+        return exchangeInstance.ccxt.market(symbol).limits.leverage?.max;
       }
 
       if (!account) return 125;
 
-      ccxt.binance.ccxt.apiKey = account.apiKey;
-      ccxt.binance.ccxt.secret = account.secretKey;
-
-      const leverageTierLinear = await ccxt?.binance.ccxt.fetchLeverageTiers(
+      const leverageTierLinear = await exchangeInstance.ccxt.fetchLeverageTiers(
         undefined,
         { subType: "linear" },
       );
-      const leverageTierInverse = await ccxt?.binance.ccxt.fetchLeverageTiers(
-        undefined,
-        { subType: "inverse" },
-      );
+      console.log(leverageTierLinear);
+      const leverageTierInverse =
+        await exchangeInstance.ccxt.fetchLeverageTiers(undefined, {
+          subType: "inverse",
+        });
+      console.log(leverageTierInverse);
 
       return { ...leverageTierInverse, ...leverageTierLinear }[symbol][0]
         .maxLeverage;
     },
-    enabled: !!symbol && !!exchange && !!ccxt,
+    enabled: !!symbol && !!exchange,
   });
 };
 

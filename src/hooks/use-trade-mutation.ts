@@ -80,41 +80,26 @@ async function executeTrade({
   }
 
   try {
+    const amount = isusdt ? info.position.size : info.position.size / 100;
     if (exchange === "binance") {
       return await Promise.all([
-        ccxtInstance.createOrder(
-          symbol,
-          "market",
-          side,
-          info.position.size / 100,
-          undefined,
-          {
-            marginMode: "cross",
-            positionSide: tradeType.toUpperCase(),
-            hedged: true,
-          },
-        ),
-        ccxtInstance.createOrder(
-          symbol,
-          "market",
-          oppside,
-          info.position.size / 100,
-          undefined,
-          {
-            marginMode: "cross",
-            reduceOnly: true,
-            positionSide: tradeType.toUpperCase(),
-            stopLossPrice: info.stoploss.price,
-            hedged: true,
-          },
-        ),
+        ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
+          marginMode: "cross",
+          positionSide: tradeType.toUpperCase(),
+          hedged: true,
+        }),
+        ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
+          marginMode: "cross",
+          reduceOnly: true,
+          positionSide: tradeType.toUpperCase(),
+          stopLossPrice: info.stoploss.price,
+          hedged: true,
+        }),
         ccxtInstance.createOrder(
           symbol,
           "limit",
           oppside,
-          config.partialClose
-            ? (info.position.size / 100) * (config.closeRatio / 100)
-            : info.position.size,
+          config.partialClose ? amount * (config.closeRatio / 100) : amount,
           info.target.price,
           {
             marginMode: "cross",

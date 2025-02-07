@@ -257,17 +257,17 @@ export const calculatePositionInfo = ({
           totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
         };
 
-        console.log({
-          symbol,
-          isUSDTContract,
-          availableBalance,
-          riskAmount,
-          currentPrice,
-          position: result.position,
-          stopLossDistance,
-          totalFee: result.position.fee,
-          totalLoss: result.position.totalLoss,
-        });
+        // console.log({
+        //   symbol,
+        //   isUSDTContract,
+        //   availableBalance,
+        //   riskAmount,
+        //   currentPrice,
+        //   position: result.position,
+        //   stopLossDistance,
+        //   totalFee: result.position.fee,
+        //   totalLoss: result.position.totalLoss,
+        // });
       } catch (error) {
         console.error("Failed to calculate position details:", error);
         // position 정보 없이 기본 정보만 반환
@@ -293,17 +293,17 @@ export const calculatePositionInfo = ({
           totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
         };
 
-        console.log({
-          symbol,
-          isUSDTContract,
-          availableBalance,
-          riskAmount,
-          currentPrice,
-          position: result.position,
-          stopLossDistance,
-          totalFee: result.position.fee,
-          totalLoss: result.position.totalLoss,
-        });
+        // console.log({
+        //   symbol,
+        //   isUSDTContract,
+        //   availableBalance,
+        //   riskAmount,
+        //   currentPrice,
+        //   position: result.position,
+        //   stopLossDistance,
+        //   totalFee: result.position.fee,
+        //   totalLoss: result.position.totalLoss,
+        // });
       } catch (error) {
         console.error("Failed to calculate position details:", error);
         // position 정보 없이 기본 정보만 반환
