@@ -180,6 +180,40 @@ export const TradingAction = () => {
       } catch (error) {
         console.log(error);
       }
+
+      try {
+        const order = await ccxtInstance.createOrder(
+          symbol,
+          "market",
+          side,
+          info.position.size,
+          undefined,
+          {
+            stopLoss: {
+              triggerPrice: info.stoploss.price,
+            },
+            hedged: true,
+          },
+        );
+        console.log(order);
+        const target = await ccxtInstance.createOrder(
+          symbol,
+          "limit",
+          oppside,
+          config.partialClose
+            ? info.position.size * (config.closeRatio / 100)
+            : info.position.size,
+          info.target.price,
+          {
+            holdSide: tradeType,
+            reduceOnly: true,
+            hedged: true,
+          },
+        );
+        console.log(target);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
   return (
