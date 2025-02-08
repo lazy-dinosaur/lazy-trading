@@ -9,6 +9,7 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "react-router";
 import { useTradeMutation } from "@/hooks/use-trade-mutation";
+import { PositionInfo } from "@/lib/trade";
 
 export const TradingAction = () => {
   const [searchParams] = useSearchParams();
@@ -39,7 +40,7 @@ export const TradingAction = () => {
 
     const ccxtInstance = account.exchangeInstance.ccxt;
     const tradeType = event.currentTarget.value as "long" | "short";
-    const info = tradeInfo[tradeType];
+    const info = tradeInfo[tradeType] as PositionInfo;
 
     if (!info.position) return;
 
@@ -51,7 +52,6 @@ export const TradingAction = () => {
         exchange,
         info,
         config,
-        maxLeverage: tradeInfo.maxLeverage,
       });
     } catch (error) {
       console.error("Trade execution failed:", error);

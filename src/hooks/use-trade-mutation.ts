@@ -1,4 +1,5 @@
 import { ExchangeType } from "@/lib/accounts";
+import { PositionInfo } from "@/lib/trade";
 import { useMutation } from "@tanstack/react-query";
 import { binance, bitget, bybit } from "ccxt";
 
@@ -7,22 +8,11 @@ interface TradeParams {
   symbol: string;
   tradeType: "long" | "short";
   exchange: ExchangeType;
-  info: {
-    position?: {
-      size: number;
-    };
-    stoploss: {
-      price: number;
-    };
-    target: {
-      price: number;
-    };
-  };
+  info: PositionInfo;
   config: {
     partialClose: boolean;
     closeRatio: number;
   };
-  maxLeverage: number;
 }
 
 async function executeTrade({
@@ -32,7 +22,6 @@ async function executeTrade({
   exchange,
   info,
   config,
-  maxLeverage,
 }: TradeParams) {
   if (!info.position) throw new Error("Position info is required");
 
@@ -69,7 +58,7 @@ async function executeTrade({
     }
   }
   try {
-    await ccxtInstance.setLeverage(maxLeverage, symbol);
+    await ccxtInstance.setLeverage(info.calculatedLeverage, symbol);
   } catch (error) {
     console.warn("Failed to set leverage:", error);
   }

@@ -412,6 +412,7 @@ export const fetchAccountsDetail = async (data?: DecryptedAccountObj) => {
         const exchangeInstance = account.exchangeInstance.ccxt;
 
         const rawBalance = await exchangeInstance.fetchBalance();
+        console.log("rawBalance:", rawBalance);
 
         const usdBalance = await calculateUSDBalance(
           exchangeInstance,

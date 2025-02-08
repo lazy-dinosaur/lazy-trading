@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DecryptedAccount, ExchangeType } from "./accounts";
 import { CCXTType } from "@/contexts/ccxt/type";
 import { useCCXT } from "@/contexts/ccxt/use";
-import { Exchange } from "ccxt";
+import { Exchange, LeverageTier } from "ccxt";
 import { useSearchParams } from "react-router";
 import { useAccounts } from "@/contexts/accounts/use";
 
@@ -74,6 +74,7 @@ export interface PositionInfo {
   stoploss: StopLossInfo;
   target: TargetInfo;
   leverage: number;
+  calculatedLeverage: number;
   position?: {
     size: number;
     margin: number;
@@ -169,6 +170,59 @@ export const calculateTargetPercentage = (
   return (((targetPrice - currentPrice) / currentPrice) * 100).toFixed(2);
 };
 
+interface LeverageResult {
+  leverage: number;
+  maxPositionSize: number;
+}
+
+function findOptimalLeverageAndSize(
+  calculatedSize: number,
+  availableBalance: number,
+  leverageTiers: LeverageTier[],
+): LeverageResult {
+  // 티어가 없는 경우 기본값 반환
+  if (!leverageTiers?.length) {
+    return {
+      leverage: 125,
+      maxPositionSize: calculatedSize,
+    };
+  }
+
+  // 티어를 포지션 사이즈 기준으로 내림차순 정렬
+  const sortedTiers = [...leverageTiers].sort(
+    (a, b) => (b.maxNotional ?? 0) - (a.maxNotional ?? 0),
+  );
+
+  let optimalTier: LeverageTier | undefined;
+
+  // 1. 먼저 계산된 사이즈를 수용할 수 있는 가장 작은 티어를 찾음
+  for (const tier of sortedTiers) {
+    if (tier.maxNotional && calculatedSize <= tier.maxNotional) {
+      optimalTier = tier;
+    } else {
+      break;
+    }
+  }
+
+  // 2. 적절한 티어를 찾지 못했다면 가장 큰 포지션 사이즈를 허용하는 티어 선택
+  if (!optimalTier) {
+    optimalTier = sortedTiers[0];
+  }
+
+  // 3. 선택된 티어에서 실제 가능한 포지션 사이즈 계산
+  const maxPositionWithBalance =
+    availableBalance * (optimalTier.maxLeverage ?? 125);
+  const maxPositionSize = Math.min(
+    optimalTier.maxNotional ?? calculatedSize,
+    maxPositionWithBalance,
+  );
+
+  return {
+    leverage: optimalTier.maxLeverage ?? 125,
+    maxPositionSize,
+  };
+}
+
 export const calculatePositionInfo = ({
   currentPrice,
   stopLossPrice,
@@ -177,7 +231,7 @@ export const calculatePositionInfo = ({
   ccxtInstance,
   symbol,
   isLong,
-  maxLeverage,
+  leverageInfo,
   availableBalance,
   tradingFee,
 }: {
@@ -188,11 +242,14 @@ export const calculatePositionInfo = ({
   ccxtInstance: Exchange;
   symbol: string;
   isLong: boolean;
-  maxLeverage: number;
+  leverageInfo: { maxLeverage: number; leverageTier?: LeverageTier[] };
   availableBalance?: number;
   tradingFee?: TradingFeeInfo;
 }): PositionInfo => {
   // UI 표시용 기본 정보 계산 (기존 코드 유지)
+
+  console.log("사용 가능한 자본:", availableBalance);
+
   const stopLossPercentage = calculateStopLossPercentage(
     currentPrice,
     stopLossPrice,
@@ -224,7 +281,8 @@ export const calculatePositionInfo = ({
       percentage: calculateTargetPercentage(currentPrice, targetPrice),
       formatted: ccxtInstance.priceToPrecision(symbol, targetPrice),
     },
-    leverage: Math.min(calculatedLeverage, maxLeverage),
+    leverage: Math.min(calculatedLeverage, leverageInfo.maxLeverage),
+    calculatedLeverage: Math.min(calculatedLeverage, leverageInfo.maxLeverage),
   };
 
   // 실제 매매 정보 계산
@@ -237,16 +295,24 @@ export const calculatePositionInfo = ({
     const totalFeeRate = tradingFee.taker * 2;
 
     if (isUSDTContract) {
-      // BTC/USDT의 경우
-      // availableBalance는 USDT
-      // positionSize는 BTC 수량으로 계산
+      // USDT 계약의 경우
       const positionSizeUSDT =
         riskAmount / (stopLossDistance / 100 + totalFeeRate);
-      const positionSize = positionSizeUSDT / currentPrice; // BTC 수량으로 변환
+      console.log("usdt기준 계산 전 포지션 규모:", positionSizeUSDT);
 
-      const margin = positionSizeUSDT / maxLeverage;
-      const totalFee = positionSizeUSDT * totalFeeRate;
-      const stopLossLoss = positionSizeUSDT * (stopLossDistance / 100);
+      // 최적 레버리지와 포지션 사이즈 계산
+      const { leverage, maxPositionSize } = findOptimalLeverageAndSize(
+        positionSizeUSDT,
+        availableBalance,
+        leverageInfo.leverageTier || [],
+      );
+      console.log("usdt기준 계산 후 포지션 규모:", maxPositionSize);
+
+      const finalPositionSizeUSDT = Math.min(positionSizeUSDT, maxPositionSize);
+      const positionSize = finalPositionSizeUSDT / currentPrice; // BTC 수량으로 변환
+      const margin = finalPositionSizeUSDT / leverage;
+      const totalFee = finalPositionSizeUSDT * totalFeeRate;
+      const stopLossLoss = finalPositionSizeUSDT * (stopLossDistance / 100);
       const totalLoss = stopLossLoss + totalFee;
 
       try {
@@ -256,57 +322,43 @@ export const calculatePositionInfo = ({
           fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
           totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
         };
-
-        // console.log({
-        //   symbol,
-        //   isUSDTContract,
-        //   availableBalance,
-        //   riskAmount,
-        //   currentPrice,
-        //   position: result.position,
-        //   stopLossDistance,
-        //   totalFee: result.position.fee,
-        //   totalLoss: result.position.totalLoss,
-        // });
+        result.calculatedLeverage = leverage;
       } catch (error) {
         console.error("Failed to calculate position details:", error);
-        // position 정보 없이 기본 정보만 반환
         delete result.position;
       }
     } else {
-      // BTC/USD의 경우
-      // availableBalance는 BTC
-      // positionSize는 USD 금액으로 계산
+      // USD 계약의 경우
       const positionSize =
         (riskAmount * currentPrice) / (stopLossDistance / 100 + totalFeeRate);
+      console.log("usd기준 계산 전 포지션 규모:", positionSize);
 
-      const margin = positionSize / maxLeverage;
-      const totalFee = positionSize * totalFeeRate;
-      const stopLossLoss = positionSize * (stopLossDistance / 100);
+      // 최적 레버리지와 포지션 사이즈 계산
+      const { leverage, maxPositionSize } = findOptimalLeverageAndSize(
+        positionSize,
+        availableBalance * currentPrice, // USD 가치로 변환
+        leverageInfo.leverageTier || [],
+      );
+      console.log("usd기준 계산 후 포지션 규모:", maxPositionSize);
+
+      const finalPositionSize = Math.min(positionSize, maxPositionSize);
+      const margin = finalPositionSize / leverage;
+      const totalFee = finalPositionSize * totalFeeRate;
+      const stopLossLoss = finalPositionSize * (stopLossDistance / 100);
       const totalLoss = stopLossLoss + totalFee;
 
       try {
         result.position = {
-          size: Number(ccxtInstance.amountToPrecision(symbol, positionSize)),
+          size: Number(
+            ccxtInstance.amountToPrecision(symbol, finalPositionSize),
+          ),
           margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
           fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
           totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
         };
-
-        // console.log({
-        //   symbol,
-        //   isUSDTContract,
-        //   availableBalance,
-        //   riskAmount,
-        //   currentPrice,
-        //   position: result.position,
-        //   stopLossDistance,
-        //   totalFee: result.position.fee,
-        //   totalLoss: result.position.totalLoss,
-        // });
+        result.calculatedLeverage = leverage;
       } catch (error) {
         console.error("Failed to calculate position details:", error);
-        // position 정보 없이 기본 정보만 반환
         delete result.position;
       }
     }

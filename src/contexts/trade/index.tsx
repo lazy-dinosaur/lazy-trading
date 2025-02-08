@@ -2,7 +2,7 @@ import { useMarketInfo, useFetchTicker } from "@/hooks/coin";
 import {
   useInitialLoading,
   useBalanceInfo,
-  useMaxLeverage,
+  useLeverageInfo,
   useTradeInfo,
 } from "@/hooks/trade";
 import { ExchangeType } from "@/lib/accounts";
@@ -27,7 +27,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
 
   const balanceInfo = useBalanceInfo(id, symbol, exchange);
 
-  const { data: maxLeverage } = useMaxLeverage(
+  const { data: leverageInfo } = useLeverageInfo(
     exchange,
     symbol,
     id ? decryptedAccounts?.[id] : undefined,
@@ -36,10 +36,14 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
   const tradeInfo = useTradeInfo(
     exchange,
     symbol,
-    maxLeverage,
-    accountsDetails?.[id]?.balance[base]?.free
-      ? Number(accountsDetails[id]?.balance[base]?.free)
-      : 0,
+    leverageInfo,
+    exchange == "binance"
+      ? accountsDetails?.[id]?.balance[base]?.total
+        ? Number(accountsDetails[id]?.balance[base]?.total)
+        : 0
+      : accountsDetails?.[id]?.balance[base]?.free
+        ? Number(accountsDetails[id]?.balance[base]?.free)
+        : 0,
   );
 
   const marketInfoQuery = useMarketInfo(exchange, symbol);

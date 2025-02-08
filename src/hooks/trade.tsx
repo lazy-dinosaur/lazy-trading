@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useMarketInfo } from "./coin";
+import { LeverageTier } from "ccxt";
 
 export const useInitialLoading = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -139,7 +140,7 @@ export const useBalanceInfo = (
 export const useTradeInfo = (
   exchange: ExchangeType,
   symbol: string,
-  maxLeverage?: number,
+  leverageInfo?: { maxLeverage: number; leverageTier?: LeverageTier[] },
   availableBalance?: number,
 ) => {
   const [tradeInfo, setTradeInfo] = useState<TradeInfoType>();
@@ -161,7 +162,7 @@ export const useTradeInfo = (
     const isTradingfeeExists = !!tradingfee && !isTradingfeeLoading;
     const isMarketInfoExists = !!marketInfo && !isMarketLoading;
     const isConfigExists = !!config && !isTradingConfigLoading;
-    const isLeverageExists = !!maxLeverage;
+    const isLeverageExists = !!leverageInfo;
 
     if (
       ccxt &&
@@ -197,7 +198,7 @@ export const useTradeInfo = (
         symbol,
         isLong: true,
         availableBalance,
-        maxLeverage,
+        leverageInfo,
         tradingFee: tradingFees,
       });
 
@@ -210,7 +211,7 @@ export const useTradeInfo = (
         symbol,
         isLong: false,
         availableBalance,
-        maxLeverage,
+        leverageInfo,
         tradingFee: tradingFees,
       });
 
@@ -220,7 +221,7 @@ export const useTradeInfo = (
           short: shortInfo,
           currentPrice,
           tradingfee: tradingFees,
-          maxLeverage,
+          leverageInfo,
         });
       }
     }
@@ -233,7 +234,7 @@ export const useTradeInfo = (
     candleData,
     tradingfee,
     marketInfo,
-    maxLeverage,
+    leverageInfo,
     isCandleLoading,
     isTradingfeeLoading,
     isMarketLoading,
@@ -244,36 +245,63 @@ export const useTradeInfo = (
 };
 
 // 3. 최대 레버리지 관련 훅
-export const useMaxLeverage = (
+export const useLeverageInfo = (
   exchange: ExchangeType,
   symbol: string,
   account?: DecryptedAccount,
 ) => {
+  const ccxt = useCCXT();
+
   return useQuery({
     queryKey: ["maxLeverage", exchange, symbol, account?.id],
     queryFn: async () => {
-      if (!account?.exchangeInstance) return;
-      const exchangeInstance = account.exchangeInstance;
+      if (!ccxt) return;
 
-      if (exchange !== "binance") {
-        return exchangeInstance.ccxt.market(symbol).limits.leverage?.max;
+      // 바이낸스의 경우
+      if (exchange === "binance") {
+        if (!account) {
+          return { maxLeverage: 125, leverageTier: [] };
+        }
       }
 
-      if (!account) return 125;
+      // 바이낸스가 아닌 경우 (기존 코드)
+      const exchangeInstance = account
+        ? account.exchangeInstance.ccxt
+        : ccxt[exchange].ccxt;
+      try {
+        // 바이낸스는 linear/inverse 구분이 필요
+        const leverageTierLinear = await exchangeInstance.fetchLeverageTiers(
+          undefined,
+          { category: "linear" },
+        );
+        console.log("Linear tiers:", leverageTierLinear);
 
-      const leverageTierLinear = await exchangeInstance.ccxt.fetchLeverageTiers(
-        undefined,
-        { subType: "linear" },
-      );
-      console.log(leverageTierLinear);
-      const leverageTierInverse =
-        await exchangeInstance.ccxt.fetchLeverageTiers(undefined, {
-          subType: "inverse",
-        });
-      console.log(leverageTierInverse);
+        const leverageTierInverse = await exchangeInstance.fetchLeverageTiers(
+          undefined,
+          { category: "inverse" },
+        );
+        console.log("Inverse tiers:", leverageTierInverse);
 
-      return { ...leverageTierInverse, ...leverageTierLinear }[symbol][0]
-        .maxLeverage;
+        const combinedTiers = {
+          ...leverageTierInverse,
+          ...leverageTierLinear,
+        };
+        const symbolTiers = combinedTiers[symbol];
+
+        console.log("Combined tiers for symbol:", symbolTiers);
+
+        if (!symbolTiers || symbolTiers.length === 0) {
+          return { maxLeverage: 125, leverageTier: [] };
+        }
+
+        return {
+          leverageTier: symbolTiers,
+          maxLeverage: symbolTiers[0].maxLeverage ?? 125,
+        };
+      } catch (error) {
+        console.error("Error fetching Binance leverage tiers:", error);
+        return { maxLeverage: 125, leverageTier: [] };
+      }
     },
     enabled: !!symbol && !!exchange,
   });

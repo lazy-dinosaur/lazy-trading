@@ -2,6 +2,7 @@ import { useFetchTicker, useMarketInfo } from "@/hooks/coin";
 import { createContext } from "react";
 import { AccountInfoType, DecryptedAccount } from "@/lib/accounts";
 import { PositionInfo } from "@/lib/trade";
+import { LeverageTier } from "ccxt";
 export type FormattedCurrecy = {
   total: string | number;
   used: string | number;
@@ -17,7 +18,7 @@ export type TradeInfoType =
         maker: number;
         taker: number;
       };
-      maxLeverage: number;
+      leverageInfo: { maxLeverage: number; leverageTier?: LeverageTier[] };
     }
   | undefined;
 
