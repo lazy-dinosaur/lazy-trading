@@ -6,6 +6,17 @@ import { Exchange, LeverageTier } from "ccxt";
 import { useSearchParams } from "react-router";
 import { useAccounts } from "@/contexts/accounts/use";
 
+/**
+ * Fetches trading fees for a specific symbol from an exchange
+ * @param ccxt - CCXT instance
+ * @param exchange - Exchange type (e.g. 'binance', 'bybit')
+ * @param symbol - Trading pair symbol (e.g. 'BTC/USDT')
+ * @param account - Optional account credentials for authenticated requests
+ * @returns Object containing maker and taker fees
+ * @throws {Error} When exchange is not initialized
+ * @throws {ExchangeError} When exchange API request fails
+ * @throws {AuthenticationError} When account credentials are invalid
+ */
 export const fetchTradingFees = async (
   ccxt: CCXTType,
   exchange: ExchangeType,
@@ -15,46 +26,79 @@ export const fetchTradingFees = async (
   if (!ccxt?.[exchange]) {
     throw new Error("Exchange instance not initialized");
   }
+
   const exchangeInstance = ccxt[exchange].ccxt;
-  if (account) {
-    exchangeInstance.apiKey = account.apiKey;
-    exchangeInstance.secret = account.secretKey;
 
-    // 거래소별 수수료 정보 가져오기
-    const fees = await exchangeInstance.fetchTradingFee(symbol);
+  try {
+    if (account) {
+      exchangeInstance.apiKey = account.apiKey;
+      exchangeInstance.secret = account.secretKey;
 
-    return {
-      maker: fees.maker, // 메이커 수수료
-      taker: fees.taker, // 테이커 수수료
-    };
-  } else {
-    const market = exchangeInstance.market(symbol);
+      const fees = await exchangeInstance.fetchTradingFee(symbol);
 
-    return {
-      // 기본 수수료 정보
-      maker: market.maker,
-      taker: market.taker,
-    };
+      if (!fees?.maker || !fees?.taker) {
+        throw new Error("Invalid fee structure returned from exchange");
+      }
+
+      return {
+        maker: fees.maker,
+        taker: fees.taker,
+      };
+    } else {
+      const market = exchangeInstance.market(symbol);
+
+      if (!market?.maker || !market?.taker) {
+        throw new Error("Market data does not contain fee information");
+      }
+
+      return {
+        maker: market.maker,
+        taker: market.taker,
+      };
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      // Enhance error message with context
+      throw new Error(`Failed to fetch trading fees: ${error.message}`);
+    }
+    throw error;
   }
 };
 
+/**
+ * React Query hook for fetching trading fees
+ * @param exchange - Exchange type to fetch fees from
+ * @param symbol - Trading pair symbol
+ * @returns Query result containing trading fees or error state
+ */
 export const useTradingFees = (exchange: ExchangeType, symbol: string) => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
   const { decryptedAccounts } = useAccounts();
-
   const ccxt = useCCXT();
 
   return useQuery({
-    queryKey: [exchange, symbol, "fees"],
-    queryFn: async () =>
-      await fetchTradingFees(
-        ccxt!,
+    queryKey: [exchange, symbol, "fees", id],
+    queryFn: async () => {
+      if (!ccxt) {
+        throw new Error("CCXT context not initialized");
+      }
+      return await fetchTradingFees(
+        ccxt,
         exchange,
         symbol,
         id ? decryptedAccounts?.[id] : undefined,
-      ),
+      );
+    },
     enabled: !!ccxt,
+    retry: (failureCount, error) => {
+      // Only retry on network errors, not on authentication errors
+      if (error instanceof Error && error.message.includes("authentication")) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
   });
 };
 
