@@ -223,7 +223,164 @@ function findOptimalLeverageAndSize(
   };
 }
 
-export const calculatePositionInfo = ({
+interface LiquidityAnalysis {
+  slippage: SlippageInfo;
+  recommendedSize: {
+    safe: number; // 안전 거래 규모
+    moderate: number; // 중간 위험 거래 규모
+    maximum: number; // 최대 거래 규모
+  };
+  impact: {
+    entryPriceImpact: number; // 예상 진입가 영향
+    liquidationRiskLevel: "safe" | "moderate" | "high"; // 청산 위험도
+    potentialLoss: number; // 슬리피지로 인한 잠재적 손실
+  };
+  warning: string[]; // 경고 메시지 배열
+}
+
+interface SlippageInfo {
+  estimated: number; // 예상 슬리피지 퍼센트
+  warning: string; // 경고 메시지
+  severity: "safe" | "moderate" | "high"; // 위험도
+}
+
+export const analyzeLiquidityAndSize = async (
+  ccxtInstance: Exchange,
+  symbol: string,
+  currentPrice: number,
+  leverage: number,
+  availableBalance: number,
+  isLong: boolean,
+  stopLossPrice: number,
+): Promise<LiquidityAnalysis> => {
+  try {
+    const orderbook = await ccxtInstance.fetchOrderBook(symbol);
+    const relevantSide = isLong ? orderbook.asks : orderbook.bids;
+    const warnings: string[] = [];
+
+    // 오더북 분석을 통한 유동성 깊이 계산
+    const liquidityDepth = relevantSide.reduce((acc, [price, volume]) => {
+      return acc + (volume ?? 0) * (price ?? currentPrice);
+    }, 0);
+
+    // 기본 슬리피지 계산
+    const calculateSlippageForSize = (size: number) => {
+      let accumulatedVolume = 0;
+      let weightedPrice = 0;
+      const basePrice = relevantSide[0]?.[0] ?? currentPrice;
+
+      for (const [price, volume] of relevantSide) {
+        if (accumulatedVolume >= size) break;
+        const remainingSize = Math.min(volume ?? 0, size - accumulatedVolume);
+        weightedPrice += (price ?? currentPrice) * remainingSize;
+        accumulatedVolume += remainingSize;
+      }
+
+      if (accumulatedVolume === 0) return 0;
+
+      const expectedPrice = weightedPrice / accumulatedVolume;
+      return Math.abs(((expectedPrice - basePrice) / basePrice) * 100);
+    };
+
+    // 레버리지를 고려한 안전 거래 규모 계산
+    const maxPositionSize = availableBalance * leverage;
+
+    // 청산가격까지의 거리
+    const liquidationDistance =
+      Math.abs((stopLossPrice - currentPrice) / currentPrice) * 100;
+
+    // 안전 거래 규모 계산 (슬리피지가 청산가격 거리의 10% 이하)
+    const calculateSafeSize = () => {
+      let low = 0;
+      let high = maxPositionSize;
+      let safeSize = 0;
+
+      while (low <= high) {
+        const mid = (low + high) / 2;
+        const slippage = calculateSlippageForSize(mid);
+
+        if (slippage <= liquidationDistance * 0.1) {
+          safeSize = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      return safeSize;
+    };
+
+    const safeSize = calculateSafeSize();
+    const moderateSize = safeSize * 2; // 중간 위험 규모
+    const maximumSize = safeSize * 3; // 최대 권장 규모
+
+    // 현재 설정된 포지션 크기에 대한 슬리피지 계산
+    const currentSlippage = calculateSlippageForSize(maxPositionSize);
+
+    // 잠재적 손실 계산
+    const potentialLoss = (maxPositionSize * currentSlippage) / 100;
+
+    // 청산 위험도 평가
+    let liquidationRiskLevel: "safe" | "moderate" | "high" = "safe";
+    if (currentSlippage > liquidationDistance * 0.3) {
+      liquidationRiskLevel = "high";
+      warnings.push(
+        `현재 레버리지(${leverage}x)와 포지션 크기는 슬리피지로 인한 즉각적인 청산 위험이 있습니다.`,
+      );
+    } else if (currentSlippage > liquidationDistance * 0.15) {
+      liquidationRiskLevel = "moderate";
+      warnings.push(
+        `현재 레버리지(${leverage}x)에서 슬리피지로 인한 청산 위험이 있습니다.`,
+      );
+    }
+
+    // 거래량 기반 추가 경고
+    if (maxPositionSize > liquidityDepth * 0.1) {
+      warnings.push("현재 시장 유동성 대비 너무 큰 포지션 크기입니다.");
+    }
+
+    return {
+      slippage: {
+        estimated: currentSlippage,
+        warning: warnings.join(" "),
+        severity: liquidationRiskLevel,
+      },
+      recommendedSize: {
+        safe: safeSize,
+        moderate: moderateSize,
+        maximum: maximumSize,
+      },
+      impact: {
+        entryPriceImpact: currentSlippage,
+        liquidationRiskLevel,
+        potentialLoss,
+      },
+      warning: warnings,
+    };
+  } catch (error) {
+    console.error("Failed to analyze liquidity:", error);
+    return {
+      slippage: {
+        estimated: 0,
+        warning: "유동성 분석 실패",
+        severity: "high",
+      },
+      recommendedSize: {
+        safe: 0,
+        moderate: 0,
+        maximum: 0,
+      },
+      impact: {
+        entryPriceImpact: 0,
+        liquidationRiskLevel: "high",
+        potentialLoss: 0,
+      },
+      warning: ["유동성 분석 중 오류가 발생했습니다."],
+    };
+  }
+};
+
+export const calculatePositionInfo = async ({
   currentPrice,
   stopLossPrice,
   riskRatio,
@@ -245,7 +402,7 @@ export const calculatePositionInfo = ({
   leverageInfo: { maxLeverage: number; leverageTier?: LeverageTier[] };
   availableBalance?: number;
   tradingFee?: TradingFeeInfo;
-}): PositionInfo => {
+}): Promise<PositionInfo & { liquidityAnalysis?: LiquidityAnalysis }> => {
   // UI 표시용 기본 정보 계산 (기존 코드 유지)
 
   console.log("사용 가능한 자본:", availableBalance);
@@ -361,6 +518,27 @@ export const calculatePositionInfo = ({
         console.error("Failed to calculate position details:", error);
         delete result.position;
       }
+    }
+  }
+
+  if (result.position?.size && availableBalance) {
+    try {
+      const liquidityAnalysis = await analyzeLiquidityAndSize(
+        ccxtInstance,
+        symbol,
+        currentPrice,
+        result.leverage,
+        availableBalance,
+        isLong,
+        stopLossPrice,
+      );
+
+      return {
+        ...result,
+        liquidityAnalysis,
+      };
+    } catch (error) {
+      console.error("Failed to analyze liquidity:", error);
     }
   }
 
