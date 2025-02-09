@@ -424,7 +424,7 @@ export const analyzeLiquidityAndSize = async (
   }
 };
 
-export const calculatePositionInfo = async ({
+export const calculatePositionInfo = ({
   currentPrice,
   stopLossPrice,
   riskRatio,
@@ -446,7 +446,7 @@ export const calculatePositionInfo = async ({
   leverageInfo: { maxLeverage: number; leverageTier?: LeverageTier[] };
   availableBalance?: number;
   tradingFee?: TradingFeeInfo;
-}): Promise<PositionInfo & { liquidityAnalysis?: LiquidityAnalysis }> => {
+}): PositionInfo => {
   // UI 표시용 기본 정보 계산 (기존 코드 유지)
 
   console.log("사용 가능한 자본:", availableBalance);
@@ -565,26 +565,40 @@ export const calculatePositionInfo = async ({
     }
   }
 
-  if (result.position?.size && availableBalance) {
-    try {
-      const liquidityAnalysis = await analyzeLiquidityAndSize(
-        ccxtInstance,
-        symbol,
-        currentPrice,
-        result.leverage,
-        availableBalance,
-        isLong,
-        stopLossPrice,
-      );
-
-      return {
-        ...result,
-        liquidityAnalysis,
-      };
-    } catch (error) {
-      console.error("Failed to analyze liquidity:", error);
-    }
-  }
-
   return result;
+};
+
+interface LiquidityAnalysisParams {
+  ccxtInstance: Exchange;
+  symbol: string;
+  currentPrice: number;
+  leverage: number;
+  availableBalance: number;
+  isLong: boolean;
+  stopLossPrice: number;
+}
+
+export const calculateLiquidityAnalysis = async ({
+  ccxtInstance,
+  symbol,
+  currentPrice,
+  leverage,
+  availableBalance,
+  isLong,
+  stopLossPrice,
+}: LiquidityAnalysisParams): Promise<LiquidityAnalysis | null> => {
+  try {
+    return await analyzeLiquidityAndSize(
+      ccxtInstance,
+      symbol,
+      currentPrice,
+      leverage,
+      availableBalance,
+      isLong,
+      stopLossPrice,
+    );
+  } catch (error) {
+    console.error("Failed to analyze liquidity:", error);
+    return null;
+  }
 };

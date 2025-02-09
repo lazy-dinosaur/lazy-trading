@@ -1,80 +1,150 @@
 import { useTrade } from "@/contexts/trade/use";
 import { ExchangeType } from "@/lib/accounts";
 import { Link, useSearchParams } from "react-router";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const TradeInfo = () => {
   const [searchParams] = useSearchParams();
-  const { tradeInfo, balanceInfo } = useTrade();
+  const {
+    tradeInfo,
+    balanceInfo,
+    tickerQuery,
+    marketInfoQuery,
+    isAccountsLoading,
+  } = useTrade();
+
+  const { exchangeAccounts } = useTrade();
+
   const exchange = searchParams.get("exchange") as ExchangeType;
+
+  const isTradeInfoLoading =
+    tickerQuery.isLoading || marketInfoQuery.isLoading || !tradeInfo;
+
+  const isBalanceLoading =
+    !exchangeAccounts && (isAccountsLoading || !balanceInfo);
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-between gap-2">
-      <div className="flex w-full items-center justify-between px-2 ">
+      <div className="flex w-full items-center justify-between px-2">
         <span className="text-sm text-muted-foreground capitalize">
           Trading Info
         </span>
         <div className="gap-2 text-xs flex">
-          <span className="space-x-1">
-            <span className="text-muted-foreground">Maker:</span>
-            <span>{tradeInfo?.tradingfee?.maker}</span>
-          </span>
-          <span className="space-x-1">
-            <span className="text-muted-foreground">Taker:</span>
-            <span>{tradeInfo?.tradingfee?.taker}</span>
-          </span>
+          {isTradeInfoLoading ? (
+            <>
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-20" />
+            </>
+          ) : (
+            <>
+              <span className="space-x-1">
+                <span className="text-muted-foreground">Maker:</span>
+                <span>{tradeInfo?.tradingfee?.maker}</span>
+              </span>
+              <span className="space-x-1">
+                <span className="text-muted-foreground">Taker:</span>
+                <span>{tradeInfo?.tradingfee?.taker}</span>
+              </span>
+            </>
+          )}
         </div>
       </div>
-      <div className="w-full h-full rounded-md p-2 border">
-        <div className="w-full h-full grid grid-cols-5 grid-rows-6">
-          <span></span>
-          <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
-            LONG
-          </span>
-          <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
-            SHORT
-          </span>
-          <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
-            S/L
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-            {tradeInfo?.long.stoploss.formatted}
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-            {tradeInfo?.short.stoploss.formatted}
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-            {tradeInfo?.long.stoploss.percentage}%
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-            {tradeInfo?.short.stoploss.percentage}%
-          </span>
-          <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
-            T/P
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-            {tradeInfo?.long.target.formatted}
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-            {tradeInfo?.short.target.formatted}
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-            {tradeInfo?.long.target.percentage}%
-          </span>
-          <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-            {tradeInfo?.short.target.percentage}%
-          </span>
-          <span className="col-span-1 row-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-            Leverage
-          </span>
-          <span className="col-span-2 flex items-center justify-center text-sm">
-            {tradeInfo?.long.leverage}x
-          </span>
-          <span className="col-span-2 flex items-center justify-center text-sm">
-            {tradeInfo?.short.leverage}x
-          </span>
+
+      {isTradeInfoLoading ? (
+        <div className="w-full h-full rounded-md p-2 border">
+          <div className="w-full h-full grid grid-cols-5 grid-rows-6">
+            <span></span>
+            <Skeleton className="col-span-2 h-6 mb-2" />
+            <Skeleton className="col-span-2 h-6 mb-2" />
+
+            <Skeleton className="col-span-1 row-span-2 h-12" />
+            <Skeleton className="col-span-2 h-6" />
+            <Skeleton className="col-span-2 h-6" />
+            <Skeleton className="col-span-2 h-6 mb-2" />
+            <Skeleton className="col-span-2 h-6 mb-2" />
+
+            <Skeleton className="col-span-1 row-span-2 h-12" />
+            <Skeleton className="col-span-2 h-6" />
+            <Skeleton className="col-span-2 h-6" />
+            <Skeleton className="col-span-2 h-6 mb-2" />
+            <Skeleton className="col-span-2 h-6 mb-2" />
+
+            <Skeleton className="col-span-1 h-6" />
+            <Skeleton className="col-span-2 h-6" />
+            <Skeleton className="col-span-2 h-6" />
+          </div>
         </div>
-      </div>
-      {balanceInfo ? (
+      ) : (
+        <div className="w-full h-full rounded-md p-2 border">
+          <div className="w-full h-full grid grid-cols-5 grid-rows-6">
+            <span></span>
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+              LONG
+            </span>
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+              SHORT
+            </span>
+            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+              S/L
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              {tradeInfo?.long.stoploss.formatted}
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              {tradeInfo?.short.stoploss.formatted}
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              {tradeInfo?.long.stoploss.percentage}%
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              {tradeInfo?.short.stoploss.percentage}%
+            </span>
+            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+              T/P
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              {tradeInfo?.long.target.formatted}
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              {tradeInfo?.short.target.formatted}
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              {tradeInfo?.long.target.percentage}%
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              {tradeInfo?.short.target.percentage}%
+            </span>
+            <span className="col-span-1 row-span-1 text-muted-foreground font-semibold flex items-center justify-center">
+              Leverage
+            </span>
+            <span className="col-span-2 flex items-center justify-center text-sm">
+              {tradeInfo?.long.leverage}x
+            </span>
+            <span className="col-span-2 flex items-center justify-center text-sm">
+              {tradeInfo?.short.leverage}x
+            </span>
+          </div>
+        </div>
+      )}
+
+      {isBalanceLoading ? (
+        <div className="grid grid-cols-7 grid-rows-3 w-full border rounded-md p-2">
+          <Skeleton className="h-4" />
+          <Skeleton className="col-span-2 h-4" />
+          <Skeleton className="col-span-2 h-4" />
+          <Skeleton className="col-span-2 h-4" />
+
+          <Skeleton className="h-4" />
+          <Skeleton className="col-span-2 h-4" />
+          <Skeleton className="col-span-2 h-4" />
+          <Skeleton className="col-span-2 h-4" />
+
+          <Skeleton className="h-4" />
+          <Skeleton className="col-span-2 h-4" />
+          <Skeleton className="col-span-2 h-4" />
+          <Skeleton className="col-span-2 h-4" />
+        </div>
+      ) : balanceInfo ? (
         <span className="grid grid-cols-7 grid-rows-3 w-full border rounded-md p-2">
           <span className="text-xs text-muted-foreground capitalize">
             balance
