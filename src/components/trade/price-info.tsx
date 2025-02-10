@@ -45,24 +45,24 @@ export const PriceInfo = () => {
     return (
       <div className="w-full flex justify-between items-center">
         <div>
-          <Skeleton className="h-9 w-32 mb-2" />
+          <Skeleton className="h-[2.25rem] w-40 mb-2" />
           <div className="flex gap-1">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-[1.125rem] w-14" />
+            <Skeleton className="h-[1.125rem] w-28" />
           </div>
         </div>
         <div className="text-sm">
           <div className="flex w-full items-center justify-between gap-2 mb-1">
-            <Skeleton className="h-4 w-12" />
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-[1.125rem] w-14" />
+            <Skeleton className="h-[1.125rem] w-24" />
           </div>
           <div className="flex w-full items-center justify-between gap-2 mb-1">
-            <Skeleton className="h-4 w-12" />
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-[1.125rem] w-14" />
+            <Skeleton className="h-[1.125rem] w-24" />
           </div>
           <div className="flex w-full items-center justify-between gap-2">
-            <Skeleton className="h-4 w-12" />
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-[1.125rem] w-14" />
+            <Skeleton className="h-[1.125rem] w-24" />
           </div>
         </div>
       </div>

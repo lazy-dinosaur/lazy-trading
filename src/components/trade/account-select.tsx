@@ -6,13 +6,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTrade } from "@/contexts/trade/use";
 import { useSearchParams } from "react-router";
 
 export const AccountSelector = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { exchangeAccounts, accountsDetails } = useTrade();
+  const { exchangeAccounts, accountsDetails, isAccountsLoading } = useTrade();
   const id = searchParams.get("id");
+
+  if (isAccountsLoading) {
+    return (
+      <div className="w-32">
+        <Skeleton className="h-8 w-full rounded-md" />
+      </div>
+    );
+  }
 
   return (
     <Select
