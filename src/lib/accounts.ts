@@ -242,6 +242,7 @@ export const encryptAccount = async (
     return null;
   }
 };
+
 export const addAccount = async ({
   rawAccount,
   pin,

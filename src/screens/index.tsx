@@ -16,7 +16,6 @@ const Index = () => {
   }, [cache, isCacheLoading, navigate]);
   return (
     <div className="fixed inset-0 flex items-center justify-center">
-      {/* <div className="h-[100vh] w-full"> */}
       <LoadingSpinner />
     </div>
   );

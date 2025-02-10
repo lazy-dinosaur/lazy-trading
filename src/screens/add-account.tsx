@@ -34,6 +34,7 @@ const AddAccount = () => {
   const exchangeParam = searchParams.get("exchange") as ExchangeType;
 
   const { addNewAccount, refreshAccounts, validateAccount } = useAccounts();
+
   const [validChecking, setValidCheck] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const currentExchange = cache?.data?.exchange as ExchangeType;

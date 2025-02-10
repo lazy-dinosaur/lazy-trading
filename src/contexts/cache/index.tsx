@@ -1,32 +1,14 @@
 import React, { useCallback } from "react";
-import { AppState, getAppState, updateAppState } from "@/lib/app-cache";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AppState } from "@/lib/app-cache";
 import { CacheContext } from "./type";
-import { usePin } from "../pin/use";
+import { useCacheMutation, useCacheQuery } from "@/hooks/use-cache";
 
 export function CacheProvider({ children }: { children: React.ReactNode }) {
-  const { validPin } = usePin();
-  const queryClient = useQueryClient();
-
   // Fetch cache data
-  const {
-    data: cache,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["cache"],
-    queryFn: getAppState,
-    enabled: !!validPin,
-    staleTime: Infinity,
-  });
+  const { data: cache, isLoading, error } = useCacheQuery();
 
   // Update cache mutation
-  const { mutateAsync: updateCacheMutation } = useMutation({
-    mutationFn: updateAppState,
-    onSuccess: (newState) => {
-      queryClient.setQueryData(["cache"], newState);
-    },
-  });
+  const { mutateAsync: updateCacheMutation } = useCacheMutation();
 
   // Update cache wrapper function
   const updateCache = useCallback(
