@@ -1,12 +1,5 @@
 import { EncryptedData, decryptKey, encryptKey } from "./cryptography";
-import ccxt, {
-  Balances,
-  binance,
-  bitget,
-  bybit,
-  Exchange,
-  Position,
-} from "ccxt";
+import ccxt, { Balances, binance, bitget, bybit, Exchange } from "ccxt";
 
 export interface BalanceMutationParams {
   exchange: ExchangeType;
@@ -118,19 +111,13 @@ export type BalancesType = {
   usd: USDBalance;
 };
 
-export type AccountInfo = {
+export type AccountBalanceInfo = {
   account: DecryptedAccount;
   balance: BalancesType;
-  positions: Position[];
-  positionsHistory: Position[];
-  // orders: {
-  //   open: Order[];
-  //   closed: Order[];
-  // };
 };
 
-export type AccountInfoType = {
-  [keyof: string]: AccountInfo;
+export type AccountBalanceInfoType = {
+  [keyof: string]: AccountBalanceInfo;
 };
 
 export type ExchangeType = "bitget" | "binance" | "bybit";
@@ -273,138 +260,161 @@ export const decrypteAllAccounts = async (
   return decrypted;
 };
 
+async function handleBybitBalance(balance: Balances): Promise<USDBalance> {
+  const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
+
+  if (balance.info?.result?.list?.[0]?.coin) {
+    const coins = balance.info.result.list[0].coin;
+    coins.forEach((coin: any) => {
+      if (coin.usdValue) {
+        const value = parseFloat(coin.usdValue);
+        usdBalance.total += value;
+        if (coin.equity) {
+          usdBalance.free += parseFloat(coin.equity);
+        }
+        if (coin.locked) {
+          usdBalance.used += parseFloat(coin.locked);
+        }
+      }
+    });
+  }
+
+  return usdBalance;
+}
+
+async function handleBinanceBalance(
+  exchange: Exchange,
+  balance: Balances,
+): Promise<USDBalance> {
+  const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
+  const stableCoins = ["USDT", "USDC", "FDUSD", "USD", "BUSD"];
+
+  if (balance.info?.assets) {
+    for (const asset of balance.info.assets) {
+      const currency = asset.asset;
+
+      if (stableCoins.includes(currency)) {
+        usdBalance.free += Number(asset.availableBalance);
+        usdBalance.total += Number(asset.walletBalance);
+        continue;
+      }
+
+      try {
+        const symbol = `${currency}/USDT`;
+        const ticker = await exchange.fetchTicker(symbol);
+        const price = ticker.last || 0;
+
+        usdBalance.free += Number(asset.availableBalance) * price;
+        usdBalance.total += Number(asset.walletBalance) * price;
+      } catch (error) {
+        console.warn(`Failed to calculate USD value for ${currency}:`, error);
+      }
+    }
+  }
+
+  return usdBalance;
+}
+
+async function handleBitgetBalance(balance: Balances): Promise<USDBalance> {
+  const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
+
+  if (balance.info?.[0]) {
+    const account = balance.info[0];
+    if (account.usdtEquity) {
+      const value = parseFloat(account.usdtEquity);
+      usdBalance.total = value;
+      usdBalance.free = value;
+    }
+    if (account.locked) {
+      usdBalance.used = parseFloat(account.locked);
+    }
+  }
+
+  return usdBalance;
+}
+
+async function handleDefaultBalance(
+  exchange: Exchange,
+  balance: Balances,
+): Promise<USDBalance> {
+  const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
+  const stableCoins = ["USDT", "USDC", "USD", "BUSD"];
+
+  const assets = Object.entries(balance).filter(([key, value]) => {
+    if (
+      ["info", "timestamp", "datetime", "free", "used", "total"].includes(key)
+    ) {
+      return false;
+    }
+    return (
+      value &&
+      typeof value === "object" &&
+      ("free" in value || "used" in value || "total" in value) &&
+      ((value.free ?? 0) > 0 || (value.used ?? 0) > 0)
+    );
+  });
+
+  for (const [currency, value] of assets) {
+    try {
+      if (stableCoins.includes(currency)) {
+        usdBalance.free += value.free || 0;
+        usdBalance.used += value.used || 0;
+        usdBalance.total += value.total || 0;
+        continue;
+      }
+
+      const symbol = `${currency}/USDT`;
+      const ticker = await exchange.fetchTicker(symbol);
+      const price = ticker.last || 0;
+
+      usdBalance.free += (value.free || 0) * price;
+      usdBalance.used += (value.used || 0) * price;
+      usdBalance.total += (value.total || 0) * price;
+    } catch (error) {
+      console.warn(`Failed to calculate USD value for ${currency}:`, error);
+    }
+  }
+
+  return usdBalance;
+}
+
 export async function calculateUSDBalance(
   exchange: Exchange,
   balance: Balances,
 ): Promise<USDBalance> {
-  const usdBalance: USDBalance = {
-    total: 0,
-    used: 0,
-    free: 0,
-  };
-
   try {
-    // console.log("Raw balance:", balance);
+    let result;
 
-    // balance 객체에서 실제 자산 데이터만 필터링
-    const assets = Object.entries(balance).filter(([key, value]) => {
-      // 메타데이터 필드 제외
-      if (
-        ["info", "timestamp", "datetime", "free", "used", "total"].includes(key)
-      ) {
-        return false;
-      }
-      // value가 객체이고 필요한 속성을 가지고 있는지 확인
-      return (
-        value &&
-        typeof value === "object" &&
-        ("free" in value || "used" in value || "total" in value) &&
-        ((value.free ?? 0) > 0 || (value.used ?? 0) > 0)
-      );
-    });
+    switch (exchange.id) {
+      case "bybit":
+        result = await handleBybitBalance(balance);
+        break;
+      case "binance":
+        result = await handleBinanceBalance(exchange, balance);
+        break;
+      case "bitget":
+        result = await handleBitgetBalance(balance);
+        break;
+      default:
+        result = await handleDefaultBalance(exchange, balance);
+    }
 
-    // console.log("Filtered assets:", assets);
-
-    await Promise.all(
-      assets.map(async ([currency, value]) => {
-        try {
-          // console.log(`Processing ${currency}:`, value);
-
-          let price = 1; // USDT/USD의 경우 기본값 1
-
-          if (currency !== "USDT" && currency !== "USD") {
-            const symbol = `${currency}/USDT`;
-            // console.log(`Fetching ticker for ${symbol}`);
-
-            try {
-              const ticker = await exchange.fetchTicker(symbol);
-              // console.log(`Ticker for ${symbol}:`, ticker);
-
-              if (ticker && ticker.last) {
-                price = ticker.last;
-                // console.log(`Price found for ${currency}: ${price}`);
-              }
-            } catch (error) {
-              console.log(
-                `Failed to fetch USDT ticker for ${currency}:`,
-                error,
-              );
-              // USDT 마켓이 없는 경우 USD 마켓 시도
-              try {
-                const usdSymbol = `${currency}/USD`;
-                // console.log(`Trying USD market: ${usdSymbol}`);
-
-                const ticker = await exchange.fetchTicker(usdSymbol);
-                // console.log(`USD Ticker for ${usdSymbol}:`, ticker);
-
-                if (ticker && ticker.last) {
-                  price = ticker.last;
-                  // console.log(`USD Price found for ${currency}: ${price}`);
-                }
-              } catch (error) {
-                console.warn(
-                  `No USD/USDT market found for ${currency}:`,
-                  error,
-                );
-                return; // 이 자산은 건너뜀
-              }
-            }
-          }
-
-          let freeValue = (value.free || 0) * price;
-          const usedValue = (value.used || 0) * price;
-          let totalValue = (value.total || 0) * price;
-
-          // Swap free and total for Binance
-          if (exchange.id === "binance") {
-            [freeValue, totalValue] = [totalValue, freeValue];
-          }
-
-          // console.log(`Calculated values for ${currency}:`, {
-          //   free: freeValue,
-          //   used: usedValue,
-          //   total: totalValue,
-          //   price,
-          // });
-
-          usdBalance.free += freeValue;
-          usdBalance.used += usedValue;
-          usdBalance.total += totalValue;
-
-          // console.log("Current running totals:", {
-          //   free: usdBalance.free,
-          //   used: usdBalance.used,
-          //   total: usdBalance.total,
-          // });
-        } catch (error) {
-          console.error(
-            `Failed to calculate USD value for ${currency}:`,
-            error,
-          );
-        }
-      }),
-    );
-
-    // console.log("Final USD balance before rounding:", usdBalance);
+    return {
+      total: Math.round(result.total * 100) / 100,
+      used: Math.round(result.used * 100) / 100,
+      free: Math.round(result.free * 100) / 100,
+    };
   } catch (error) {
     console.error("Error calculating USD balance:", error);
+    return { total: 0, used: 0, free: 0 };
   }
-
-  // 소수점 2자리까지 반올림
-  const result = {
-    total: Math.round(usdBalance.total * 100) / 100,
-    used: Math.round(usdBalance.used * 100) / 100,
-    free: Math.round(usdBalance.free * 100) / 100,
-  };
-
-  // console.log("Final rounded USD balance:", result);
-  return result;
 }
 
-export const fetchAccountsDetail = async (data?: DecryptedAccountObj) => {
+export const fetchBalance = async (data?: DecryptedAccountObj) => {
   if (!data) throw new Error("Accounts or exchange data not available");
 
-  const accountsInfo: AccountInfoType = {};
+  const accountsInfo: AccountBalanceInfoType = {};
+
   const accounts = Object.values(data);
 
   await Promise.all(
@@ -413,58 +423,33 @@ export const fetchAccountsDetail = async (data?: DecryptedAccountObj) => {
         const exchangeInstance = account.exchangeInstance.ccxt;
 
         const rawBalance = await exchangeInstance.fetchBalance();
-        console.log("rawBalance:", rawBalance);
 
         const usdBalance = await calculateUSDBalance(
           exchangeInstance,
           rawBalance,
         );
-        // console.log("usd:", usdBalance);
-
-        // 포지션 조회
-        let positions: Position[] = [];
-        try {
-          positions = await exchangeInstance.fetchPositions();
-        } catch (error) {
-          console.warn(
-            `Failed to fetch positions for ${account.exchange}:`,
-            error,
-          );
-        }
-
-        // 포지션 히스토리 조회 (바이낸스는 미지원)
-        let positionsHistory: Position[] = [];
-        if (account.exchange !== "binance") {
-          try {
-            positionsHistory = await exchangeInstance.fetchPositionsHistory();
-          } catch (error) {
-            console.warn(
-              `Failed to fetch positions history for ${account.exchange}:`,
-              error,
-            );
-          }
-        }
 
         const balance = {
           ...rawBalance,
+
           usd: usdBalance,
         } as BalancesType;
 
         accountsInfo[account.id] = {
           account,
+
           balance,
-          positions,
-          positionsHistory,
-          // orders: { open, closed },
         };
       } catch (error) {
         console.error(
           `Error fetching balance for account ${account.id}:`,
+
           error,
         );
       }
     }),
   );
+
   return accountsInfo;
 };
 

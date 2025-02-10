@@ -12,7 +12,7 @@ import { useSearchParams } from "react-router";
 
 export const AccountSelector = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { exchangeAccounts, accountsDetails, isAccountsLoading } = useTrade();
+  const { exchangeAccounts, accountsBalance, isAccountsLoading } = useTrade();
   const id = searchParams.get("id");
 
   if (isAccountsLoading) {
@@ -50,7 +50,7 @@ export const AccountSelector = () => {
             {exchangeAccounts.map((account) => {
               const { id } = account;
               const totalBalance =
-                accountsDetails && accountsDetails[id]?.balance?.usd?.total;
+                accountsBalance && accountsBalance[id]?.balance?.usd?.total;
               return (
                 <div key={id}>
                   <SelectItem className="h-7" value={id}>

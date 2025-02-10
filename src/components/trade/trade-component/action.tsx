@@ -16,9 +16,9 @@ export const TradingAction = () => {
   const id = searchParams.get("id");
   const exchange = searchParams.get("exchange") as ExchangeType;
   const symbol = searchParams.get("symbol");
-  const { accountsDetails, decryptedAccounts } = useAccounts();
+  const { accountsBalance, decryptedAccounts } = useAccounts();
   const { tradeInfo } = useTrade();
-  const accountInfo = !!(id && accountsDetails) && accountsDetails[id];
+  const accountInfo = !!(id && accountsBalance) && accountsBalance[id];
   const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
   const { config } = useTradingConfig();
   const tradeMutation = useTradeMutation();

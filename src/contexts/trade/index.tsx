@@ -20,7 +20,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
   const base = symbol?.split(":")[1];
 
   const {
-    accountsDetails,
+    accountsBalance,
     decryptedAccounts,
     isLoading: isAccountsLoading,
   } = useAccounts();
@@ -38,11 +38,11 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
     symbol,
     leverageInfo,
     exchange == "binance"
-      ? accountsDetails?.[id]?.balance[base]?.total
-        ? Number(accountsDetails[id]?.balance[base]?.total)
+      ? accountsBalance?.[id]?.balance[base]?.total
+        ? Number(accountsBalance[id]?.balance[base]?.total)
         : 0
-      : accountsDetails?.[id]?.balance[base]?.free
-        ? Number(accountsDetails[id]?.balance[base]?.free)
+      : accountsBalance?.[id]?.balance[base]?.free
+        ? Number(accountsBalance[id]?.balance[base]?.free)
         : 0,
   );
 
@@ -56,7 +56,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
         marketInfoQuery,
         tickerQuery,
         exchangeAccounts,
-        accountsDetails,
+        accountsBalance,
         isAccountsLoading,
         isLoaded,
         balanceInfo,

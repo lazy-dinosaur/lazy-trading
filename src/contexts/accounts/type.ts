@@ -2,7 +2,7 @@ import { createContext } from "react";
 import {
   useFetchAccount,
   useAllDecryptedAccounts,
-  useAccountsDetail,
+  useAccountsBalance,
   useAddAccount,
   useIsAccountValid,
 } from "@/hooks/accounts";
@@ -10,7 +10,7 @@ import {
 export interface AccountsContextType {
   fetchAccountQuery: ReturnType<typeof useFetchAccount>;
   decryptedAccountsQuery: ReturnType<typeof useAllDecryptedAccounts>;
-  accountsDetailQuery: ReturnType<typeof useAccountsDetail>;
+  accountsBalanceQuery: ReturnType<typeof useAccountsBalance>;
   addAccountMutation: ReturnType<typeof useAddAccount>;
   validateAccountMutation: ReturnType<typeof useIsAccountValid>;
 }

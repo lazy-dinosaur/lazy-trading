@@ -5,7 +5,7 @@ import {
   BalanceMutationParams,
   decrypteAllAccounts,
   fetchAccounts,
-  fetchAccountsDetail,
+  fetchBalance,
   isAccountValid,
   RawAccountInput,
 } from "@/lib/accounts";
@@ -29,11 +29,11 @@ export const useAllDecryptedAccounts = () => {
   });
 };
 
-export const useAccountsDetail = () => {
+export const useAccountsBalance = () => {
   const { data, isLoading: isDecrypting } = useAllDecryptedAccounts();
   return useQuery({
     queryKey: ["accountsDetails"],
-    queryFn: async () => await fetchAccountsDetail(data),
+    queryFn: async () => await fetchBalance(data),
     enabled: !!data && !isDecrypting,
     refetchInterval: 1500,
     refetchOnMount: true,

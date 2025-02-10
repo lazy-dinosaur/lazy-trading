@@ -10,23 +10,23 @@ export const useAccounts = () => {
   return {
     accounts: context.fetchAccountQuery.data,
     decryptedAccounts: context.decryptedAccountsQuery.data,
-    accountsDetails: context.accountsDetailQuery.data,
+    accountsBalance: context.accountsBalanceQuery.data,
     isLoading:
       context.fetchAccountQuery.isLoading ||
       context.decryptedAccountsQuery.isLoading ||
-      context.accountsDetailQuery.isLoading,
+      context.accountsBalanceQuery.isLoading,
     addNewAccount: context.addAccountMutation.mutateAsync,
     validateAccount: context.validateAccountMutation.mutateAsync,
     refreshAccounts: () => {
       context.fetchAccountQuery.refetch();
       context.decryptedAccountsQuery.refetch();
-      context.accountsDetailQuery.refetch();
+      context.accountsBalanceQuery.refetch();
     },
   };
 };
 
 export type {
-  AccountInfo,
-  AccountInfoType,
+  AccountBalanceInfo,
+  AccountBalanceInfoType,
   BalancesType,
 } from "@/lib/accounts";

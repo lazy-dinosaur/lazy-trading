@@ -1,7 +1,7 @@
 import {
   useFetchAccount,
   useAllDecryptedAccounts,
-  useAccountsDetail,
+  useAccountsBalance,
   useAddAccount,
   useIsAccountValid,
 } from "@/hooks/accounts";
@@ -10,7 +10,7 @@ import { AccountsContext } from "./type";
 export function AccountsProvider({ children }: { children: React.ReactNode }) {
   const fetchAccountQuery = useFetchAccount();
   const decryptedAccountsQuery = useAllDecryptedAccounts();
-  const accountsDetailQuery = useAccountsDetail();
+  const accountsBalanceQuery = useAccountsBalance();
   const addAccountMutation = useAddAccount();
   const validateAccountMutation = useIsAccountValid();
 
@@ -19,7 +19,7 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
       value={{
         fetchAccountQuery,
         decryptedAccountsQuery,
-        accountsDetailQuery,
+        accountsBalanceQuery,
         addAccountMutation,
         validateAccountMutation,
       }}

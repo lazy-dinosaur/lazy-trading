@@ -90,15 +90,15 @@ export const useBalanceInfo = (
     usd: FormattedCurrecy;
   }>();
 
-  const { accountsDetails, isLoading: isAccountsLoading } = useAccounts();
+  const { accountsBalance, isLoading: isAccountsLoading } = useAccounts();
   const base = symbol?.split(":")[1];
 
   useEffect(() => {
     const isParamsLoaded = !!(id && symbol && exchange && base);
-    const isAccountLoaded = !!(accountsDetails && !isAccountsLoading);
+    const isAccountLoaded = !!(accountsBalance && !isAccountsLoading);
 
     if (isParamsLoaded && isAccountLoaded) {
-      const currentAccount = accountsDetails[id];
+      const currentAccount = accountsBalance[id];
       const usdBalance = currentAccount?.balance?.usd;
       const baseBalance = currentAccount?.balance[base];
 
@@ -131,7 +131,7 @@ export const useBalanceInfo = (
         usd: formattedUSD,
       });
     }
-  }, [accountsDetails, isAccountsLoading, id, symbol, exchange, base]);
+  }, [accountsBalance, isAccountsLoading, id, symbol, exchange, base]);
 
   return balanceInfo;
 };
