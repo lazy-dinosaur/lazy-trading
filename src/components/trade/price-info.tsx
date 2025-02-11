@@ -1,7 +1,7 @@
 import { useCCXT } from "@/contexts/ccxt/use";
 import { useTrade } from "@/contexts/trade/use";
 import { ExchangeType } from "@/lib/accounts";
-import { cn } from "@/lib/utils";
+import { cn, formatUSDValue, formatVolume } from "@/lib/utils";
 import { Num } from "ccxt";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
@@ -95,22 +95,22 @@ export const PriceInfo = () => {
         </h1>
         <span className="flex gap-1 text-sm">
           <span className="capitalize text-muted-foreground">volume</span>
-          <span>{data?.quoteVolume}</span>
+          <span>{formatVolume(Number(data?.quoteVolume))}</span>
         </span>
       </div>
       <div className="text-sm">
         <div className="flex w-full items-center justify-between gap-2">
           <span className="capitalize text-muted-foreground">24High</span>
-          <span>{data?.high}</span>
+          <span>{formatUSDValue(Number(data?.high))}</span>
         </div>
         <div className="flex w-full items-center justify-between gap-2">
           <span className="capitalize text-muted-foreground">24Low</span>
-          <span>{data?.low}</span>
+          <span>{formatUSDValue(Number(data?.low))}</span>
         </div>
         {exchange == "bybit" ? (
           <div className="flex w-full items-center justify-between gap-2">
             <span className="capitalize text-muted-foreground">24Turnover</span>
-            <span>{data?.info.turnover24h}</span>
+            <span>{formatUSDValue(Number(data?.info.turnover24h))}</span>
           </div>
         ) : (
           <div className="flex w-full items-center justify-between gap-2">
