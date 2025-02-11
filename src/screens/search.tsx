@@ -9,19 +9,44 @@ import {
 import { columns } from "@/components/search/columns";
 import Filter from "@/components/search/filter";
 import { DataTable } from "@/components/search/data-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAllTickers } from "@/hooks/coin";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import { SkeletonTable } from "@/components/search/skeleton-table";
+import { TickerWithExchange } from "@/lib/ccxt";
+import { useCCXT } from "@/contexts/ccxt/use";
 
 const Search = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "baseVolume",
+      desc: true,
+    },
+  ]);
   const { data: tickersData, isLoading } = useAllTickers();
+  const [formattedTickers, setFormattedTickers] = useState<
+    TickerWithExchange[]
+  >([]);
+  const ccxt = useCCXT();
+
+  useEffect(() => {
+    if (!tickersData || isLoading || !ccxt) return;
+
+    const formatted = tickersData.map((ticker) => ({
+      ...ticker,
+      last: ccxt[ticker.exchange].ccxt.priceToPrecision(
+        ticker.symbol,
+        ticker.last,
+      ),
+    }));
+    console.log(formatted);
+
+    setFormattedTickers(formatted as any);
+  }, [tickersData, isLoading, ccxt]);
 
   const table = useReactTable({
-    data: tickersData ?? [],
+    data: formattedTickers,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

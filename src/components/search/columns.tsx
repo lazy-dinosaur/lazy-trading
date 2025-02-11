@@ -1,7 +1,8 @@
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TickerWithExchange } from "@/lib/ccxt";
-import { formatUSDValue, formatVolume } from "@/lib/utils";
+import { formatVolume } from "@/lib/utils";
+import { ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 
 // 필터 함수 정의
 const exchangeFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
@@ -53,7 +54,23 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
   },
   {
     accessorKey: "symbol",
-    header: () => "Symbol",
+    header: ({ column }) => {
+      return (
+        <button
+          onClick={() => column.toggleSorting()}
+          className="flex items-center"
+        >
+          Symbol
+          {column.getIsSorted() === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </button>
+      );
+    },
     cell: ({ row }) => {
       const symbol = row.getValue("symbol") as string;
       // 콜론으로 분리 후 첫 번째 부분 선택
@@ -65,27 +82,50 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
   },
   {
     accessorKey: "baseVolume",
-    header: () => "Volume",
+    header: ({ column }) => {
+      return (
+        <button
+          onClick={() => column.toggleSorting()}
+          className="flex items-center"
+        >
+          Volume
+          {column.getIsSorted() === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </button>
+      );
+    },
     cell: ({ row }) => {
       const volume = row.getValue("baseVolume") as number;
       return formatVolume(volume);
     },
     size: 150,
+    sortDescFirst: true,
   },
   {
-    accessorKey: "markPrice",
-    accessorFn: (ticker) => {
-      if (ticker.exchange == "binance") {
-        return Number(ticker.info.lastPrice);
-      } else {
-        return Number(ticker.markPrice);
-      }
-    },
-    header: () => "Price",
-    cell: ({ row }) => {
-      const price = row.getValue("markPrice") as number;
-      return formatUSDValue(price);
+    accessorKey: "last",
+    header: ({ column }) => {
+      return (
+        <button
+          onClick={() => column.toggleSorting()}
+          className="flex items-center"
+        >
+          Price
+          {column.getIsSorted() === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </button>
+      );
     },
     size: 100,
+    sortDescFirst: true,
   },
 ];
