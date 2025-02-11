@@ -3,48 +3,65 @@ import { cn } from "@/lib/utils";
 
 type TabType = "orders" | "positions" | "assets";
 
-export const PositionComponent = () => {
+interface PositionComponentProps {
+  isCompact?: boolean;
+}
+
+export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("orders");
 
   return (
-    <div className="w-full flex flex-col space-y-2">
-      {/* 헤더 */}
-      <div className="flex border-b">
-        <TabButton 
-          isActive={activeTab === "orders"} 
+    <div
+      className={cn(
+        "w-full flex flex-col h-full",
+        // isCompact &&
+        //   "hover:transform hover:translate-y-0 transition-transform duration-300",
+      )}
+    >
+      {/* 고정된 헤더 */}
+      <div
+        className={cn(
+          "flex border-b sticky top-0 bg-background z-10",
+          isCompact && "cursor-pointer",
+        )}
+      >
+        <TabButton
+          isActive={activeTab === "orders"}
           onClick={() => setActiveTab("orders")}
         >
           Orders
         </TabButton>
-        <TabButton 
-          isActive={activeTab === "positions"} 
+        <TabButton
+          isActive={activeTab === "positions"}
           onClick={() => setActiveTab("positions")}
         >
           Positions
         </TabButton>
-        <TabButton 
-          isActive={activeTab === "assets"} 
+        <TabButton
+          isActive={activeTab === "assets"}
           onClick={() => setActiveTab("assets")}
         >
           Assets
         </TabButton>
       </div>
 
-      {/* 컨텐츠 */}
-      <div className="w-full space-y-4">
-        {activeTab === "orders" && <OrdersList />}
-        {activeTab === "positions" && <PositionsList />}
-        {activeTab === "assets" && <AssetsList />}
+      {/* 스크롤 가능한 컨텐츠 */}
+      <div className="flex-1 overflow-y-auto min-h-0 h-full">
+        <div className="w-full space-y-4 p-4">
+          {activeTab === "orders" && <OrdersList />}
+          {activeTab === "positions" && <PositionsList />}
+          {activeTab === "assets" && <AssetsList />}
+        </div>
       </div>
     </div>
   );
 };
 
-const TabButton = ({ 
-  children, 
-  isActive, 
-  onClick 
-}: { 
+const TabButton = ({
+  children,
+  isActive,
+  onClick,
+}: {
   children: React.ReactNode;
   isActive: boolean;
   onClick: () => void;
@@ -55,9 +72,9 @@ const TabButton = ({
       className={cn(
         "px-4 py-2 text-sm font-medium transition-colors",
         "hover:text-primary",
-        isActive 
-          ? "border-b-2 border-primary text-primary" 
-          : "text-muted-foreground"
+        isActive
+          ? "border-b-2 border-primary text-primary"
+          : "text-muted-foreground",
       )}
     >
       {children}
