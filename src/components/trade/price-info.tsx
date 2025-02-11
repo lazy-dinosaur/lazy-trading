@@ -45,25 +45,34 @@ export const PriceInfo = () => {
     return (
       <div className="w-full flex justify-between items-center">
         <div>
-          <Skeleton className="h-[2.25rem] w-40 mb-2" />
-          <div className="flex gap-1">
-            <Skeleton className="h-[1.125rem] w-14" />
-            <Skeleton className="h-[1.125rem] w-28" />
+          <div className="text-3xl mb-2">
+            <Skeleton className="h-8 w-40" />
+          </div>
+          <div className="flex gap-1 text-sm">
+            <span className="capitalize text-muted-foreground">volume</span>
+            <Skeleton className="h-4 w-28" />
           </div>
         </div>
         <div className="text-sm">
-          <div className="flex w-full items-center justify-between gap-2 mb-1">
-            <Skeleton className="h-[1.125rem] w-14" />
-            <Skeleton className="h-[1.125rem] w-24" />
-          </div>
-          <div className="flex w-full items-center justify-between gap-2 mb-1">
-            <Skeleton className="h-[1.125rem] w-14" />
-            <Skeleton className="h-[1.125rem] w-24" />
+          <div className="flex w-full items-center justify-between gap-2">
+            <span className="capitalize text-muted-foreground">24High</span>
+            <Skeleton className="h-4 w-24" />
           </div>
           <div className="flex w-full items-center justify-between gap-2">
-            <Skeleton className="h-[1.125rem] w-14" />
-            <Skeleton className="h-[1.125rem] w-24" />
+            <span className="capitalize text-muted-foreground">24Low</span>
+            <Skeleton className="h-4 w-24" />
           </div>
+          {exchange == "bybit" ? (
+            <div className="flex w-full items-center justify-between gap-2">
+              <span className="capitalize text-muted-foreground">24Turnover</span>
+              <Skeleton className="h-4 w-24" />
+            </div>
+          ) : (
+            <div className="flex w-full items-center justify-between gap-2">
+              <span className="capitalize text-muted-foreground">vwap</span>
+              <Skeleton className="h-4 w-24" />
+            </div>
+          )}
         </div>
       </div>
     );

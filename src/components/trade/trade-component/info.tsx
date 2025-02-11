@@ -53,27 +53,57 @@ export const TradeInfo = () => {
       {isTradeInfoLoading ? (
         <div className="w-full h-full rounded-md p-2 border">
           <div className="w-full h-full grid grid-cols-5 grid-rows-6">
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center mb-2" />
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+              LONG
+            </span>
             <span></span>
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center mb-2" />
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+              SHORT
+            </span>
 
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center" />
-            <Skeleton className="col-span-1 row-span-2 h-[3rem] flex items-center justify-center" />
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center" />
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              <Skeleton className="h-4 w-20" />
+            </span>
+            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+              S/L
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              <Skeleton className="h-4 w-20" />
+            </span>
 
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center mb-2" />
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center mb-2" />
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              <Skeleton className="h-4 w-16" />
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              <Skeleton className="h-4 w-16" />
+            </span>
 
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center" />
-            <Skeleton className="col-span-1 row-span-2 h-[3rem] flex items-center justify-center" />
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center" />
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              <Skeleton className="h-4 w-20" />
+            </span>
+            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+              T/P
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
+              <Skeleton className="h-4 w-20" />
+            </span>
 
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center mb-2" />
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center mb-2" />
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              <Skeleton className="h-4 w-16" />
+            </span>
+            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
+              <Skeleton className="h-4 w-16" />
+            </span>
 
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center" />
-            <Skeleton className="col-span-1 h-[1.5rem] flex items-center justify-center" />
-            <Skeleton className="col-span-2 h-[1.5rem] flex items-center justify-center" />
+            <span className="col-span-2 flex items-center justify-center text-sm">
+              <Skeleton className="h-4 w-12" />
+            </span>
+            <span className="col-span-1 row-span-1 text-muted-foreground font-semibold flex items-center justify-center">
+              Leverage
+            </span>
+            <span className="col-span-2 flex items-center justify-center text-sm">
+              <Skeleton className="h-4 w-12" />
+            </span>
           </div>
         </div>
       ) : (
@@ -131,20 +161,42 @@ export const TradeInfo = () => {
 
       {isBalanceLoading ? (
         <div className="grid grid-cols-7 grid-rows-3 w-full border rounded-md p-2">
-          <Skeleton className="h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
+          <span className="text-xs text-muted-foreground capitalize">
+            balance
+          </span>
+          <span className="text-xs text-muted-foreground capitalize col-span-2">
+            total
+          </span>
+          <span className="text-xs text-muted-foreground capitalize col-span-2">
+            free
+          </span>
+          <span className="text-xs text-muted-foreground capitalize col-span-2">
+            used
+          </span>
 
-          <Skeleton className="h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
+          <span className="text-xs text-muted-foreground capitalize">USDT</span>
+          <span className="col-span-2">
+            <Skeleton className="h-4 w-20" />
+          </span>
+          <span className="col-span-2">
+            <Skeleton className="h-4 w-20" />
+          </span>
+          <span className="col-span-2">
+            <Skeleton className="h-4 w-20" />
+          </span>
 
-          <Skeleton className="h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
-          <Skeleton className="col-span-2 h-[1.125rem]" />
+          <span className="text-xs text-muted-foreground capitalize">
+            TOTAL
+          </span>
+          <span className="col-span-2">
+            <Skeleton className="h-4 w-20" />
+          </span>
+          <span className="col-span-2">
+            <Skeleton className="h-4 w-20" />
+          </span>
+          <span className="col-span-2">
+            <Skeleton className="h-4 w-20" />
+          </span>
         </div>
       ) : balanceInfo ? (
         <span className="grid grid-cols-7 grid-rows-3 w-full border rounded-md p-2">
