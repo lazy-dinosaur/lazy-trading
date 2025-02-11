@@ -85,11 +85,12 @@ export const DataTable = ({
           </TableHeader>
         </Table>
       </div>
-      <Table className="w-full table-auto">
+      <Table className="w-full table-auto obverflow-hidden">
         <TableBody
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`,
             position: "relative",
+            overflow: "hidden",
           }}
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {

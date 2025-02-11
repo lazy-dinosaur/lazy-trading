@@ -28,7 +28,7 @@ export const SkeletonTable = () => {
           </TableHeader>
         </Table>
       </div>
-      <Table className="w-full table-auto">
+      <Table className="w-full table-auto obverflow-hidden">
         <TableBody>
           {Array.from({ length: 50 }).map((_, index) => (
             <TableRow key={index}>
