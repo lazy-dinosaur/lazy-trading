@@ -9,10 +9,10 @@ import {
 import { columns } from "@/components/search/columns";
 import Filter from "@/components/search/filter";
 import { DataTable } from "@/components/search/data-table";
-import { LoadingSpinner } from "@/components/loading";
 import { useState } from "react";
 import { useAllTickers } from "@/hooks/coin";
 import { ScreenWrapper } from "@/components/screen-wrapper";
+import { SkeletonTable } from "@/components/search/skeleton-table";
 
 const Search = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -38,13 +38,7 @@ const Search = () => {
   return (
     <ScreenWrapper headerProps={{ title: "Search" }} className={["space-y-5"]}>
       <Filter table={table} />
-      {!isLoading ? (
-        <DataTable table={table} />
-      ) : (
-        <div className="fixed inset-0 flex items-center justify-center">
-          <LoadingSpinner />
-        </div>
-      )}
+      {isLoading ? <SkeletonTable /> : <DataTable table={table} />}
     </ScreenWrapper>
   );
 };

@@ -1,6 +1,7 @@
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TickerWithExchange } from "@/lib/ccxt";
+import { formatUSDValue, formatVolume } from "@/lib/utils";
 
 // 필터 함수 정의
 const exchangeFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
@@ -65,18 +66,26 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
   {
     accessorKey: "baseVolume",
     header: () => "Volume",
+    cell: ({ row }) => {
+      const volume = row.getValue("baseVolume") as number;
+      return formatVolume(volume);
+    },
     size: 150,
   },
   {
     accessorKey: "markPrice",
     accessorFn: (ticker) => {
       if (ticker.exchange == "binance") {
-        return ticker.info.lastPrice;
+        return Number(ticker.info.lastPrice);
       } else {
-        return ticker.markPrice;
+        return Number(ticker.markPrice);
       }
     },
     header: () => "Price",
+    cell: ({ row }) => {
+      const price = row.getValue("markPrice") as number;
+      return formatUSDValue(price);
+    },
     size: 100,
   },
 ];
