@@ -10,6 +10,27 @@ const exchangeFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
   return row.getValue(columnId) === value;
 };
 
+const grepFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
+  if (!value) return true;
+  const searchStr = String(value).toLowerCase().trim();
+  const terms = searchStr.split(/\s+/);
+  
+  // 거래소 키워드 제외
+  const exchanges = ["bybit", "binance", "bitget"];
+  const searchTerms = terms.filter(term => !exchanges.includes(term));
+  
+  // 심볼 검색어 처리
+  const cellValue = String(row.getValue(columnId)).toLowerCase();
+  return searchTerms.every(term => {
+    // '/' 문자를 포함하는 경우와 아닌 경우 모두 처리
+    const searchParts = term.split('/');
+    if (searchParts.length > 1) {
+      return searchParts.every(part => cellValue.includes(part));
+    }
+    return cellValue.includes(term);
+  });
+};
+
 export const columns: ColumnDef<TickerWithExchange>[] = [
   {
     accessorKey: "exchange",
@@ -78,6 +99,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
       // 숫자로 시작하는 부분을 제거하고 실제 심볼만 추출
       return baseSymbol.replace(/^[0-9]+/, "");
     },
+    filterFn: grepFilter,
     size: 200,
   },
   {

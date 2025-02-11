@@ -14,11 +14,20 @@ const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
   return (
     <div className="flex items-center justify-between w-full gap-2">
       <Input
-        placeholder="Search Coins"
+        placeholder="Search (e.g. 'btc usdt binance' or 'bybit btc/usdt')"
         value={(table.getColumn("symbol")?.getFilterValue() as string) ?? ""}
-        onChange={(event) =>
-          table.getColumn("symbol")?.setFilterValue(event.target.value)
-        }
+        onChange={(event) => {
+          const value = event.target.value;
+          table.getColumn("symbol")?.setFilterValue(value);
+          
+          // 거래소 키워드 확인
+          const exchanges = ["bybit", "binance", "bitget"];
+          const lowerValue = value.toLowerCase();
+          const foundExchange = exchanges.find(ex => lowerValue.includes(ex));
+          
+          // 거래소 필터 설정
+          table.getColumn("exchange")?.setFilterValue(foundExchange || null);
+        }}
         className="max-full"
       />
       <Select
