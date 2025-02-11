@@ -72,10 +72,26 @@ export const openPopupPanel = async () => {
 
 export const formatUSDValue = (value: number | null | undefined) => {
   if (!value) return "0.00";
-
+  
+  if (value < 0.01) {
+    return value.toFixed(8);
+  }
+  if (value < 1) {
+    return value.toFixed(4);
+  }
+  
   return new Intl.NumberFormat("en-US", {
     notation: value >= 10000 ? "compact" : "standard",
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
+  }).format(value);
+};
+
+export const formatVolume = (value: number | null | undefined) => {
+  if (!value) return "0.00";
+
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 2,
   }).format(value);
 };
