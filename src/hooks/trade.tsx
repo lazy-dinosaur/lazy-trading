@@ -163,6 +163,7 @@ export const useTradeInfo = (
     const isMarketInfoExists = !!marketInfo && !isMarketLoading;
     const isConfigExists = !!config && !isTradingConfigLoading;
     const isLeverageExists = !!leverageInfo;
+    console.log(tradingfee);
 
     if (
       ccxt &&
@@ -257,19 +258,35 @@ export const useLeverageInfo = (
     queryFn: async () => {
       if (!ccxt) return;
 
-      // 바이낸스의 경우
-      if (exchange === "binance") {
-        if (!account) {
-          return { maxLeverage: 125, leverageTier: [] };
-        }
-      }
-
-      // 바이낸스가 아닌 경우 (기존 코드)
       const exchangeInstance = account
         ? account.exchangeInstance.ccxt
         : ccxt[exchange].ccxt;
+
       try {
-        // 바이낸스는 linear/inverse 구분이 필요
+        // 비트겟의 경우
+        if (exchange === "bitget" || exchange == "bybit") {
+          const leverageTier =
+            await exchangeInstance.fetchMarketLeverageTiers(symbol);
+          console.log("Bitget leverage tiers:", leverageTier);
+
+          if (!leverageTier || leverageTier.length === 0) {
+            return { maxLeverage: 125, leverageTier: [] };
+          }
+
+          return {
+            leverageTier,
+            maxLeverage: leverageTier[0].maxLeverage ?? 125,
+          };
+        }
+
+        // 바이낸스의 경우
+        if (exchange === "binance") {
+          if (!account) {
+            return { maxLeverage: 125, leverageTier: [] };
+          }
+        }
+
+        // 바이빗의 경우
         const leverageTierLinear = await exchangeInstance.fetchLeverageTiers(
           undefined,
           { category: "linear" },
@@ -299,88 +316,10 @@ export const useLeverageInfo = (
           maxLeverage: symbolTiers[0].maxLeverage ?? 125,
         };
       } catch (error) {
-        console.error("Error fetching Binance leverage tiers:", error);
+        console.error("Error fetching leverage tiers:", error);
         return { maxLeverage: 125, leverageTier: [] };
       }
     },
     enabled: !!symbol && !!exchange,
   });
 };
-
-// export const useOrder = ({
-//   exchange,
-//   account,
-//   symbol,
-//   tradeInfo,
-// }: {
-//   exchange?: ExchangeType;
-//   account?: DecryptedAccount;
-//   symbol: string;
-//   tradeInfo: TradeInfoType;
-// }) => {
-//   const ccxt = useCCXT();
-//
-//   const createOrder = useMutation({
-//     mutationKey: ["order"],
-//     mutationFn: async ({
-//       isLong,
-//       partialClose,
-//     }: {
-//       isLong: boolean;
-//       partialClose?: {
-//         portion: number;
-//         slToEven: boolean;
-//       };
-//     }) => {
-//       if (
-//         !ccxt ||
-//         !exchange ||
-//         !symbol ||
-//         !tradeInfo ||
-//         !tradeInfo.short.position ||
-//         !tradeInfo.long.position ||
-//         !account
-//       ) {
-//         console.log("Required parameters missing"); // 어떤 조건에서 실패했는지 확인
-//         return;
-//       }
-//       const ccxtInstance = ccxt[exchange].ccxt;
-//       ccxtInstance.apiKey = account.apiKey;
-//       ccxtInstance.secret = account.secretKey;
-//       const side = isLong ? "buy" : "sell";
-//       const { stoploss, target, position } =
-//         tradeInfo[isLong ? "long" : "short"];
-//
-//       const stopLossPrice = stoploss.price;
-//       const targetPrice = target.price;
-//       const positionSize = position!.size;
-//       console.log(targetPrice);
-//       console.log(partialClose);
-//
-//       const setLeverage = await ccxtInstance.setLeverage(
-//         tradeInfo?.maxLeverage,
-//         symbol,
-//         { category: "linear" },
-//       );
-//       console.log(setLeverage);
-//       console.log("exchange", exchange);
-//       console.log("positionSize", positionSize);
-//       //createOrder
-//       if (exchange == "bybit") {
-//         const positionIdx = isLong ? 1 : 2;
-//         const order = await ccxtInstance.createOrder(
-//           symbol,
-//           "market",
-//           side,
-//           positionSize,
-//           undefined,
-//           { stopLossPrice, positionIdx },
-//         );
-//         console.log(order);
-//         return order;
-//       }
-//     },
-//   });
-//
-//   return createOrder;
-// };

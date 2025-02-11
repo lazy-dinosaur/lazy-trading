@@ -27,14 +27,14 @@ export const fetchTradingFees = async (
     throw new Error("Exchange instance not initialized");
   }
 
-  const exchangeInstance = ccxt[exchange].ccxt;
+  const exchangeInstance = account
+    ? account.exchangeInstance.ccxt
+    : ccxt[exchange].ccxt;
 
   try {
-    if (account) {
-      exchangeInstance.apiKey = account.apiKey;
-      exchangeInstance.secret = account.secretKey;
-
+    if (account && exchange != "bitget") {
       const fees = await exchangeInstance.fetchTradingFee(symbol);
+      console.log(fees);
 
       if (!fees?.maker || !fees?.taker) {
         throw new Error("Invalid fee structure returned from exchange");
@@ -45,7 +45,7 @@ export const fetchTradingFees = async (
         taker: fees.taker,
       };
     } else {
-      const market = exchangeInstance.market(symbol);
+      const market = ccxt[exchange].ccxt.market(symbol);
 
       if (!market?.maker || !market?.taker) {
         throw new Error("Market data does not contain fee information");
