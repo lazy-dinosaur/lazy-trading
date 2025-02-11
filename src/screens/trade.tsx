@@ -23,13 +23,29 @@ const TradeInContexts = () => {
       const vh = window.innerHeight * 0.2; // 20vh
       const positionElement = document.getElementById("position-component");
       if (positionElement) {
-        setIsCompact(positionElement.scrollHeight < vh);
+        const isSmall = positionElement.scrollHeight < vh;
+        setIsCompact(isSmall);
       }
     };
 
+    // 초기 체크
     checkHeight();
+
+    // ResizeObserver를 사용하여 컴포넌트 크기 변화 감지
+    const observer = new ResizeObserver(checkHeight);
+    const positionElement = document.getElementById("position-component");
+    if (positionElement) {
+      observer.observe(positionElement);
+    }
+
+    // window resize 이벤트도 함께 감지
     window.addEventListener("resize", checkHeight);
-    return () => window.removeEventListener("resize", checkHeight);
+
+    // cleanup
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", checkHeight);
+    };
   }, []);
 
   return (
@@ -57,11 +73,12 @@ const TradeInContexts = () => {
       {/* 포지션 영역 */}
       <div
         id="position-component"
-        className={`${
-          isCompact
-            ? "relative h-[50vh] hover:fixed hover:bottom-0 hover:left-0 hover:right-0 hover:bg-background hover:z-50 hover:shadow-lg transition-all duration-300 ease-in-out"
+        className={cn(
+          "mt-3",
+          isCompact 
+            ? "relative h-[50vh] bg-background" 
             : "flex-1 overflow-auto min-h-0"
-        } mt-3`}
+        )}
       >
         <PositionComponent isCompact={isCompact} />
       </div>

@@ -14,8 +14,7 @@ export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
     <div
       className={cn(
         "w-full flex flex-col h-full",
-        // isCompact &&
-        //   "hover:transform hover:translate-y-0 transition-transform duration-300",
+        isCompact && "hover:transform hover:-translate-y-[50vh] transition-transform duration-300"
       )}
     >
       {/* 고정된 헤더 */}
