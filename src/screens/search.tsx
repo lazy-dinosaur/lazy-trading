@@ -35,6 +35,7 @@ const Search = () => {
 
     const formatted = tickersData.map((ticker) => ({
       ...ticker,
+      baseVolume: ticker.baseVolume! * ticker.last!,
       last: ccxt[ticker.exchange].ccxt.priceToPrecision(
         ticker.symbol,
         ticker.last,
