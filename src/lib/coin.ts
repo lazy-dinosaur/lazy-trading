@@ -62,7 +62,10 @@ export const fetchAllTickers = async (ccxt: CCXTType) => {
       ...Object.values(binanceInverseTickers)
         .filter(
           (ticker) =>
-            !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+            !ticker.symbol.includes("-") &&
+            !ticker.symbol.includes("_") &&
+            !ticker.symbol.includes("BUSD") &&
+            ticker.symbol.includes(":"),
         )
         .map((ticker) => ({
           ...ticker,
@@ -71,7 +74,10 @@ export const fetchAllTickers = async (ccxt: CCXTType) => {
       ...Object.values(binanceLinearTickers)
         .filter(
           (ticker) =>
-            !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+            !ticker.symbol.includes("-") &&
+            !ticker.symbol.includes("_") &&
+            !ticker.symbol.includes("BUSD") &&
+            ticker.symbol.includes(":"),
         )
         .map((ticker) => ({
           ...ticker,
@@ -81,7 +87,9 @@ export const fetchAllTickers = async (ccxt: CCXTType) => {
       ...Object.values(bitgetInverseTickers)
         .filter(
           (ticker) =>
-            !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+            !ticker.symbol.includes("-") &&
+            !ticker.symbol.includes("_") &&
+            ticker.symbol.includes(":"),
         )
         .map((ticker) => ({
           ...ticker,
@@ -90,7 +98,9 @@ export const fetchAllTickers = async (ccxt: CCXTType) => {
       ...Object.values(bitgetLinearTickers)
         .filter(
           (ticker) =>
-            !ticker.symbol.includes("-") && !ticker.symbol.includes("_"),
+            !ticker.symbol.includes("-") &&
+            !ticker.symbol.includes("_") &&
+            ticker.symbol.includes(":"),
         )
         .map((ticker) => ({
           ...ticker,
