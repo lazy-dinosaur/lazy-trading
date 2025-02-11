@@ -107,6 +107,7 @@ export const DataTable = ({
                 }}
                 className="hover:bg-muted/50"
                 style={{
+                  overflow: "hidden",
                   position: "absolute",
                   left: 0,
                   width: "100%",
