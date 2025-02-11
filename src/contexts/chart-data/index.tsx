@@ -114,7 +114,7 @@ export const ChartDataProvider = ({
             : undefined,
       }),
     enabled: !!ccxt,
-    refetchInterval: 200,
+    refetchInterval: 100,
     refetchIntervalInBackground: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
