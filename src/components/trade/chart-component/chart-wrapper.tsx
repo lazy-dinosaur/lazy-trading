@@ -18,7 +18,7 @@ export const Chart = (props: ChartProps) => {
     [],
   );
   return (
-    <div ref={handleRef} className="w-full h-1/3 rounded-md overflow-hidden">
+    <div ref={handleRef} className="w-full h-[30vh] rounded-md overflow-hidden">
       {container && <ChartContainer {...props} container={container} />}
     </div>
   );

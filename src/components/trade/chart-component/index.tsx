@@ -39,7 +39,7 @@ export const ChartComponent = () => {
       <CandleSeries ref={candle} data={data} />
     </Chart>
   ) : (
-    <div className="w-full h-1/3 rounded-md overflow-hidden">
+    <div className="w-full h-[30vh] rounded-md overflow-hidden">
       <LoadingSpinner />
     </div>
   );
