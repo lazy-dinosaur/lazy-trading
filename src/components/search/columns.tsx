@@ -18,7 +18,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
       const exchange = row.getValue("exchange");
       if (exchange == "bybit") {
         return (
-          <Avatar className="w-5 h-5">
+          <Avatar className="h-6 w-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/521.png"
               alt="@shadcn"
@@ -28,7 +28,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         );
       } else if (exchange == "binance") {
         return (
-          <Avatar className="w-5 h-5">
+          <Avatar className="h-6 w-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/270.png"
               alt="@shadcn"
@@ -38,7 +38,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         );
       } else {
         return (
-          <Avatar className="w-5 h-5">
+          <Avatar className="h-6 w-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/513.png"
               alt="@shadcn"
@@ -50,7 +50,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
     },
     filterFn: exchangeFilter,
     enableColumnFilter: true,
-    size: 30,
+    size: 40,
   },
   {
     accessorKey: "symbol",

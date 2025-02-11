@@ -55,7 +55,7 @@ export const DataTable = ({
       className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-full h-[calc(100vh - 10rem)]"
       style={{ height: "calc(100vh - 10rem)" }}
     >
-      <div className="sticky top-0 bg-background z-10 w-full">
+      <div className="sticky top-0 bg-background z-10 w-full min-w-full">
         <Table className="w-full table-auto">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
