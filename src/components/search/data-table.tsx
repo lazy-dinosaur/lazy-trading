@@ -99,6 +99,11 @@ export const DataTable = ({
     overscan: 10,
   });
 
+  // rowHeight가 변경될 때 virtualizer를 강제로 리프레시
+  useEffect(() => {
+    rowVirtualizer.measure();
+  }, [rowHeight, rowVirtualizer]);
+
   return (
     <div
       ref={tableContainerRef}
