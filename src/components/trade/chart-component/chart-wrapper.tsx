@@ -18,7 +18,10 @@ export const Chart = (props: ChartProps) => {
     [],
   );
   return (
-    <div ref={handleRef} className="w-full h-[30vh] rounded-md overflow-hidden">
+    <div
+      ref={handleRef}
+      className="w-full h-[40vh] h-lg:h-[35vh] h-xl:h-[30vh] rounded-md overflow-hidden"
+    >
       {container && <ChartContainer {...props} container={container} />}
     </div>
   );

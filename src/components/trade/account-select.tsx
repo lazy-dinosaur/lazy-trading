@@ -33,7 +33,7 @@ export const AccountSelector = () => {
       }}
     >
       <SelectTrigger
-        className="w-32 h-8"
+        className="w-24 h-lg:w-28 h-xl:w-32 h-5 h-lg:h-6 h-xl:h-8"
         disabled={!exchangeAccounts || exchangeAccounts.length == 0}
       >
         <SelectValue

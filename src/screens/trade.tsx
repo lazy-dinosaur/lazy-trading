@@ -69,7 +69,7 @@ const TradeInContexts = () => {
       }}
     >
       {/* 고정된 상단 영역 */}
-      <div className="flex-none space-y-3">
+      <div className="flex-none space-y-1 h-lg:space-y-2 h-xl:space-y-3 ">
         <PriceInfo />
         <div className="w-full flex items-center justify-between">
           <TimeFrame />
