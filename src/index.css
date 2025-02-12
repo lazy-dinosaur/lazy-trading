@@ -2,35 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 기본 텍스트 크기 */
-.text-xs { font-size: 0.75rem; }
-.text-sm { font-size: 0.875rem; }
-.text-base { font-size: 1rem; }
-.text-lg { font-size: 1.125rem; }
-.text-xl { font-size: 1.25rem; }
-.text-2xl { font-size: 1.5rem; }
-.text-3xl { font-size: 1.875rem; }
-.text-4xl { font-size: 2.25rem; }
-.text-5xl { font-size: 3rem; }
-.text-6xl { font-size: 3.75rem; }
-.text-7xl { font-size: 4.5rem; }
-.text-8xl { font-size: 6rem; }
-.text-9xl { font-size: 8rem; }
+/* 화면 높이가 1280px 미만일 때의 텍스트 크기 */
+.compact-text .text-xs {
+  font-size: 0.625rem;
+}
+.compact-text .text-sm {
+  font-size: 0.75rem;
+}
+.compact-text .text-base {
+  font-size: 0.875rem;
+}
+.compact-text .text-lg {
+  font-size: 1rem;
+}
+.compact-text .text-xl {
+  font-size: 1.125rem;
+}
+.compact-text .text-2xl {
+  font-size: 1.25rem;
+}
+.compact-text .text-3xl {
+  font-size: 1.5rem;
+}
+.compact-text .text-4xl {
+  font-size: 1.875rem;
+}
+.compact-text .text-5xl {
+  font-size: 2.25rem;
+}
+.compact-text .text-6xl {
+  font-size: 3rem;
+}
+.compact-text .text-7xl {
+  font-size: 3.75rem;
+}
+.compact-text .text-8xl {
+  font-size: 4.5rem;
+}
+.compact-text .text-9xl {
+  font-size: 6rem;
+}
 
-/* 화면 높이가 850px 미만일 때의 텍스트 크기 */
-.compact-text .text-xs { font-size: 0.625rem; }
-.compact-text .text-sm { font-size: 0.75rem; }
-.compact-text .text-base { font-size: 0.875rem; }
-.compact-text .text-lg { font-size: 1rem; }
-.compact-text .text-xl { font-size: 1.125rem; }
-.compact-text .text-2xl { font-size: 1.25rem; }
-.compact-text .text-3xl { font-size: 1.5rem; }
-.compact-text .text-4xl { font-size: 1.875rem; }
-.compact-text .text-5xl { font-size: 2.25rem; }
-.compact-text .text-6xl { font-size: 3rem; }
-.compact-text .text-7xl { font-size: 3.75rem; }
-.compact-text .text-8xl { font-size: 4.5rem; }
-.compact-text .text-9xl { font-size: 6rem; }
+/* 화면 높이가 1024px 미만일 때의 텍스트 크기 */
+.very-compact-text .text-xs {
+  /* font-size: 0.5rem; */
+  font-size: 0.625rem;
+}
+.very-compact-text .text-sm {
+  font-size: 0.625rem;
+}
+.very-compact-text .text-base {
+  font-size: 0.75rem;
+}
+.very-compact-text .text-lg {
+  font-size: 0.875rem;
+}
+.very-compact-text .text-xl {
+  font-size: 1rem;
+}
+.very-compact-text .text-2xl {
+  font-size: 1.125rem;
+}
+.very-compact-text .text-3xl {
+  font-size: 1.25rem;
+}
+.very-compact-text .text-4xl {
+  font-size: 1.5rem;
+}
+.very-compact-text .text-5xl {
+  font-size: 1.875rem;
+}
+.very-compact-text .text-6xl {
+  font-size: 2.25rem;
+}
+.very-compact-text .text-7xl {
+  font-size: 3rem;
+}
+.very-compact-text .text-8xl {
+  font-size: 3.75rem;
+}
+.very-compact-text .text-9xl {
+  font-size: 4.5rem;
+}
 
 /* CSS 변수 설정 */
 :root {
