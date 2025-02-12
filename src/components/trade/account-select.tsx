@@ -17,8 +17,8 @@ export const AccountSelector = () => {
 
   if (isAccountsLoading) {
     return (
-      <div className="w-32">
-        <Skeleton className="h-8 w-full rounded-md" />
+      <div className="w-24 h-lg:w-28 h-xl:w-32 h-5 h-lg:h-6 h-xl:h-8">
+        <Skeleton className="h-4 h-lg:h-6 h-xl:h-8 w-full rounded-md" />
       </div>
     );
   }

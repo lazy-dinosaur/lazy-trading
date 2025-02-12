@@ -44,35 +44,35 @@ export const PriceInfo = () => {
   if (isLoading) {
     return (
       <div className="w-full flex justify-between items-center ">
-        <div>
+        <div className="flex flex-col">
           <div className="text-3xl mb-2">
             <Skeleton className="h-6 w-32 h-lg:h-7 h-lg:w-36 h-xl:h-8 h-xl:w-40" />
           </div>
           <div className="flex gap-1 text-sm">
             <span className="capitalize text-muted-foreground">volume</span>
-            <Skeleton className="h-3 w-12 h-lg:h-4 h-lg:w-14 h-xl:h-5 h-xl:w-16" />
+            <Skeleton className="h-3 w-16 h-lg:h-3.5 h-lg:w-20 h-xl:h-4 h-xl:w-24" />
           </div>
         </div>
         <div className="text-sm">
           <div className="flex w-full items-center justify-between gap-2">
             <span className="capitalize text-muted-foreground">24High</span>
-            <Skeleton className="h-3 w-12 h-lg:h-4 h-lg:w-14 h-xl:h-5 h-xl:w-16" />
+            <Skeleton className="h-2 w-10 h-lg:h-2.5 h-lg:w-12 h-xl:h-3 h-xl:w-14" />
           </div>
           <div className="flex w-full items-center justify-between gap-2">
             <span className="capitalize text-muted-foreground">24Low</span>
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-2.5 w-10 h-lg:h-3 h-lg:w-12 h-xl:h-4 h-xl:w-14" />
           </div>
           {exchange == "bybit" ? (
             <div className="flex w-full items-center justify-between gap-2">
               <span className="capitalize text-muted-foreground">
                 24Turnover
               </span>
-              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-2.5 w-10 h-lg:h-3 h-lg:w-12 h-xl:h-4 h-xl:w-14" />
             </div>
           ) : (
             <div className="flex w-full items-center justify-between gap-2">
               <span className="capitalize text-muted-foreground">vwap</span>
-              <Skeleton className="h-3 w-12 h-lg:h-4 h-lg:w-14 h-xl:h-5 h-xl:w-16" />
+              <Skeleton className="h-2.5 w-10 h-lg:h-3 h-lg:w-12 h-xl:h-4 h-xl:w-14" />
             </div>
           )}
         </div>
