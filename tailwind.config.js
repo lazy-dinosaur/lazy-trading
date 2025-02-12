@@ -4,6 +4,10 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      screens: {
+        'h-lg': {'raw': '(min-height: 1024px)'},
+        'h-xl': {'raw': '(min-height: 1280px)'},
+      },
       keyframes: {
         "caret-blink": {
           "0%,70%,100%": {

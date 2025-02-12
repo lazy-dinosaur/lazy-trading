@@ -19,10 +19,7 @@ export default function Layout() {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <div
-        id="screenWrapper"
-        className="h-[100vh] w-[100vw] flex flex-col space-y-3 p-3 xl:space-y-6 xl:p-6"
-      >
+      <div className="h-[100vh] w-[100vw] flex flex-col space-y-1.5 p-1.5 h-lg:space-y-3 h-lg:p-3 h-xl:space-y-6 h-xl:p-6">
         <Outlet />
       </div>
       <AppSidebar />
