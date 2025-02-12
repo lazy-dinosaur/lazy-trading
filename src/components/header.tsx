@@ -36,9 +36,9 @@ const Header = ({
         {backButton && (
           <button
             onClick={handleBack}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 dark:focus-visible:ring-zinc-300 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 h-8 w-8"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 dark:focus-visible:ring-zinc-300 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6"
           >
-            <ArrowLeft className="w-7 h-7" />
+            <ArrowLeft className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-7 h-xl:h-7" />
           </button>
         )}
         <div className="text-xl capitalize flex items-center gap-2">
@@ -58,7 +58,9 @@ const Header = ({
           )}
         </div>
       </div>
-      {sidebarButton && <SidebarTrigger />}
+      {sidebarButton && (
+        <SidebarTrigger className="w-3 h-3 mr-1 h-lg:w-5 h-lg:h-5 h-xl:w-7 h-xl:h-7" />
+      )}
     </div>
   );
 };

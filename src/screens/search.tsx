@@ -62,7 +62,7 @@ const Search = () => {
   });
 
   return (
-    <ScreenWrapper headerProps={{ title: "Search" }} className={["space-y-5"]}>
+    <ScreenWrapper headerProps={{ title: "Search" }}>
       <Filter table={table} />
       {isLoading ? <SkeletonTable /> : <DataTable table={table} />}
     </ScreenWrapper>

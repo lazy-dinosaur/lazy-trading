@@ -14,18 +14,18 @@ const grepFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
   if (!value) return true;
   const searchStr = String(value).toLowerCase().trim();
   const terms = searchStr.split(/\s+/);
-  
+
   // 거래소 키워드 제외
   const exchanges = ["bybit", "binance", "bitget"];
-  const searchTerms = terms.filter(term => !exchanges.includes(term));
-  
+  const searchTerms = terms.filter((term) => !exchanges.includes(term));
+
   // 심볼 검색어 처리
   const cellValue = String(row.getValue(columnId)).toLowerCase();
-  return searchTerms.every(term => {
+  return searchTerms.every((term) => {
     // '/' 문자를 포함하는 경우와 아닌 경우 모두 처리
-    const searchParts = term.split('/');
+    const searchParts = term.split("/");
     if (searchParts.length > 1) {
-      return searchParts.every(part => cellValue.includes(part));
+      return searchParts.every((part) => cellValue.includes(part));
     }
     return cellValue.includes(term);
   });
@@ -39,7 +39,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
       const exchange = row.getValue("exchange");
       if (exchange == "bybit") {
         return (
-          <Avatar className="h-6 w-6">
+          <Avatar className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-6 h-xl:h-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/521.png"
               alt="@shadcn"
@@ -49,7 +49,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         );
       } else if (exchange == "binance") {
         return (
-          <Avatar className="h-6 w-6">
+          <Avatar className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-6 h-xl:h-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/270.png"
               alt="@shadcn"
@@ -59,7 +59,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         );
       } else {
         return (
-          <Avatar className="h-6 w-6">
+          <Avatar className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-6 h-xl:h-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/513.png"
               alt="@shadcn"
@@ -83,11 +83,11 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         >
           Symbol
           {column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           )}
         </button>
       );
@@ -112,11 +112,11 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         >
           Volume
           {column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           )}
         </button>
       );
@@ -138,11 +138,11 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
         >
           Price
           {column.getIsSorted() === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : column.getIsSorted() === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           )}
         </button>
       );

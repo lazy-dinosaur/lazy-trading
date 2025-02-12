@@ -28,7 +28,7 @@ const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
           // 거래소 필터 설정
           table.getColumn("exchange")?.setFilterValue(foundExchange || null);
         }}
-        className="max-full"
+        className="max-full h-6 h-lg:h-8 h-xl:h-10"
       />
       <Select
         defaultValue="all"
@@ -40,7 +40,7 @@ const Filter = ({ table }: { table: Table<TickerWithExchange> }) => {
           }
         }}
       >
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-40 h-6 h-lg:h-8 h-xl:h-10">
           <SelectValue placeholder="Exchange" />
         </SelectTrigger>
         <SelectContent>

@@ -18,6 +18,56 @@ export const DataTable = ({
 }: {
   table: TableType<TickerWithExchange>;
 }) => {
+  const [rowHeight, setRowHeight] = useState(() => {
+    if (window.innerHeight < 1024) {
+      return 32;
+    } else if (window.innerHeight < 1280) {
+      return 40;
+    } else {
+      return 48;
+    }
+  });
+
+  useEffect(() => {
+    const updateRowHeight = () => {
+      if (window.innerHeight < 1024) {
+        setRowHeight(32);
+      } else if (window.innerHeight < 1280) {
+        setRowHeight(40);
+      } else {
+        setRowHeight(48);
+      }
+    };
+
+    window.addEventListener("resize", updateRowHeight);
+    return () => window.removeEventListener("resize", updateRowHeight);
+  }, []);
+
+  useEffect(() => {
+    const updateTableHeight = () => {
+      if (window.innerHeight < 1024) {
+        document.documentElement.style.setProperty(
+          "--table-height",
+          "calc(100vh - 5rem)",
+        );
+      } else if (window.innerHeight < 1280) {
+        document.documentElement.style.setProperty(
+          "--table-height",
+          "calc(100vh - 7rem)",
+        );
+      } else {
+        document.documentElement.style.setProperty(
+          "--table-height",
+          "calc(100vh - 10rem)",
+        );
+      }
+    };
+
+    updateTableHeight();
+    window.addEventListener("resize", updateTableHeight);
+    return () => window.removeEventListener("resize", updateTableHeight);
+  }, []);
+
   const navigate = useNavigate();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const { rows } = table.getRowModel();
@@ -45,25 +95,29 @@ export const DataTable = ({
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 45, // 예상되는 행 높이
-    overscan: 10, // 추가로 렌더링할 행 수
+    estimateSize: () => rowHeight,
+    overscan: 10,
   });
 
   return (
     <div
       ref={tableContainerRef}
-      className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-full h-[calc(100vh - 10rem)]"
-      style={{ height: "calc(100vh - 10rem)" }}
+      className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background  h-[calc(100vh-5rem)] h-lg:h-[calc(100vh-7rem)] h-xl:h-[calc(100vh-10rem)]"
+      style={{ height: "var(--table-height)" }}
     >
       <div className="sticky top-0 bg-background z-10 w-full min-w-full">
         <Table className="w-full table-auto">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow
+                key={headerGroup.id}
+                className="h-8 h-lg:h-10 h-xl:h-12"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
+                      className="h-8 h-lg:h-10 h-xl:h-12"
                       style={{
                         width:
                           columnSizes[

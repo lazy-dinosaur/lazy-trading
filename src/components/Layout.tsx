@@ -19,7 +19,7 @@ export default function Layout() {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="h-[100vh] w-[100vw] flex flex-col space-y-1.5 p-1.5 h-lg:space-y-3 h-lg:p-3 h-xl:space-y-6 h-xl:p-6">
+      <div className="h-[100vh] w-[100vw] flex flex-col space-y-2 p-2 h-lg:space-y-3 h-lg:p-3 h-xl:space-y-6 h-xl:p-6">
         <Outlet />
       </div>
       <AppSidebar />
