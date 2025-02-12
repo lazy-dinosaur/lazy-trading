@@ -11,12 +11,7 @@ export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("orders");
 
   return (
-    <div
-      className={cn(
-        "w-full flex flex-col h-full",
-        isCompact && "hover:transform hover:-translate-y-[50vh] transition-transform duration-300"
-      )}
-    >
+    <div className="w-full flex flex-col h-full">
       {/* 고정된 헤더 */}
       <div
         className={cn(
@@ -46,7 +41,7 @@ export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
 
       {/* 스크롤 가능한 컨텐츠 */}
       <div className="flex-1 overflow-y-auto min-h-0 h-full">
-        <div className="w-full space-y-4 p-4">
+        <div className="w-full space-y-4 py-5">
           {activeTab === "orders" && <OrdersList />}
           {activeTab === "positions" && <PositionsList />}
           {activeTab === "assets" && <AssetsList />}
