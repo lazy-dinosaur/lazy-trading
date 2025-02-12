@@ -40,7 +40,7 @@ export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
       </div>
 
       {/* 스크롤 가능한 컨텐츠 */}
-      <div className="flex-1 overflow-y-auto min-h-0 h-full">
+      <div className="flex-1 overflow-y-auto min-h-0 h-full scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
         <div className="w-full space-y-4 py-5">
           {activeTab === "orders" && <OrdersList />}
           {activeTab === "positions" && <PositionsList />}
