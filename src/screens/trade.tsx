@@ -23,32 +23,36 @@ const TradeInContexts = () => {
 
   useEffect(() => {
     const checkAvailableSpace = () => {
-      if (!tradeComponentRef.current || !positionRef.current) return;
+      setTimeout(() => {
+        if (!tradeComponentRef.current || !positionRef.current) return;
 
-      // TradeComponent의 bottom 위치
-      const tradeBottom =
-        tradeComponentRef.current.getBoundingClientRect().bottom;
-      // 화면 전체 높이
-      const viewportHeight = window.innerHeight;
-      // 사용 가능한 공간
-      const availableSpace = viewportHeight - tradeBottom;
+        // TradeComponent의 bottom 위치
+        const tradeBottom =
+          tradeComponentRef.current.getBoundingClientRect().bottom;
+        // 화면 전체 높이
+        const viewportHeight = window.innerHeight;
+        // 사용 가능한 공간
+        const availableSpace = viewportHeight - tradeBottom;
 
-      // 화면의 20%보다 작으면 compact 모드
-      setIsCompact(availableSpace < viewportHeight * 0.25);
+        // 화면의 25%보다 작으면 compact 모드
+        setIsCompact(availableSpace < viewportHeight * 0.25);
 
-      // 초기 거리 계산 (포지션 컴포넌트 하단과 화면 하단 사이의 거리)
-      const positionBottom = positionRef.current.getBoundingClientRect().bottom;
-      setBottomDistance(viewportHeight - positionBottom);
+        // 초기 거리 계산 (포지션 컴포넌트 하단과 화면 하단 사이의 거리)
+        const positionBottom = positionRef.current.getBoundingClientRect().bottom;
+        setBottomDistance(viewportHeight - positionBottom);
+      }, 100); // 약간의 지연을 줘서 정확한 위치 계산이 되도록 함
     };
 
-    const observer = new ResizeObserver(checkAvailableSpace);
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(checkAvailableSpace);
+    });
     if (tradeComponentRef.current) {
       observer.observe(tradeComponentRef.current);
     }
     window.addEventListener("resize", checkAvailableSpace);
 
-    // 초기 체크
-    checkAvailableSpace();
+    // 초기 체크 - 컴포넌트 마운트 후 약간의 지연을 주어 실행
+    setTimeout(checkAvailableSpace, 100);
 
     return () => {
       observer.disconnect();
