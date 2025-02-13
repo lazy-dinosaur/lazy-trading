@@ -38,7 +38,8 @@ const TradeInContexts = () => {
         setIsCompact(availableSpace < viewportHeight * 0.25);
 
         // 초기 거리 계산 (포지션 컴포넌트 하단과 화면 하단 사이의 거리)
-        const positionBottom = positionRef.current.getBoundingClientRect().bottom;
+        const positionBottom =
+          positionRef.current.getBoundingClientRect().bottom;
         setBottomDistance(viewportHeight - positionBottom);
       }, 100); // 약간의 지연을 줘서 정확한 위치 계산이 되도록 함
     };
@@ -88,7 +89,7 @@ const TradeInContexts = () => {
       <div
         ref={positionRef}
         className={cn(
-          "mt-3",
+          "mt-1 h-lg:mt-2 h-xl:mt-3",
           isCompact &&
             "hover:transform hover:translate-y-[var(--bottom-distance)] transition-transform duration-300",
           isCompact
