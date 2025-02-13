@@ -428,7 +428,7 @@ export const fetchBalance = async (data?: DecryptedAccountObj) => {
           exchangeInstance,
           rawBalance,
         );
-
+        console.log("rawBalance:", rawBalance);
         const balance = {
           ...rawBalance,
 
