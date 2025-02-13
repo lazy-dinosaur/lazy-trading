@@ -97,11 +97,11 @@ export const TradeInfo = () => {
       ) : (
         <div className="flex-[2] w-full rounded-md p-1 h-lg:p-2 h-xl:p-3 border min-h-0">
           <div className="w-full h-full grid grid-cols-5 grid-rows-4 gap-0 h-lg:gap-1 h-xl:gap-2">
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center h-lg:mb-1 h-xl:mb-2">
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
               LONG
             </span>
             <span></span>
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center h-lg:mb-1 h-xl:mb-2">
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
               SHORT
             </span>
             <span className="col-span-2 flex flex-col items-center justify-center text-sm">
