@@ -24,16 +24,16 @@ export const TradeInfo = () => {
     !exchangeAccounts && (isAccountsLoading || !balanceInfo);
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-between gap-2">
-      <div className="flex w-full items-center justify-between px-2">
+    <div className="h-full w-2/3 flex flex-col items-center gap-1 h-lg:gap-1.5 h-xl:gap-2 overflow-hidden">
+      <div className="flex-none flex w-full items-center justify-between px-2">
         <span className="text-sm text-muted-foreground capitalize">
           Trading Info
         </span>
         <div className="gap-2 text-xs flex">
           {isTradeInfoLoading ? (
             <>
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
+              <Skeleton className="h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
             </>
           ) : (
             <>
@@ -49,102 +49,82 @@ export const TradeInfo = () => {
           )}
         </div>
       </div>
-
       {isTradeInfoLoading ? (
-        <div className="w-full h-full rounded-md p-2 border">
-          <div className="w-full h-full grid grid-cols-5 grid-rows-6">
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+        <div className="flex-[2] w-full rounded-md p-1 h-lg:p-2 h-xl:p-3 border">
+          <div className="w-full grid grid-cols-5 grid-rows-4 gap-0 h-lg:gap-1 h-xl:gap-2">
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
               LONG
             </span>
             <span></span>
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
               SHORT
             </span>
-
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              <Skeleton className="h-4 w-20" />
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
             </span>
-            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
               S/L
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              <Skeleton className="h-4 w-20" />
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
             </span>
 
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              <Skeleton className="h-4 w-16" />
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              <Skeleton className="h-4 w-16" />
-            </span>
-
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              <Skeleton className="h-4 w-20" />
-            </span>
-            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
               T/P
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              <Skeleton className="h-4 w-20" />
-            </span>
-
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              <Skeleton className="h-4 w-16" />
-            </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              <Skeleton className="h-4 w-16" />
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
+              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
             </span>
 
             <span className="col-span-2 flex items-center justify-center text-sm">
-              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-2 w-8 h-lg:h-3 h-lg:w-10 h-xl:h-4 h-xl:w-12" />
             </span>
             <span className="col-span-1 row-span-1 text-muted-foreground font-semibold flex items-center justify-center">
               Leverage
             </span>
             <span className="col-span-2 flex items-center justify-center text-sm">
-              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-2 w-8 h-lg:h-3 h-lg:w-10 h-xl:h-4 h-xl:w-12" />
             </span>
           </div>
         </div>
       ) : (
-        <div className="w-full h-full rounded-md p-2 border">
-          <div className="w-full h-full grid grid-cols-5 grid-rows-6">
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+        <div className="flex-[2] w-full rounded-md p-1 h-lg:p-2 h-xl:p-3 border min-h-0">
+          <div className="w-full h-full grid grid-cols-5 grid-rows-4 gap-0 h-lg:gap-1 h-xl:gap-2">
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center h-lg:mb-1 h-xl:mb-2">
               LONG
             </span>
             <span></span>
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center mb-2">
+            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center h-lg:mb-1 h-xl:mb-2">
               SHORT
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              {tradeInfo?.long.stoploss.formatted}
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
+              <span>{tradeInfo?.long.stoploss.formatted}</span>
+              <span>({tradeInfo?.long.stoploss.percentage}%)</span>
             </span>
-            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
               S/L
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              {tradeInfo?.short.stoploss.formatted}
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
+              <span>{tradeInfo?.short.stoploss.formatted}</span>
+              <span>({tradeInfo?.short.stoploss.percentage}%)</span>
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              {tradeInfo?.long.stoploss.percentage}%
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
+              <span>{tradeInfo?.long.target.formatted}</span>
+              <span>({tradeInfo?.long.target.percentage}%)</span>
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              {tradeInfo?.short.stoploss.percentage}%
-            </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              {tradeInfo?.long.target.formatted}
-            </span>
-            <span className="col-span-1 row-span-2 text-muted-foreground font-semibold flex items-center justify-center">
+            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
               T/P
             </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center text-sm">
-              {tradeInfo?.short.target.formatted}
-            </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              {tradeInfo?.long.target.percentage}%
-            </span>
-            <span className="col-span-2 col-row-1 flex items-center justify-center mb-2 text-sm">
-              {tradeInfo?.short.target.percentage}%
+            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
+              <span>{tradeInfo?.short.target.formatted}</span>
+              <span>({tradeInfo?.short.target.percentage}%)</span>
             </span>
             <span className="col-span-2 flex items-center justify-center text-sm">
               {tradeInfo?.long.leverage}x
@@ -160,7 +140,7 @@ export const TradeInfo = () => {
       )}
 
       {isBalanceLoading ? (
-        <div className="grid grid-cols-7 grid-rows-3 w-full border rounded-md p-2">
+        <div className="flex-[0.8] grid grid-cols-7 grid-rows-3 gap-0 h-lg:gap-1.5 h-xl:gap-2 w-full border rounded-md p-1 h-lg:p-2 h-xl:p-3">
           <span className="text-xs text-muted-foreground capitalize">
             balance
           </span>
@@ -176,30 +156,30 @@ export const TradeInfo = () => {
 
           <span className="text-xs text-muted-foreground capitalize">USDT</span>
           <span className="col-span-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
           </span>
           <span className="col-span-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
           </span>
           <span className="col-span-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
           </span>
 
           <span className="text-xs text-muted-foreground capitalize">
             TOTAL
           </span>
           <span className="col-span-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
           </span>
           <span className="col-span-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
           </span>
           <span className="col-span-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
           </span>
         </div>
       ) : balanceInfo ? (
-        <span className="grid grid-cols-7 grid-rows-3 w-full border rounded-md p-2">
+        <div className="flex-[0.8] grid grid-cols-7 grid-rows-3 gap-0 h-lg:gap-1.5 h-xl:gap-2 w-full border rounded-md p-1 h-lg:p-2 h-xl:p-3 min-h-0">
           <span className="text-xs text-muted-foreground capitalize">
             balance
           </span>
@@ -250,7 +230,7 @@ export const TradeInfo = () => {
           <span className="text-sm capitalize col-span-2">
             {balanceInfo.usd.used}
           </span>
-        </span>
+        </div>
       ) : (
         <Link
           to={`/account/add?exchange=${exchange}`}

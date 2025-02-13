@@ -19,9 +19,9 @@ export const DataTable = ({
   table: TableType<TickerWithExchange>;
 }) => {
   const [rowHeight, setRowHeight] = useState(() => {
-    if (window.innerHeight < 1024) {
+    if (window.innerHeight < 800) {
       return 32;
-    } else if (window.innerHeight < 1280) {
+    } else if (window.innerHeight < 1000) {
       return 40;
     } else {
       return 48;
@@ -30,9 +30,9 @@ export const DataTable = ({
 
   useEffect(() => {
     const updateRowHeight = () => {
-      if (window.innerHeight < 1024) {
+      if (window.innerHeight < 800) {
         setRowHeight(32);
-      } else if (window.innerHeight < 1280) {
+      } else if (window.innerHeight < 1000) {
         setRowHeight(40);
       } else {
         setRowHeight(48);
@@ -45,12 +45,12 @@ export const DataTable = ({
 
   useEffect(() => {
     const updateTableHeight = () => {
-      if (window.innerHeight < 1024) {
+      if (window.innerHeight < 800) {
         document.documentElement.style.setProperty(
           "--table-height",
           "calc(100vh - 5rem)",
         );
-      } else if (window.innerHeight < 1280) {
+      } else if (window.innerHeight < 1000) {
         document.documentElement.style.setProperty(
           "--table-height",
           "calc(100vh - 7rem)",

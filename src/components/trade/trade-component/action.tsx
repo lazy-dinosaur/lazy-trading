@@ -59,18 +59,20 @@ export const TradingAction = () => {
   };
 
   return (
-    <div className="flex w-1/3 min-w-32 max-w-64 flex-col items-center justify-between h-full space-y-3">
-      <div className="w-full text-sm text-muted-foreground capitalize">
-        Setting
+    <div className="flex w-1/3 min-w-32 max-w-64 flex-col items-center justify-between h-full px-1 h-lg:px-1.5 h-xl:px-2">
+      <div className="flex-1 space-y-1 h-lg:space-y-2 h-xl:space-y-3">
+        <div className="w-full text-sm text-muted-foreground capitalize">
+          Setting
+        </div>
+        <CloseSetting />
+        <RiskSetting />
+        <TradingSetting />
       </div>
-      <CloseSetting />
-      <RiskSetting />
-      <TradingSetting />
-      <div className="flex flex-col w-full gap-2">
+      <div className="flex-none flex flex-col w-full gap-1 h-lg:gap-1.5 h-xl:gap-2">
         <Button
           value={"long"}
           variant={"long"}
-          className="opacity-90"
+          className="h-6 h-lg:h-7 h-xl:h-8 opacity-90"
           disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
         >
@@ -79,7 +81,7 @@ export const TradingAction = () => {
         <Button
           value={"short"}
           variant={"short"}
-          className="opacity-90"
+          className="h-6 h-lg:h-7 h-xl:h-8 opacity-90"
           disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
         >
@@ -110,47 +112,43 @@ const CloseSetting = () => {
       </div>
       {config?.partialClose && (
         <>
-          <div className="flex w-full items-center justify-center">
-            <span className="flex h-full w-full items-center justify-center flex-col">
+          <div className="flex w-full items-center justify-between px-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
+              onClick={() => {
+                const closeRatio = config?.closeRatio
+                  ? config.closeRatio - 5 < 5
+                    ? 5
+                    : config.closeRatio - 5
+                  : 50;
+                updateConfig({ closeRatio });
+              }}
+            >
+              <ChevronDown className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
+            </Button>
+            <div className="flex flex-col items-center">
               <span className="text-xs text-muted-foreground">C/R</span>
               <span className="text-sm font-semibold">
                 {config.closeRatio} %
               </span>
-            </span>
-            <span className="flex w-full items-center justify-center gap-1 flex-col text-center">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-accent border"
-                // disabled={isPending}
-                onClick={() => {
-                  const closeRatio = config?.closeRatio
-                    ? config.closeRatio + 5 > 100
-                      ? 100
-                      : config.closeRatio + 5
-                    : 50;
-                  updateConfig({ closeRatio });
-                }}
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-accent border"
-                // disabled={isPending}
-                onClick={() => {
-                  const closeRatio = config?.closeRatio
-                    ? config.closeRatio - 5 < 5
-                      ? 5
-                      : config.closeRatio - 5
-                    : 50;
-                  updateConfig({ closeRatio });
-                }}
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
+              onClick={() => {
+                const closeRatio = config?.closeRatio
+                  ? config.closeRatio + 5 > 100
+                    ? 100
+                    : config.closeRatio + 5
+                  : 50;
+                updateConfig({ closeRatio });
+              }}
+            >
+              <ChevronUp className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
+            </Button>
           </div>
         </>
       )}
@@ -161,45 +159,43 @@ const TradingSetting = () => {
   const { config, isLoading, updateConfig } = useTradingConfig();
 
   return (
-    <div className="flex w-full items-center justify-center">
-      <span className="flex h-full w-full items-center justify-center flex-col">
+    <div className="flex w-full items-center justify-between px-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
+        disabled={isLoading}
+        onClick={() => {
+          const riskRatio = config?.riskRatio
+            ? config.riskRatio - 0.5 < 0.5
+              ? 0.5
+              : config.riskRatio - 0.5
+            : 1.5;
+          updateConfig({ riskRatio });
+        }}
+      >
+        <ChevronDown className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
+      </Button>
+      <div className="flex flex-col items-center">
         <span className="text-xs text-muted-foreground">R/R</span>
         <span className="text-sm font-semibold">{config?.riskRatio} : 1</span>
-      </span>
-      <span className="flex w-full items-center justify-center gap-1 flex-col text-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 hover:bg-accent border"
-          disabled={isLoading}
-          onClick={() => {
-            const riskRatio = config?.riskRatio
-              ? config.riskRatio + 0.5 > 5
-                ? 5
-                : config.riskRatio + 0.5
-              : 1.5;
-            updateConfig({ riskRatio });
-          }}
-        >
-          <ChevronUp className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 hover:bg-accent border"
-          disabled={isLoading}
-          onClick={() => {
-            const riskRatio = config?.riskRatio
-              ? config.riskRatio - 0.5 < 0.5
-                ? 0.5
-                : config.riskRatio - 0.5
-              : 1.5;
-            updateConfig({ riskRatio });
-          }}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </span>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
+        disabled={isLoading}
+        onClick={() => {
+          const riskRatio = config?.riskRatio
+            ? config.riskRatio + 0.5 > 5
+              ? 5
+              : config.riskRatio + 0.5
+            : 1.5;
+          updateConfig({ riskRatio });
+        }}
+      >
+        <ChevronUp className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
+      </Button>
     </div>
   );
 };
@@ -208,45 +204,43 @@ const RiskSetting = () => {
   const { config, updateConfig, isLoading } = useTradingConfig();
 
   return (
-    <div className="flex w-full items-center justify-center">
-      <span className="flex h-full w-full items-center justify-center flex-col">
+    <div className="flex w-full items-center justify-between px-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
+        disabled={isLoading}
+        onClick={() => {
+          const risk = config?.risk
+            ? config.risk - 0.5 < 0.5
+              ? 0.5
+              : config.risk - 0.5
+            : 1.5;
+          updateConfig({ risk });
+        }}
+      >
+        <ChevronDown className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
+      </Button>
+      <div className="flex flex-col items-center">
         <span className="text-xs text-muted-foreground">Risk</span>
         <span className="text-sm font-semibold">{config?.risk}%</span>
-      </span>
-      <span className="flex w-full items-center justify-center gap-1 flex-col text-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 hover:bg-accent border"
-          disabled={isLoading}
-          onClick={() => {
-            const risk = config?.risk
-              ? config.risk + 0.5 > 5
-                ? 5
-                : config.risk + 0.5
-              : 1.5;
-            updateConfig({ risk });
-          }}
-        >
-          <ChevronUp className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 hover:bg-accent border"
-          disabled={isLoading}
-          onClick={() => {
-            const risk = config?.risk
-              ? config.risk - 0.5 < 0.5
-                ? 0.5
-                : config.risk - 0.5
-              : 1.5;
-            updateConfig({ risk });
-          }}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </span>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
+        disabled={isLoading}
+        onClick={() => {
+          const risk = config?.risk
+            ? config.risk + 0.5 > 5
+              ? 5
+              : config.risk + 0.5
+            : 1.5;
+          updateConfig({ risk });
+        }}
+      >
+        <ChevronUp className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
+      </Button>
     </div>
   );
 };

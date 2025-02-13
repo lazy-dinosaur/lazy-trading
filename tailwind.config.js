@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       screens: {
-        'h-lg': {'raw': '(min-height: 1024px)'},
-        'h-xl': {'raw': '(min-height: 1280px)'},
+        "h-lg": { raw: "(min-height: 800px)" },
+        "h-xl": { raw: "(min-height: 1000px)" },
       },
       keyframes: {
         "caret-blink": {
