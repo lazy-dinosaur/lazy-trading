@@ -2,6 +2,44 @@ import { useTrade } from "@/contexts/trade/use";
 import { ExchangeType } from "@/lib/accounts";
 import { Link, useSearchParams } from "react-router";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SPACING, TEXT_SIZE } from "@/lib/constants";
+
+/**
+ * Exchange-specific balance display component
+ */
+interface BalanceDisplayProps {
+  exchange: ExchangeType;
+  baseTotal: number | string;
+  baseFree: number | string;
+}
+
+const BalanceDisplay = ({ exchange, baseTotal, baseFree }: BalanceDisplayProps) => {
+  // Different exchanges may have different data structures
+  // This component centralizes the exchange-specific display logic
+  if (exchange === "binance") {
+    return (
+      <>
+        <span className={`text-${TEXT_SIZE.SM} capitalize col-span-2`}>
+          {baseFree}
+        </span>
+        <span className={`text-${TEXT_SIZE.SM} capitalize col-span-2`}>
+          {baseTotal}
+        </span>
+      </>
+    );
+  }
+  
+  return (
+    <>
+      <span className={`text-${TEXT_SIZE.SM} capitalize col-span-2`}>
+        {baseTotal}
+      </span>
+      <span className={`text-${TEXT_SIZE.SM} capitalize col-span-2`}>
+        {baseFree}
+      </span>
+    </>
+  );
+};
 
 export const TradeInfo = () => {
   const [searchParams] = useSearchParams();
@@ -24,24 +62,24 @@ export const TradeInfo = () => {
     !exchangeAccounts && (isAccountsLoading || !balanceInfo);
 
   return (
-    <div className="h-full w-2/3 flex flex-col items-center gap-1 h-lg:gap-1.5 h-xl:gap-2 overflow-hidden">
+    <div className={`h-full w-2/3 flex flex-col items-center gap-${SPACING.SM} h-lg:gap-${SPACING.MD} h-xl:gap-${SPACING.LG} overflow-hidden`}>
       <div className="flex-none flex w-full items-center justify-between px-2">
-        <span className="text-sm text-muted-foreground capitalize">
+        <span className={`text-${TEXT_SIZE.SM} text-muted-foreground capitalize`}>
           Trading Info
         </span>
-        <div className="gap-2 text-xs flex">
+        <div className={`gap-${SPACING.MD} text-${TEXT_SIZE.XS} flex`}>
           {isTradeInfoLoading ? (
             <>
-              <Skeleton className="h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-              <Skeleton className="h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
+              <Skeleton className={`h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20`} />
+              <Skeleton className={`h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20`} />
             </>
           ) : (
             <>
-              <span className="space-x-1">
+              <span className={`space-x-${SPACING.XS}`}>
                 <span className="text-muted-foreground">Maker:</span>
                 <span>{tradeInfo?.tradingfee?.maker}</span>
               </span>
-              <span className="space-x-1">
+              <span className={`space-x-${SPACING.XS}`}>
                 <span className="text-muted-foreground">Taker:</span>
                 <span>{tradeInfo?.tradingfee?.taker}</span>
               </span>
@@ -192,29 +230,15 @@ export const TradeInfo = () => {
           <span className="text-xs text-muted-foreground capitalize col-span-2">
             used
           </span>
-          <span className="text-xs text-muted-foreground capitalize ">
+          <span className="text-xs text-muted-foreground capitalize">
             {balanceInfo.base.name ?? 0}
           </span>
-          {/* 바이낸스 밸런스 데이터 토탈이랑 프리 반대로 나옴 임시 해결 */}
-          {exchange == "binance" ? (
-            <>
-              <span className="text-sm capitalize col-span-2">
-                {balanceInfo.base.free ?? 0}
-              </span>
-              <span className="text-sm capitalize col-span-2">
-                {balanceInfo.base.total ?? 0}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="text-sm capitalize col-span-2">
-                {balanceInfo.base.total ?? 0}
-              </span>
-              <span className="text-sm capitalize col-span-2">
-                {balanceInfo.base.free ?? 0}
-              </span>
-            </>
-          )}
+          {/* Exchange-specific balance data handling */}
+          <BalanceDisplay 
+            exchange={exchange}
+            baseTotal={balanceInfo.base.total ?? 0}
+            baseFree={balanceInfo.base.free ?? 0}
+          />
           <span className="text-sm capitalize col-span-2">
             {balanceInfo.base.used ?? 0}
           </span>

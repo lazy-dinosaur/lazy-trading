@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { ChartContainer } from "./chart-container";
 import { DeepPartial, ChartOptions } from "lightweight-charts";
+import { ResponsiveContainer } from "@/components/ui/responsive-container";
 
 interface ChartProps {
   layout?: DeepPartial<ChartOptions["layout"]>;
@@ -11,19 +12,25 @@ interface ChartProps {
   children?: React.ReactNode;
 }
 
+/**
+ * Chart component with responsive height handling
+ */
 export const Chart = (props: ChartProps) => {
   const [container, setContainer] = useState<HTMLDivElement | false>(false);
   const handleRef = useCallback(
     (ref: HTMLDivElement | null) => setContainer(ref || false),
     [],
   );
+  
   return (
-    <div
+    <ResponsiveContainer
       ref={handleRef}
-      className="w-full h-[40vh] h-lg:h-[35vh] h-xl:h-[30vh] rounded-md overflow-hidden"
+      heightLarge="40vh"
+      heightMedium="35vh"
+      heightSmall="30vh"
+      mobileHeight="45vh"
     >
-      {/* <div ref={handleRef} className="w-full h-[30vh] rounded-md overflow-hidden"> */}
       {container && <ChartContainer {...props} container={container} />}
-    </div>
+    </ResponsiveContainer>
   );
 };
