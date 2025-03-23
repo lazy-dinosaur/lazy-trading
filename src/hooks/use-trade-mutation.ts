@@ -2,6 +2,7 @@ import { ExchangeType } from "@/lib/accounts";
 import { PositionInfo } from "@/lib/trade";
 import { useMutation } from "@tanstack/react-query";
 import { binance, bitget, bybit } from "ccxt";
+import toast from 'react-hot-toast';
 
 interface TradeParams {
   ccxtInstance: binance | bitget | bybit;
@@ -12,6 +13,8 @@ interface TradeParams {
   config: {
     partialClose: boolean;
     closeRatio: number;
+    risk: number;
+    riskRatio: number;
   };
 }
 
@@ -25,53 +28,70 @@ async function executeTrade({
 }: TradeParams) {
   if (!info.position) throw new Error("Position info is required");
 
-  const isusdt = symbol.split(":")[1] === "USDT";
-  const side = tradeType === "long" ? "buy" : "sell";
-  const oppside = tradeType === "long" ? "sell" : "buy";
-
-  // Set common configurations
-
-  // Set Binance-specific configurations
-  if (exchange === "binance") {
-    try {
-      // Enable hedge mode (포지션 모드)
-      await (ccxtInstance as binance).fapiPrivatePostPositionSideDual({
-        dualSidePosition: "true",
-      });
-    } catch (error) {
-      console.warn("Failed to set hedge mode:", error);
+  // 토스트 알림 ID 생성 (진행 중 상태 표시용)
+  const toastId = toast.loading(
+    `${tradeType === 'long' ? '롱' : '숏'} 포지션 생성 중...`, 
+    { 
+      position: 'bottom-center',
+      style: {
+        borderRadius: '10px',
+        background: '#333',
+        color: '#fff',
+      }
     }
-
-    try {
-      // Enable multi-assets mode (멀티에셋 모드)
-      await (ccxtInstance as binance).fapiPrivatePostMultiAssetsMargin({
-        multiAssetsMargin: "true",
-      });
-    } catch (error) {
-      console.warn("Failed to set multi-assets mode:", error);
-    }
-  } else {
-    try {
-      await ccxtInstance.setPositionMode(true, symbol);
-    } catch (error) {
-      console.warn("Failed to set position mode:", error);
-    }
-  }
-  try {
-    await ccxtInstance.setLeverage(info.calculatedLeverage, symbol);
-  } catch (error) {
-    console.warn("Failed to set leverage:", error);
-  }
-  try {
-    await ccxtInstance.setMarginMode("cross", symbol);
-  } catch (error) {
-    console.warn("Failed to set margin mode:", error);
-  }
+  );
 
   try {
-    const amount = isusdt ? info.position.size : info.position.size / 100;
+    const isusdt = symbol.split(":")[1] === "USDT";
+    const side = tradeType === "long" ? "buy" : "sell";
+    const oppside = tradeType === "long" ? "sell" : "buy";
+
+    // Set common configurations
+    try {
+      await ccxtInstance.setLeverage(info.calculatedLeverage, symbol);
+    } catch (error) {
+      console.warn("Failed to set leverage:", error);
+    }
+    
+    try {
+      await ccxtInstance.setMarginMode("cross", symbol);
+    } catch (error) {
+      console.warn("Failed to set margin mode:", error);
+    }
+
+    // Set exchange-specific configurations
     if (exchange === "binance") {
-      return await Promise.all([
+      try {
+        // Enable hedge mode (포지션 모드)
+        await (ccxtInstance as binance).fapiPrivatePostPositionSideDual({
+          dualSidePosition: "true",
+        });
+      } catch (error) {
+        console.warn("Failed to set hedge mode:", error);
+      }
+
+      try {
+        // Enable multi-assets mode (멀티에셋 모드)
+        await (ccxtInstance as binance).fapiPrivatePostMultiAssetsMargin({
+          multiAssetsMargin: "true",
+        });
+      } catch (error) {
+        console.warn("Failed to set multi-assets mode:", error);
+      }
+    } else {
+      try {
+        await ccxtInstance.setPositionMode(true, symbol);
+      } catch (error) {
+        console.warn("Failed to set position mode:", error);
+      }
+    }
+
+    // Execute orders based on the exchange
+    const amount = isusdt ? info.position.size : info.position.size / 100;
+    
+    let result;
+    if (exchange === "binance") {
+      result = await Promise.all([
         ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
           marginMode: "cross",
           positionSide: tradeType.toUpperCase(),
@@ -99,11 +119,9 @@ async function executeTrade({
           },
         ),
       ]);
-    }
-
-    if (exchange === "bybit") {
+    } else if (exchange === "bybit") {
       const positionIdx = isusdt ? (tradeType === "long" ? 1 : 2) : 0;
-      return await Promise.all([
+      result = await Promise.all([
         ccxtInstance.createOrder(
           symbol,
           "market",
@@ -131,10 +149,8 @@ async function executeTrade({
           },
         ),
       ]);
-    }
-
-    if (exchange === "bitget") {
-      return await Promise.all([
+    } else if (exchange === "bitget") {
+      result = await Promise.all([
         ccxtInstance.createOrder(
           symbol,
           "market",
@@ -163,11 +179,43 @@ async function executeTrade({
           },
         ),
       ]);
+    } else {
+      throw new Error(`지원하지 않는 거래소입니다: ${exchange}`);
     }
 
-    throw new Error(`Unsupported exchange: ${exchange}`);
+    // 성공 메시지 표시
+    toast.success(
+      `${symbol} ${tradeType === 'long' ? '롱' : '숏'} 포지션 생성 성공!`, 
+      { 
+        id: toastId,
+        icon: '✅',
+        style: {
+          borderRadius: '10px',
+          background: tradeType === 'long' ? '#10b981' : '#ef4444',
+          color: '#fff',
+        }
+      }
+    );
+    
+    return result;
   } catch (error) {
     console.error("Order execution failed:", error);
+    
+    // 오류 메시지 표시
+    toast.error(
+      `주문 실행 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`, 
+      { 
+        id: toastId,
+        icon: '❌',
+        duration: 5000,
+        style: {
+          borderRadius: '10px',
+          background: '#f43f5e',
+          color: '#fff',
+        }
+      }
+    );
+    
     throw error;
   }
 }
@@ -175,5 +223,10 @@ async function executeTrade({
 export function useTradeMutation() {
   return useMutation({
     mutationFn: executeTrade,
+    onMutate: (variables) => {
+      // 로딩 시작 시 콜백
+      console.log(`Starting ${variables.tradeType} position creation for ${variables.symbol}`);
+    },
   });
 }
+

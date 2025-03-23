@@ -2,7 +2,7 @@ import { useTrade } from "@/contexts/trade/use";
 import { ExchangeType } from "@/lib/accounts";
 import { Link, useSearchParams } from "react-router";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SPACING, TEXT_SIZE } from "@/lib/constants";
+import { TEXT_SIZE } from "@/lib/constants";
 
 /**
  * Exchange-specific balance display component
@@ -62,206 +62,182 @@ export const TradeInfo = () => {
     !exchangeAccounts && (isAccountsLoading || !balanceInfo);
 
   return (
-    <div className={`h-full w-2/3 flex flex-col items-center gap-${SPACING.SM} h-lg:gap-${SPACING.MD} h-xl:gap-${SPACING.LG} overflow-hidden`}>
-      <div className="flex-none flex w-full items-center justify-between px-2">
-        <span className={`text-${TEXT_SIZE.SM} text-muted-foreground capitalize`}>
-          Trading Info
+    <div className="h-full w-full flex flex-col gap-2 overflow-hidden p-2">
+      {/* 상단 헤더 영역 */}
+      <div className="flex w-full items-center justify-between bg-muted/20 p-2 rounded-md">
+        <span className="text-sm font-medium">
+          Trading Information
         </span>
-        <div className={`gap-${SPACING.MD} text-${TEXT_SIZE.XS} flex`}>
+        <div className="flex gap-3 text-xs">
           {isTradeInfoLoading ? (
             <>
-              <Skeleton className={`h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20`} />
-              <Skeleton className={`h-2 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20`} />
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-3 w-16" />
             </>
           ) : (
             <>
-              <span className={`space-x-${SPACING.XS}`}>
-                <span className="text-muted-foreground">Maker:</span>
-                <span>{tradeInfo?.tradingfee?.maker}</span>
-              </span>
-              <span className={`space-x-${SPACING.XS}`}>
-                <span className="text-muted-foreground">Taker:</span>
-                <span>{tradeInfo?.tradingfee?.taker}</span>
-              </span>
+              <div className="flex flex-col items-center">
+                <span className="text-muted-foreground">Maker Fee</span>
+                <span className="font-semibold">{tradeInfo?.tradingfee?.maker}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-muted-foreground">Taker Fee</span>
+                <span className="font-semibold">{tradeInfo?.tradingfee?.taker}</span>
+              </div>
             </>
           )}
         </div>
       </div>
+      
+      {/* 트레이딩 정보 영역 */}
       {isTradeInfoLoading ? (
-        <div className="flex-[2] w-full rounded-md p-1 h-lg:p-2 h-xl:p-3 border">
-          <div className="w-full grid grid-cols-5 grid-rows-4 gap-0 h-lg:gap-1 h-xl:gap-2">
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
-              LONG
-            </span>
-            <span></span>
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
-              SHORT
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-            </span>
-            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-              S/L
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-            </span>
-
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-            </span>
-            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-              T/P
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm gap-0.5">
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-              <Skeleton className="h-2 w-24 h-lg:h-3 h-lg:w-28 h-xl:h-4 h-xl:w-32" />
-            </span>
-
-            <span className="col-span-2 flex items-center justify-center text-sm">
-              <Skeleton className="h-2 w-8 h-lg:h-3 h-lg:w-10 h-xl:h-4 h-xl:w-12" />
-            </span>
-            <span className="col-span-1 row-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-              Leverage
-            </span>
-            <span className="col-span-2 flex items-center justify-center text-sm">
-              <Skeleton className="h-2 w-8 h-lg:h-3 h-lg:w-10 h-xl:h-4 h-xl:w-12" />
-            </span>
+        <div className="flex-1 w-full bg-accent/10 rounded-md p-3 border">
+          <div className="flex justify-between mb-3">
+            <div className="px-4 py-1 rounded-md bg-accent/20 text-center">
+              <span className="font-semibold">LONG</span>
+            </div>
+            <div className="px-4 py-1 rounded-md bg-accent/20 text-center">
+              <span className="font-semibold">SHORT</span>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-muted-foreground text-center">Stop Loss</div>
+              <div className="text-center">
+                <Skeleton className="h-4 w-full mx-auto" />
+              </div>
+              <div className="text-center">
+                <Skeleton className="h-4 w-full mx-auto" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-muted-foreground text-center">Take Profit</div>
+              <div className="text-center">
+                <Skeleton className="h-4 w-full mx-auto" />
+              </div>
+              <div className="text-center">
+                <Skeleton className="h-4 w-full mx-auto" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-muted-foreground text-center">Leverage</div>
+              <div className="text-center">
+                <Skeleton className="h-4 w-12 mx-auto" />
+              </div>
+              <div className="text-center">
+                <Skeleton className="h-4 w-12 mx-auto" />
+              </div>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="flex-[2] w-full rounded-md p-1 h-lg:p-2 h-xl:p-3 border min-h-0">
-          <div className="w-full h-full grid grid-cols-5 grid-rows-4 gap-0 h-lg:gap-1 h-xl:gap-2">
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
-              LONG
-            </span>
-            <span></span>
-            <span className="col-span-2 text-muted-foreground font-semibold flex items-center justify-center">
-              SHORT
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
-              <span>{tradeInfo?.long.stoploss.formatted}</span>
-              <span>({tradeInfo?.long.stoploss.percentage}%)</span>
-            </span>
-            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-              S/L
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
-              <span>{tradeInfo?.short.stoploss.formatted}</span>
-              <span>({tradeInfo?.short.stoploss.percentage}%)</span>
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
-              <span>{tradeInfo?.long.target.formatted}</span>
-              <span>({tradeInfo?.long.target.percentage}%)</span>
-            </span>
-            <span className="col-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-              T/P
-            </span>
-            <span className="col-span-2 flex flex-col items-center justify-center text-sm">
-              <span>{tradeInfo?.short.target.formatted}</span>
-              <span>({tradeInfo?.short.target.percentage}%)</span>
-            </span>
-            <span className="col-span-2 flex items-center justify-center text-sm">
-              {tradeInfo?.long.leverage}x
-            </span>
-            <span className="col-span-1 row-span-1 text-muted-foreground font-semibold flex items-center justify-center">
-              Leverage
-            </span>
-            <span className="col-span-2 flex items-center justify-center text-sm">
-              {tradeInfo?.short.leverage}x
-            </span>
+        <div className="flex-1 w-full bg-accent/10 rounded-md p-3 border">
+          <div className="flex justify-between mb-3">
+            <div className="px-4 py-1 rounded-md bg-green-500/10 text-green-500 text-center">
+              <span className="font-semibold">LONG</span>
+            </div>
+            <div className="px-4 py-1 rounded-md bg-red-500/10 text-red-500 text-center">
+              <span className="font-semibold">SHORT</span>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-muted-foreground text-center">Stop Loss</div>
+              <div className="text-center p-1 rounded-md bg-green-500/5">
+                <div>{tradeInfo?.long.stoploss.formatted}</div>
+                <div className="text-xs text-muted-foreground">({tradeInfo?.long.stoploss.percentage}%)</div>
+              </div>
+              <div className="text-center p-1 rounded-md bg-red-500/5">
+                <div>{tradeInfo?.short.stoploss.formatted}</div>
+                <div className="text-xs text-muted-foreground">({tradeInfo?.short.stoploss.percentage}%)</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-muted-foreground text-center">Take Profit</div>
+              <div className="text-center p-1 rounded-md bg-green-500/5">
+                <div>{tradeInfo?.long.target.formatted}</div>
+                <div className="text-xs text-muted-foreground">({tradeInfo?.long.target.percentage}%)</div>
+              </div>
+              <div className="text-center p-1 rounded-md bg-red-500/5">
+                <div>{tradeInfo?.short.target.formatted}</div>
+                <div className="text-xs text-muted-foreground">({tradeInfo?.short.target.percentage}%)</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-muted-foreground text-center">Leverage</div>
+              <div className="text-center font-semibold">{tradeInfo?.long.leverage}x</div>
+              <div className="text-center font-semibold">{tradeInfo?.short.leverage}x</div>
+            </div>
           </div>
         </div>
       )}
 
+      {/* 잔고 정보 */}
       {isBalanceLoading ? (
-        <div className="flex-[0.8] grid grid-cols-7 grid-rows-3 gap-0 h-lg:gap-1.5 h-xl:gap-2 w-full border rounded-md p-1 h-lg:p-2 h-xl:p-3">
-          <span className="text-xs text-muted-foreground capitalize">
-            balance
-          </span>
-          <span className="text-xs text-muted-foreground capitalize col-span-2">
-            total
-          </span>
-          <span className="text-xs text-muted-foreground capitalize col-span-2">
-            free
-          </span>
-          <span className="text-xs text-muted-foreground capitalize col-span-2">
-            used
-          </span>
-
-          <span className="text-xs text-muted-foreground capitalize">USDT</span>
-          <span className="col-span-2">
-            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-          </span>
-          <span className="col-span-2">
-            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-          </span>
-          <span className="col-span-2">
-            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-          </span>
-
-          <span className="text-xs text-muted-foreground capitalize">
-            TOTAL
-          </span>
-          <span className="col-span-2">
-            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-          </span>
-          <span className="col-span-2">
-            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-          </span>
-          <span className="col-span-2">
-            <Skeleton className="h-2.5 w-16 h-lg:h-3 h-lg:w-18 h-xl:h-4 h-xl:w-20" />
-          </span>
+        <div className="w-full border rounded-md p-2 bg-muted/10">
+          <div className="text-sm font-medium mb-2">Balance Information</div>
+          <div className="space-y-2">
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-xs text-muted-foreground">Asset</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="text-xs text-muted-foreground">Free</div>
+              <div className="text-xs text-muted-foreground">Used</div>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2 items-center">
+              <div className="text-xs font-medium">USDT</div>
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2 items-center border-t pt-1">
+              <div className="text-xs font-medium">TOTAL</div>
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          </div>
         </div>
       ) : balanceInfo ? (
-        <div className="flex-[0.8] grid grid-cols-7 grid-rows-3 gap-0 h-lg:gap-1.5 h-xl:gap-2 w-full border rounded-md p-1 h-lg:p-2 h-xl:p-3 min-h-0">
-          <span className="text-xs text-muted-foreground capitalize">
-            balance
-          </span>
-          <span className="text-xs text-muted-foreground capitalize col-span-2">
-            total
-          </span>
-          <span className="text-xs text-muted-foreground capitalize col-span-2">
-            free
-          </span>
-          <span className="text-xs text-muted-foreground capitalize col-span-2">
-            used
-          </span>
-          <span className="text-xs text-muted-foreground capitalize">
-            {balanceInfo.base.name ?? 0}
-          </span>
-          {/* Exchange-specific balance data handling */}
-          <BalanceDisplay 
-            exchange={exchange}
-            baseTotal={balanceInfo.base.total ?? 0}
-            baseFree={balanceInfo.base.free ?? 0}
-          />
-          <span className="text-sm capitalize col-span-2">
-            {balanceInfo.base.used ?? 0}
-          </span>
-          <span className="text-xs text-muted-foreground capitalize">
-            TOTAL
-          </span>
-          <span className="text-sm capitalize col-span-2">
-            {balanceInfo.usd.total}
-          </span>
-          <span className="text-sm capitalize col-span-2">
-            {balanceInfo.usd.free}
-          </span>
-          <span className="text-sm capitalize col-span-2">
-            {balanceInfo.usd.used}
-          </span>
+        <div className="w-full border rounded-md p-2 bg-muted/10">
+          <div className="text-sm font-medium mb-2">Balance Information</div>
+          <div className="space-y-2">
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-xs text-muted-foreground">Asset</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="text-xs text-muted-foreground">Free</div>
+              <div className="text-xs text-muted-foreground">Used</div>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2 items-center">
+              <div className="text-xs font-medium">{balanceInfo.base.name ?? 'USDT'}</div>
+              <div className="text-xs">{balanceInfo.base.total ?? 0}</div>
+              <div className="text-xs">{balanceInfo.base.free ?? 0}</div>
+              <div className="text-xs">{balanceInfo.base.used ?? 0}</div>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2 items-center border-t pt-1">
+              <div className="text-xs font-medium">TOTAL USD</div>
+              <div className="text-xs font-semibold">{balanceInfo.usd.total}</div>
+              <div className="text-xs">{balanceInfo.usd.free}</div>
+              <div className="text-xs">{balanceInfo.usd.used}</div>
+            </div>
+          </div>
         </div>
       ) : (
         <Link
           to={`/account/add?exchange=${exchange}`}
-          className="w-full border rounded-md p-2 font-bold text-xl text-center flex flex-col hover:underline"
+          className="w-full border rounded-md p-3 bg-accent/10 font-medium text-center flex flex-col gap-1 hover:bg-accent/20 transition-colors"
         >
-          <span>{`No Apikey Detected for ${exchange}.`}</span>
-          <span>Click here to add Apikey.</span>
+          <span>{`No API Key Detected for ${exchange}`}</span>
+          <span className="text-sm text-primary">Click here to add API Key</span>
         </Link>
       )}
     </div>

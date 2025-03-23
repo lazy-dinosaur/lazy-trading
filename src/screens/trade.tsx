@@ -73,38 +73,46 @@ const TradeInContexts = () => {
         backButton: true,
       }}
     >
-      {/* 고정된 상단 영역 */}
-      <div className="flex-none space-y-1 h-lg:space-y-2 h-xl:space-y-3 ">
-        <PriceInfo />
-        <div className="w-full flex items-center justify-between">
-          <TimeFrame />
-          <AccountSelector />
+      {/* 헤더 및 제어 영역 */}
+      <div className="flex-none space-y-1 h-lg:space-y-2 h-xl:space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-3">
+          <PriceInfo />
+          <div className="w-full flex items-center justify-between">
+            <TimeFrame />
+            <AccountSelector />
+          </div>
         </div>
         <ChartComponent />
-        <div ref={tradeComponentRef}>
+      </div>
+      
+      {/* 트레이딩 및 포지션 영역 - 화면이 넓을 경우 나란히 배치 */}
+      <div className="flex flex-col lg:flex-row gap-2 flex-1 min-h-0">
+        {/* 트레이딩 컴포넌트 */}
+        <div ref={tradeComponentRef} className="lg:w-1/2 min-h-[200px]">
           <TradeComponent />
         </div>
-      </div>
-      {/* 포지션 영역 */}
-      <div
-        ref={positionRef}
-        className={cn(
-          "mt-1 h-lg:mt-2 h-xl:mt-3",
-          isCompact &&
-            "hover:transform hover:translate-y-[var(--bottom-distance)] transition-transform duration-300",
-          isCompact
-            ? "relative h-[50vh] bg-background z-10"
-            : "flex-1 overflow-auto min-h-0",
-        )}
-        style={
-          isCompact
-            ? ({
-                "--bottom-distance": `${bottomDistance}px`,
-              } as React.CSSProperties)
-            : undefined
-        }
-      >
-        <PositionComponent isCompact={isCompact} />
+        
+        {/* 포지션 영역 */}
+        <div
+          ref={positionRef}
+          className={cn(
+            "mt-1 h-lg:mt-2 h-xl:mt-3 lg:mt-0 lg:w-1/2",
+            isCompact &&
+              "hover:transform hover:translate-y-[var(--bottom-distance)] transition-transform duration-300",
+            isCompact
+              ? "relative h-[50vh] bg-background z-10"
+              : "flex-1 overflow-auto min-h-0",
+          )}
+          style={
+            isCompact
+              ? ({
+                  "--bottom-distance": `${bottomDistance}px`,
+                } as React.CSSProperties)
+              : undefined
+          }
+        >
+          <PositionComponent isCompact={isCompact} />
+        </div>
       </div>
     </ScreenWrapper>
   );

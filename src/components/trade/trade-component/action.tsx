@@ -59,20 +59,25 @@ export const TradingAction = () => {
   };
 
   return (
-    <div className="flex w-1/3 min-w-32 max-w-64 flex-col items-center justify-between h-full px-1 h-lg:px-1.5 h-xl:px-2">
-      <div className="flex-1 space-y-1 h-lg:space-y-2 h-xl:space-y-3">
-        <div className="w-full text-sm text-muted-foreground capitalize">
-          Setting
+    <div className="flex flex-col items-center justify-between h-full w-full rounded-md border-opacity-50 p-2">
+      {/* 설정 영역 */}
+      <div className="w-full mb-2">
+        <div className="w-full text-sm font-medium text-muted-foreground mb-2 border-b pb-1">
+          Trading Settings
         </div>
-        <CloseSetting />
-        <RiskSetting />
-        <TradingSetting />
+        <div className="space-y-3">
+          <CloseSetting />
+          <RiskSetting />
+          <TradingSetting />
+        </div>
       </div>
-      <div className="flex-none flex flex-col w-full gap-1 h-lg:gap-1.5 h-xl:gap-2">
+      
+      {/* 트레이딩 버튼 영역 */}
+      <div className="w-full mt-auto grid grid-cols-2 gap-2">
         <Button
           value={"long"}
           variant={"long"}
-          className="h-6 h-lg:h-7 h-xl:h-8 opacity-90"
+          className="py-2 md:py-3 text-base font-bold shadow-md hover:shadow-lg transition-all"
           disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
         >
@@ -81,7 +86,7 @@ export const TradingAction = () => {
         <Button
           value={"short"}
           variant={"short"}
-          className="h-6 h-lg:h-7 h-xl:h-8 opacity-90"
+          className="py-2 md:py-3 text-base font-bold shadow-md hover:shadow-lg transition-all"
           disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
         >
@@ -92,12 +97,62 @@ export const TradingAction = () => {
   );
 };
 
+interface SettingControlProps {
+  label: string;
+  value: number | string;
+  unit: string;
+  onDecrease: () => void;
+  onIncrease: () => void;
+  disabled?: boolean;
+  tooltipText?: string;
+}
+
+const SettingControl = ({ 
+  label, 
+  value, 
+  unit, 
+  onDecrease, 
+  onIncrease, 
+  disabled = false,
+}: SettingControlProps) => {
+  return (
+    <div className="flex flex-col w-full">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm font-medium">{label}</span>
+        <div className="font-semibold text-sm bg-accent/30 px-2 py-0.5 rounded">
+          {value}{unit}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 h-7"
+          disabled={disabled}
+          onClick={onDecrease}
+        >
+          <ChevronDown className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 h-7"
+          disabled={disabled}
+          onClick={onIncrease}
+        >
+          <ChevronUp className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const CloseSetting = () => {
   const { config, updateConfig, isLoading } = useTradingConfig();
 
   return (
-    <>
-      <div className="w-full px-2 flex items-center gap-2 justify-center">
+    <div className="w-full space-y-2">
+      <div className="w-full flex items-center gap-2">
         <Switch
           id="partial-close"
           checked={config?.partialClose}
@@ -106,97 +161,66 @@ const CloseSetting = () => {
           }}
           disabled={isLoading}
         />
-        <Label htmlFor="partial-close" className="text-sm">
+        <Label htmlFor="partial-close" className="text-sm font-medium cursor-pointer">
           Partial Close
         </Label>
       </div>
+      
       {config?.partialClose && (
-        <>
-          <div className="flex w-full items-center justify-between px-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
-              onClick={() => {
-                const closeRatio = config?.closeRatio
-                  ? config.closeRatio - 5 < 5
-                    ? 5
-                    : config.closeRatio - 5
-                  : 50;
-                updateConfig({ closeRatio });
-              }}
-            >
-              <ChevronDown className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
-            </Button>
-            <div className="flex flex-col items-center">
-              <span className="text-xs text-muted-foreground">C/R</span>
-              <span className="text-sm font-semibold">
-                {config.closeRatio} %
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
-              onClick={() => {
-                const closeRatio = config?.closeRatio
-                  ? config.closeRatio + 5 > 100
-                    ? 100
-                    : config.closeRatio + 5
-                  : 50;
-                updateConfig({ closeRatio });
-              }}
-            >
-              <ChevronUp className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
-            </Button>
-          </div>
-        </>
+        <SettingControl
+          label="Close Ratio"
+          value={config.closeRatio}
+          unit="%"
+          disabled={isLoading}
+          onDecrease={() => {
+            const closeRatio = config?.closeRatio
+              ? config.closeRatio - 5 < 5
+                ? 5
+                : config.closeRatio - 5
+              : 50;
+            updateConfig({ closeRatio });
+          }}
+          onIncrease={() => {
+            const closeRatio = config?.closeRatio
+              ? config.closeRatio + 5 > 100
+                ? 100
+                : config.closeRatio + 5
+              : 50;
+            updateConfig({ closeRatio });
+          }}
+          tooltipText="포지션 부분 종료 비율"
+        />
       )}
-    </>
+    </div>
   );
 };
+
 const TradingSetting = () => {
   const { config, isLoading, updateConfig } = useTradingConfig();
 
   return (
-    <div className="flex w-full items-center justify-between px-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
-        disabled={isLoading}
-        onClick={() => {
-          const riskRatio = config?.riskRatio
-            ? config.riskRatio - 0.5 < 0.5
-              ? 0.5
-              : config.riskRatio - 0.5
-            : 1.5;
-          updateConfig({ riskRatio });
-        }}
-      >
-        <ChevronDown className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
-      </Button>
-      <div className="flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">R/R</span>
-        <span className="text-sm font-semibold">{config?.riskRatio} : 1</span>
-      </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
-        disabled={isLoading}
-        onClick={() => {
-          const riskRatio = config?.riskRatio
-            ? config.riskRatio + 0.5 > 5
-              ? 5
-              : config.riskRatio + 0.5
-            : 1.5;
-          updateConfig({ riskRatio });
-        }}
-      >
-        <ChevronUp className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
-      </Button>
-    </div>
+    <SettingControl
+      label="Risk Reward Ratio"
+      value={config?.riskRatio ?? 1.5}
+      unit=" : 1"
+      disabled={isLoading}
+      onDecrease={() => {
+        const riskRatio = config?.riskRatio
+          ? config.riskRatio - 0.5 < 0.5
+            ? 0.5
+            : config.riskRatio - 0.5
+          : 1.5;
+        updateConfig({ riskRatio });
+      }}
+      onIncrease={() => {
+        const riskRatio = config?.riskRatio
+          ? config.riskRatio + 0.5 > 5
+            ? 5
+            : config.riskRatio + 0.5
+          : 1.5;
+        updateConfig({ riskRatio });
+      }}
+    />
   );
 };
 
@@ -204,43 +228,27 @@ const RiskSetting = () => {
   const { config, updateConfig, isLoading } = useTradingConfig();
 
   return (
-    <div className="flex w-full items-center justify-between px-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
-        disabled={isLoading}
-        onClick={() => {
-          const risk = config?.risk
-            ? config.risk - 0.5 < 0.5
-              ? 0.5
-              : config.risk - 0.5
-            : 1.5;
-          updateConfig({ risk });
-        }}
-      >
-        <ChevronDown className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
-      </Button>
-      <div className="flex flex-col items-center">
-        <span className="text-xs text-muted-foreground">Risk</span>
-        <span className="text-sm font-semibold">{config?.risk}%</span>
-      </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-4 w-4 h-lg:h-5 h-lg:w-5 h-xl:h-6 h-xl:w-6 hover:bg-accent border"
-        disabled={isLoading}
-        onClick={() => {
-          const risk = config?.risk
-            ? config.risk + 0.5 > 5
-              ? 5
-              : config.risk + 0.5
-            : 1.5;
-          updateConfig({ risk });
-        }}
-      >
-        <ChevronUp className="h-2 w-2 h-lg:h-3 h-lg:w-3 h-xl:h-4 h-xl:w-4" />
-      </Button>
-    </div>
+    <SettingControl
+      label="Risk Percentage"
+      value={config?.risk ?? 1.5}
+      unit="%"
+      disabled={isLoading}
+      onDecrease={() => {
+        const risk = config?.risk
+          ? config.risk - 0.5 < 0.5
+            ? 0.5
+            : config.risk - 0.5
+          : 1.5;
+        updateConfig({ risk });
+      }}
+      onIncrease={() => {
+        const risk = config?.risk
+          ? config.risk + 0.5 > 5
+            ? 5
+            : config.risk + 0.5
+          : 1.5;
+        updateConfig({ risk });
+      }}
+    />
   );
 };

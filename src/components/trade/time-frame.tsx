@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router";
+import { cn } from "@/lib/utils";
+
 export type TimeFrameType =
   | "1"
   | "5"
@@ -11,9 +13,33 @@ export type TimeFrameType =
   | "W"
   | "M";
 
+interface TimeFrameButtonProps {
+  value: TimeFrameType;
+  label: string;
+  isActive: boolean;
+  onClick: (value: TimeFrameType) => void;
+}
+
+const TimeFrameButton = ({ value, label, isActive, onClick }: TimeFrameButtonProps) => {
+  return (
+    <button
+      onClick={() => onClick(value)}
+      className={cn(
+        "px-2 py-1 rounded text-xs md:text-sm transition-all",
+        "hover:bg-accent focus:outline-none focus:ring-1 focus:ring-primary",
+        isActive 
+          ? "bg-primary/20 text-primary font-medium" 
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {label}
+    </button>
+  );
+};
+
 export const TimeFrame = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const timeframe = searchParams.get("timeframe") as TimeFrameType;
+  const timeframe = searchParams.get("timeframe") as TimeFrameType || "1";
 
   const setTimeframe = useCallback(
     (newTimeframe: TimeFrameType) => {
@@ -24,71 +50,33 @@ export const TimeFrame = () => {
     [searchParams, setSearchParams],
   );
 
+  // 시간 프레임 옵션 정의
+  const timeframeOptions: { value: TimeFrameType; label: string }[] = [
+    { value: "1", label: "1m" },
+    { value: "5", label: "5m" },
+    { value: "15", label: "15m" },
+    { value: "30", label: "30m" },
+    { value: "60", label: "1h" },
+    { value: "240", label: "4h" },
+    { value: "D", label: "1D" },
+    { value: "W", label: "1W" },
+    { value: "M", label: "1M" },
+  ];
+
   return (
-    <div className="grid grid-flow-col gap-2 text-muted-foreground text-sm">
-      <span
-        aria-selected={timeframe == "1"}
-        onClick={() => setTimeframe("1")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        1m
-      </span>
-      <span
-        aria-selected={timeframe == "5"}
-        onClick={() => setTimeframe("5")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        5m
-      </span>
-      <span
-        aria-selected={timeframe == "15"}
-        onClick={() => setTimeframe("15")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        15m
-      </span>
-      <span
-        aria-selected={timeframe == "30"}
-        onClick={() => setTimeframe("30")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        30m
-      </span>
-      <span
-        aria-selected={timeframe == "60"}
-        onClick={() => setTimeframe("60")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        1h
-      </span>
-      <span
-        aria-selected={timeframe == "240"}
-        onClick={() => setTimeframe("240")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        4h
-      </span>
-      <span
-        aria-selected={timeframe == "D"}
-        onClick={() => setTimeframe("D")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        1D
-      </span>
-      <span
-        aria-selected={timeframe == "W"}
-        onClick={() => setTimeframe("W")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        1W
-      </span>
-      <span
-        aria-selected={timeframe == "M"}
-        onClick={() => setTimeframe("M")}
-        className="aria-selected:text-white aria-selected:font-semibold"
-      >
-        1M
-      </span>
+    <div className="flex items-center">
+      <div className="mr-2 text-xs text-muted-foreground hidden md:block">Time:</div>
+      <div className="flex flex-wrap gap-1 border bg-card/50 p-1 rounded-md">
+        {timeframeOptions.map((option) => (
+          <TimeFrameButton
+            key={option.value}
+            value={option.value}
+            label={option.label}
+            isActive={timeframe === option.value}
+            onClick={setTimeframe}
+          />
+        ))}
+      </div>
     </div>
   );
 };
