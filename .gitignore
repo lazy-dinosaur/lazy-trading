@@ -26,3 +26,9 @@ dist-ssr
 .aider*
 CONVENTIONS.md
 CLAUDE.md
+
+# Build/cache
+.bun-cache
+.vite-cache
+*.tsbuildinfo
+.rollup.cache
