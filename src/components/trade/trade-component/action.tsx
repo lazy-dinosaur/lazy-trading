@@ -10,7 +10,12 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTradeMutation } from "@/hooks/use-trade-mutation";
 import { PositionInfo } from "@/lib/trade";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +23,9 @@ interface TradingActionProps {
   tradeDirection?: "long" | "short";
 }
 
-export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) => {
+export const TradingAction = ({
+  tradeDirection = "long",
+}: TradingActionProps) => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
   const exchange = searchParams.get("exchange") as ExchangeType;
@@ -29,7 +36,7 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
   const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
   const { config } = useTradingConfig();
   const tradeMutation = useTradeMutation();
-  
+
   // 설정 패널 열기/닫기 상태
   const [settingsOpen, setSettingsOpen] = useState(true);
 
@@ -66,33 +73,38 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
   };
 
   // 트레이드 방향에 따른 스타일 설정
-  const buttonStyle = tradeDirection === "long" 
-    ? "bg-gradient-to-b from-green-500 to-green-600 hover:from-green-400 hover:to-green-500" 
-    : "bg-gradient-to-b from-red-500 to-red-600 hover:from-red-400 hover:to-red-500";
+  const buttonStyle =
+    tradeDirection === "long"
+      ? "bg-gradient-to-b from-green-500 to-green-600 hover:from-green-400 hover:to-green-500"
+      : "bg-gradient-to-b from-red-500 to-red-600 hover:from-red-400 hover:to-red-500";
 
   const directionText = tradeDirection === "long" ? "롱" : "숏";
 
   // 거래 요약 정보
   const getTradeSummary = () => {
     if (!tradeInfo?.[tradeDirection]?.position) return null;
-    
+
     const info = tradeInfo[tradeDirection];
-    
+
     return (
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm">레버리지:</span>
-          <span className="text-sm font-medium">{info.calculatedLeverage}x</span>
+          <span className="text-sm font-medium">{info.leverage}x</span>
         </div>
         <div className="flex justify-between">
           <span className="text-sm">손절가:</span>
-          <span className={`text-sm font-medium ${tradeDirection === 'long' ? 'text-red-500' : 'text-green-500'}`}>
+          <span
+            className={`text-sm font-medium ${tradeDirection === "long" ? "text-red-500" : "text-green-500"}`}
+          >
             {info.stoploss.formatted} ({info.stoploss.percentage}%)
           </span>
         </div>
         <div className="flex justify-between">
           <span className="text-sm">목표가:</span>
-          <span className={`text-sm font-medium ${tradeDirection === 'long' ? 'text-green-500' : 'text-red-500'}`}>
+          <span
+            className={`text-sm font-medium ${tradeDirection === "long" ? "text-green-500" : "text-red-500"}`}
+          >
             {info.target.formatted} ({info.target.percentage}%)
           </span>
         </div>
@@ -103,7 +115,7 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
   return (
     <div className="flex flex-col items-center justify-between h-full w-full rounded-md p-2">
       {/* 거래 설정 헤더 */}
-      <div 
+      <div
         className="w-full mb-2 cursor-pointer flex items-center justify-between"
         onClick={() => setSettingsOpen(!settingsOpen)}
       >
@@ -124,7 +136,7 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
           {settingsOpen ? "접기" : "펼치기"}
         </span>
       </div>
-      
+
       {/* 설정 패널 */}
       {settingsOpen && (
         <div className="space-y-3 w-full bg-accent/10 p-2 rounded-md mb-2">
@@ -133,21 +145,31 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
           <TradingSetting />
         </div>
       )}
-      
+
       {/* 거래 요약 정보 */}
       <div className="w-full mb-4">
-        <Card className={cn(
-          "border", 
-          tradeDirection === "long" ? "bg-green-100/10 border-green-200/20" : "bg-red-100/10 border-red-200/20"
-        )}>
+        <Card
+          className={cn(
+            "border",
+            tradeDirection === "long"
+              ? "bg-green-100/10 border-green-200/20"
+              : "bg-red-100/10 border-red-200/20",
+          )}
+        >
           <CardContent className="p-3">
-            <div className={cn(
-              "text-center text-sm font-semibold mb-2",
-              tradeDirection === "long" ? "text-green-600" : "text-red-600"
-            )}>
+            <div
+              className={cn(
+                "text-center text-sm font-semibold mb-2",
+                tradeDirection === "long" ? "text-green-600" : "text-red-600",
+              )}
+            >
               {directionText} 거래 요약
             </div>
-            {getTradeSummary() || <div className="text-sm text-center text-muted-foreground">정보 없음</div>}
+            {getTradeSummary() || (
+              <div className="text-sm text-center text-muted-foreground">
+                정보 없음
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -159,14 +181,14 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
           <p className="text-sm">거래하기 전에 계정을 선택해주세요.</p>
         </div>
       )}
-      
+
       {/* 거래 버튼 영역 */}
       <div className="w-full mt-auto">
         <Button
           onClick={handleTrade}
           className={cn(
             "w-full py-3 text-base font-bold shadow-md hover:shadow-lg transition-all",
-            buttonStyle
+            buttonStyle,
           )}
           disabled={!accountInfo || tradeMutation.isPending}
         >
@@ -188,12 +210,12 @@ interface SettingControlProps {
   tooltipText?: string;
 }
 
-const SettingControl = ({ 
-  label, 
-  value, 
-  unit, 
-  onDecrease, 
-  onIncrease, 
+const SettingControl = ({
+  label,
+  value,
+  unit,
+  onDecrease,
+  onIncrease,
   disabled = false,
   tooltipText,
 }: SettingControlProps) => {
@@ -216,7 +238,8 @@ const SettingControl = ({
           )}
         </div>
         <div className="font-semibold text-sm bg-accent/30 px-2 py-0.5 rounded">
-          {value}{unit}
+          {value}
+          {unit}
         </div>
       </div>
       <div className="flex items-center justify-between gap-2">
@@ -257,11 +280,14 @@ const CloseSetting = () => {
           }}
           disabled={isLoading}
         />
-        <Label htmlFor="partial-close" className="text-sm font-medium cursor-pointer">
+        <Label
+          htmlFor="partial-close"
+          className="text-sm font-medium cursor-pointer"
+        >
           부분 청산
         </Label>
       </div>
-      
+
       {config?.partialClose && (
         <SettingControl
           label="청산 비율"

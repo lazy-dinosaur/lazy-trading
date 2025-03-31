@@ -2,7 +2,7 @@ import { ExchangeType } from "@/lib/accounts";
 import { PositionInfo } from "@/lib/trade";
 import { useMutation } from "@tanstack/react-query";
 import { binance, bitget, bybit } from "ccxt";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 interface TradeParams {
   ccxtInstance: binance | bitget | bybit;
@@ -30,14 +30,14 @@ async function executeTrade({
 
   // 토스트 알림 ID 생성 (진행 중 상태 표시용)
   const toastId = toast.loading(
-    `${tradeType === 'long' ? '롱' : '숏'} 포지션 생성 중...`, 
-    { 
-      position: 'bottom-center',
+    `${tradeType === "long" ? "롱" : "숏"} 포지션 생성 중...`,
+    {
+      position: "bottom-center",
       style: {
-        borderRadius: '10px',
-        background: '#333',
-        color: '#fff',
-      }
+        borderRadius: "10px",
+        background: "#333",
+        color: "#fff",
+      },
     }
   );
 
@@ -52,7 +52,7 @@ async function executeTrade({
     } catch (error) {
       console.warn("Failed to set leverage:", error);
     }
-    
+
     try {
       await ccxtInstance.setMarginMode("cross", symbol);
     } catch (error) {
@@ -88,7 +88,7 @@ async function executeTrade({
 
     // Execute orders based on the exchange
     const amount = isusdt ? info.position.size : info.position.size / 100;
-    
+
     let result;
     if (exchange === "binance") {
       result = await Promise.all([
@@ -116,12 +116,13 @@ async function executeTrade({
             positionSide: tradeType.toUpperCase(),
             takeProfitPrice: info.target.price,
             hedged: true,
-          },
+          }
         ),
       ]);
     } else if (exchange === "bybit") {
-      const positionIdx = isusdt ? (tradeType === "long" ? 1 : 2) : 0;
+      const positionIdx = 0; // 단방향 모드이므로 항상 0
       result = await Promise.all([
+        // 진입 주문
         ccxtInstance.createOrder(
           symbol,
           "market",
@@ -129,12 +130,14 @@ async function executeTrade({
           info.position.size,
           undefined,
           {
-            positionIdx,
+            positionIdx, // positionIdx: 0 전달
+            // stopLoss 파라미터는 진입 주문과 분리하는 것이 더 안정적일 수 있으나, 일단 유지
             stopLoss: {
               triggerPrice: info.stoploss.price,
             },
-          },
+          }
         ),
+        // 익절 주문 (reduceOnly)
         ccxtInstance.createOrder(
           symbol,
           "limit",
@@ -144,9 +147,9 @@ async function executeTrade({
             : info.position.size,
           info.target.price,
           {
-            positionIdx,
+            // positionIdx 제거, reduceOnly만 사용
             reduceOnly: true,
-          },
+          }
         ),
       ]);
     } else if (exchange === "bitget") {
@@ -162,7 +165,7 @@ async function executeTrade({
               triggerPrice: info.stoploss.price,
             },
             hedged: true,
-          },
+          }
         ),
         ccxtInstance.createOrder(
           symbol,
@@ -176,7 +179,7 @@ async function executeTrade({
             holdSide: tradeType,
             reduceOnly: true,
             hedged: true,
-          },
+          }
         ),
       ]);
     } else {
@@ -185,37 +188,39 @@ async function executeTrade({
 
     // 성공 메시지 표시
     toast.success(
-      `${symbol} ${tradeType === 'long' ? '롱' : '숏'} 포지션 생성 성공!`, 
-      { 
+      `${symbol} ${tradeType === "long" ? "롱" : "숏"} 포지션 생성 성공!`,
+      {
         id: toastId,
-        icon: '✅',
+        icon: "✅",
         style: {
-          borderRadius: '10px',
-          background: tradeType === 'long' ? '#10b981' : '#ef4444',
-          color: '#fff',
-        }
+          borderRadius: "10px",
+          background: tradeType === "long" ? "#10b981" : "#ef4444",
+          color: "#fff",
+        },
       }
     );
-    
+
     return result;
   } catch (error) {
     console.error("Order execution failed:", error);
-    
+
     // 오류 메시지 표시
     toast.error(
-      `주문 실행 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`, 
-      { 
+      `주문 실행 실패: ${
+        error instanceof Error ? error.message : "알 수 없는 오류"
+      }`,
+      {
         id: toastId,
-        icon: '❌',
+        icon: "❌",
         duration: 5000,
         style: {
-          borderRadius: '10px',
-          background: '#f43f5e',
-          color: '#fff',
-        }
+          borderRadius: "10px",
+          background: "#f43f5e",
+          color: "#fff",
+        },
       }
     );
-    
+
     throw error;
   }
 }
@@ -225,8 +230,9 @@ export function useTradeMutation() {
     mutationFn: executeTrade,
     onMutate: (variables) => {
       // 로딩 시작 시 콜백
-      console.log(`Starting ${variables.tradeType} position creation for ${variables.symbol}`);
+      console.log(
+        `Starting ${variables.tradeType} position creation for ${variables.symbol}`
+      );
     },
   });
 }
-

@@ -12,6 +12,7 @@ export interface DecryptedAccount
   extends Omit<Account, "apiKey" | "secretKey"> {
   apiKey: string;
   secretKey: string;
+  positionMode?: "oneway" | "hedge"; // 포지션 모드 추가
   exchangeInstance: {
     ccxt: bitget | binance | bybit;
     pro: bitget | binance | bybit;
@@ -31,6 +32,7 @@ export interface Account {
   exchange: ExchangeType; // 거래소 종류
   apiKey: EncryptedData;
   secretKey: EncryptedData;
+  positionMode?: "oneway" | "hedge"; // 포지션 모드 추가
   createdAt: number; // 생성 시간 timestamp
 }
 
@@ -176,7 +178,7 @@ export const deleteAllAccounts = async (): Promise<boolean> => {
 
 export const decryptAccount = async (
   account: Account,
-  pin: string,
+  pin: string
 ): Promise<DecryptedAccount | null> => {
   if (!pin) {
     console.warn("PIN is not set");
@@ -189,13 +191,14 @@ export const decryptAccount = async (
     const exchangeInstance = await createAccountInstance(
       account.exchange,
       decryptedApiKey,
-      decryptedSecretKey,
+      decryptedSecretKey
     );
 
     return {
       ...account,
       apiKey: decryptedApiKey,
       secretKey: decryptedSecretKey,
+      positionMode: account.positionMode || "oneway", // positionMode 포함 (기본값 'oneway')
       exchangeInstance,
     };
   } catch (error) {
@@ -206,7 +209,7 @@ export const decryptAccount = async (
 
 export const encryptAccount = async (
   account: RawAccountInput,
-  pin: string | null | undefined,
+  pin: string | null | undefined
 ): Promise<Account | null> => {
   if (!pin) {
     console.warn("PIN is not set");
@@ -223,6 +226,7 @@ export const encryptAccount = async (
       createdAt: Date.now(),
       apiKey: encryptedApiKey,
       secretKey: encryptedSecretKey,
+      positionMode: account.positionMode || "oneway", // positionMode 포함 (기본값 'oneway')
     };
   } catch (error) {
     console.error("Failed to encrypt account:", error);
@@ -246,7 +250,7 @@ export const addAccount = async ({
 
 export const decrypteAllAccounts = async (
   validPin: string,
-  accounts: Accounts,
+  accounts: Accounts
 ) => {
   if (!accounts || !validPin) return {};
 
@@ -284,7 +288,7 @@ async function handleBybitBalance(balance: Balances): Promise<USDBalance> {
 
 async function handleBinanceBalance(
   exchange: Exchange,
-  balance: Balances,
+  balance: Balances
 ): Promise<USDBalance> {
   const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
   const stableCoins = ["USDT", "USDC", "FDUSD", "USD", "BUSD"];
@@ -335,7 +339,7 @@ async function handleBitgetBalance(balance: Balances): Promise<USDBalance> {
 
 async function handleDefaultBalance(
   exchange: Exchange,
-  balance: Balances,
+  balance: Balances
 ): Promise<USDBalance> {
   const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
   const stableCoins = ["USDT", "USDC", "USD", "BUSD"];
@@ -380,7 +384,7 @@ async function handleDefaultBalance(
 
 export async function calculateUSDBalance(
   exchange: Exchange,
-  balance: Balances,
+  balance: Balances
 ): Promise<USDBalance> {
   try {
     let result;
@@ -426,7 +430,7 @@ export const fetchBalance = async (data?: DecryptedAccountObj) => {
 
         const usdBalance = await calculateUSDBalance(
           exchangeInstance,
-          rawBalance,
+          rawBalance
         );
         console.log("rawBalance:", rawBalance);
         const balance = {
@@ -444,10 +448,10 @@ export const fetchBalance = async (data?: DecryptedAccountObj) => {
         console.error(
           `Error fetching balance for account ${account.id}:`,
 
-          error,
+          error
         );
       }
-    }),
+    })
   );
 
   return accountsInfo;
@@ -503,7 +507,7 @@ export const isAccountValid = async ({
 export const createAccountInstance = async (
   exchange: ExchangeType,
   apiKey: string,
-  secret: string,
+  secret: string
 ) => {
   const exchangeCCXT = new ccxt[exchange]({
     apiKey,
