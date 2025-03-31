@@ -79,20 +79,20 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
     const info = tradeInfo[tradeDirection];
     
     return (
-      <div className="space-y-1 text-xs">
+      <div className="space-y-2">
         <div className="flex justify-between">
-          <span>레버리지:</span>
-          <span className="font-medium">{info.calculatedLeverage}x</span>
+          <span className="text-sm">레버리지:</span>
+          <span className="text-sm font-medium">{info.calculatedLeverage}x</span>
         </div>
         <div className="flex justify-between">
-          <span>손절가:</span>
-          <span className={`font-medium ${tradeDirection === 'long' ? 'text-red-500' : 'text-green-500'}`}>
+          <span className="text-sm">손절가:</span>
+          <span className={`text-sm font-medium ${tradeDirection === 'long' ? 'text-red-500' : 'text-green-500'}`}>
             {info.stoploss.formatted} ({info.stoploss.percentage}%)
           </span>
         </div>
         <div className="flex justify-between">
-          <span>목표가:</span>
-          <span className={`font-medium ${tradeDirection === 'long' ? 'text-green-500' : 'text-red-500'}`}>
+          <span className="text-sm">목표가:</span>
+          <span className={`text-sm font-medium ${tradeDirection === 'long' ? 'text-green-500' : 'text-red-500'}`}>
             {info.target.formatted} ({info.target.percentage}%)
           </span>
         </div>
@@ -140,14 +140,14 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
           "border", 
           tradeDirection === "long" ? "bg-green-100/10 border-green-200/20" : "bg-red-100/10 border-red-200/20"
         )}>
-          <CardContent className="p-2">
+          <CardContent className="p-3">
             <div className={cn(
-              "text-center text-xs font-semibold mb-1",
+              "text-center text-sm font-semibold mb-2",
               tradeDirection === "long" ? "text-green-600" : "text-red-600"
             )}>
               {directionText} 거래 요약
             </div>
-            {getTradeSummary() || <div className="text-xs text-center text-muted-foreground">정보 없음</div>}
+            {getTradeSummary() || <div className="text-sm text-center text-muted-foreground">정보 없음</div>}
           </CardContent>
         </Card>
       </div>
@@ -156,7 +156,7 @@ export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) =
       {!accountInfo && (
         <div className="w-full flex items-center gap-2 p-2 bg-yellow-100/20 border border-yellow-300/30 rounded-md mb-3 text-yellow-600">
           <AlertTriangle className="h-4 w-4 flex-none" />
-          <p className="text-xs">거래하기 전에 계정을 선택해주세요.</p>
+          <p className="text-sm">거래하기 전에 계정을 선택해주세요.</p>
         </div>
       )}
       
