@@ -42,17 +42,17 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
       };
 
   return (
-    <div className="h-full w-full flex flex-col gap-2 overflow-hidden p-2">
+    <div className="h-full w-full flex flex-col gap-3 overflow-hidden p-2">
       {/* 상단 헤더 영역 */}
-      <div className="flex w-full items-center justify-between bg-muted/20 p-2 rounded-md">
-        <span className="text-sm font-medium">
+      <div className="flex w-full items-center justify-between bg-muted/20 p-3 rounded-md">
+        <span className="text-base font-medium">
           {tradeDirection === "long" ? "롱 포지션 정보" : "숏 포지션 정보"}
         </span>
-        <div className="flex gap-3 text-xs">
+        <div className="flex gap-4 text-sm">
           {isTradeInfoLoading ? (
             <>
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-20" />
             </>
           ) : (
             <>
@@ -75,96 +75,96 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
 
       {/* 트레이딩 정보 영역 */}
       {isTradeInfoLoading ? (
-        <div className="flex-1 w-full bg-accent/10 rounded-md p-3 border">
-          <div className="flex justify-center mb-3">
-            <div className={cn("px-4 py-1 rounded-md text-center", directionStyle.bgColor, directionStyle.textColor)}>
-              <span className="font-semibold">{tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}</span>
+        <div className="flex-1 w-full bg-accent/10 rounded-md p-4 border">
+          <div className="flex justify-center mb-4">
+            <div className={cn("px-5 py-1.5 rounded-md text-center", directionStyle.bgColor, directionStyle.textColor)}>
+              <span className="font-semibold text-base">{tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}</span>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">손절가</div>
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">손절가</div>
               <div className="text-right">
-                <Skeleton className="h-4 w-full ml-auto" />
+                <Skeleton className="h-5 w-full ml-auto" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">목표가</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">목표가</div>
               <div className="text-right">
-                <Skeleton className="h-4 w-full ml-auto" />
+                <Skeleton className="h-5 w-full ml-auto" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">레버리지</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">레버리지</div>
               <div className="text-right">
-                <Skeleton className="h-4 w-12 ml-auto" />
+                <Skeleton className="h-5 w-20 ml-auto" />
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">포지션 크기</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">포지션 크기</div>
               <div className="text-right">
-                <Skeleton className="h-4 w-full ml-auto" />
+                <Skeleton className="h-5 w-full ml-auto" />
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="flex-1 w-full bg-accent/10 rounded-md p-3 border">
-          <div className="flex justify-center mb-3">
-            <div className={cn("px-4 py-1 rounded-md text-center", directionStyle.bgColor, directionStyle.textColor)}>
-              <span className="font-semibold">{tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}</span>
+        <div className="flex-1 w-full bg-accent/10 rounded-md p-4 border">
+          <div className="flex justify-center mb-4">
+            <div className={cn("px-5 py-1.5 rounded-md text-center", directionStyle.bgColor, directionStyle.textColor)}>
+              <span className="font-semibold text-base">{tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}</span>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">손절가</div>
-              <div className={cn("text-right p-1 rounded-md", directionStyle.infoBoxBg)}>
-                <div className="font-medium">
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">손절가</div>
+              <div className={cn("text-right p-2 rounded-md", directionStyle.infoBoxBg)}>
+                <div className="font-medium text-base">
                   {tradeInfo?.[tradeDirection].stoploss.formatted}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-sm text-muted-foreground">
                   ({tradeInfo?.[tradeDirection].stoploss.percentage}%)
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">목표가</div>
-              <div className={cn("text-right p-1 rounded-md", directionStyle.infoBoxBg)}>
-                <div className="font-medium">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">목표가</div>
+              <div className={cn("text-right p-2 rounded-md", directionStyle.infoBoxBg)}>
+                <div className="font-medium text-base">
                   {tradeInfo?.[tradeDirection].target.formatted}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-sm text-muted-foreground">
                   ({tradeInfo?.[tradeDirection].target.percentage}%)
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-muted-foreground">레버리지</div>
-              <div className="text-right font-bold">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-base text-muted-foreground">레버리지</div>
+              <div className="text-right font-bold text-lg">
                 {tradeInfo?.[tradeDirection].leverage}x
               </div>
             </div>
             
             {tradeInfo?.[tradeDirection].position && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-muted-foreground">포지션 크기</div>
-                <div className="text-right font-medium">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-base text-muted-foreground">포지션 크기</div>
+                <div className="text-right font-medium text-base">
                   {tradeInfo?.[tradeDirection].position.size}
                 </div>
               </div>
             )}
             
             {tradeInfo?.[tradeDirection].position && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-muted-foreground">마진 금액</div>
-                <div className="text-right">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-base text-muted-foreground">마진 금액</div>
+                <div className="text-right text-base">
                   {tradeInfo?.[tradeDirection].position.margin}
                 </div>
               </div>
@@ -175,67 +175,67 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
 
       {/* 잔고 정보 */}
       {isBalanceLoading ? (
-        <div className="w-full border rounded-md p-2 bg-muted/10">
-          <div className="text-sm font-medium mb-2">잔고 정보</div>
-          <div className="space-y-2">
-            <div className="grid grid-cols-4 gap-2">
-              <div className="text-xs text-muted-foreground">자산</div>
-              <div className="text-xs text-muted-foreground">총액</div>
-              <div className="text-xs text-muted-foreground">사용 가능</div>
-              <div className="text-xs text-muted-foreground">사용 중</div>
+        <div className="w-full border rounded-md p-3 bg-muted/10">
+          <div className="text-base font-medium mb-3">잔고 정보</div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-3">
+              <div className="text-sm text-muted-foreground">자산</div>
+              <div className="text-sm text-muted-foreground">총액</div>
+              <div className="text-sm text-muted-foreground">사용 가능</div>
+              <div className="text-sm text-muted-foreground">사용 중</div>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 items-center">
-              <div className="text-xs font-medium">USDT</div>
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-full" />
+            <div className="grid grid-cols-4 gap-3 items-center">
+              <div className="text-sm font-medium">USDT</div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
             </div>
 
-            <div className="grid grid-cols-4 gap-2 items-center border-t pt-1">
-              <div className="text-xs font-medium">TOTAL</div>
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-full" />
+            <div className="grid grid-cols-4 gap-3 items-center border-t pt-2">
+              <div className="text-sm font-medium">TOTAL</div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
             </div>
           </div>
         </div>
       ) : balanceInfo ? (
-        <div className="w-full border rounded-md p-2 bg-muted/10">
-          <div className="text-sm font-medium mb-2">잔고 정보</div>
-          <div className="space-y-2">
-            <div className="grid grid-cols-4 gap-2">
-              <div className="text-xs text-muted-foreground">자산</div>
-              <div className="text-xs text-muted-foreground">총액</div>
-              <div className="text-xs text-muted-foreground">사용 가능</div>
-              <div className="text-xs text-muted-foreground">사용 중</div>
+        <div className="w-full border rounded-md p-3 bg-muted/10">
+          <div className="text-base font-medium mb-3">잔고 정보</div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-3">
+              <div className="text-sm font-medium text-muted-foreground">자산</div>
+              <div className="text-sm font-medium text-muted-foreground">총액</div>
+              <div className="text-sm font-medium text-muted-foreground">사용 가능</div>
+              <div className="text-sm font-medium text-muted-foreground">사용 중</div>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 items-center">
-              <div className="text-xs font-medium">
+            <div className="grid grid-cols-4 gap-3 items-center">
+              <div className="text-sm font-semibold">
                 {balanceInfo.base.name ?? "USDT"}
               </div>
-              <div className="text-xs">{balanceInfo.base.total ?? 0}</div>
-              <div className="text-xs">{balanceInfo.base.free ?? 0}</div>
-              <div className="text-xs">{balanceInfo.base.used ?? 0}</div>
+              <div className="text-sm">{balanceInfo.base.total ?? 0}</div>
+              <div className="text-sm">{balanceInfo.base.free ?? 0}</div>
+              <div className="text-sm">{balanceInfo.base.used ?? 0}</div>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 items-center border-t pt-1">
-              <div className="text-xs font-medium">TOTAL USD</div>
-              <div className="text-xs font-semibold">
+            <div className="grid grid-cols-4 gap-3 items-center border-t pt-2">
+              <div className="text-sm font-bold">TOTAL USD</div>
+              <div className="text-sm font-bold">
                 {balanceInfo.usd.total}
               </div>
-              <div className="text-xs">{balanceInfo.usd.free}</div>
-              <div className="text-xs">{balanceInfo.usd.used}</div>
+              <div className="text-sm">{balanceInfo.usd.free}</div>
+              <div className="text-sm">{balanceInfo.usd.used}</div>
             </div>
           </div>
         </div>
       ) : (
         <Link
           to={`/account/add?exchange=${exchange}`}
-          className="w-full border rounded-md p-3 bg-accent/10 font-medium text-center flex flex-col gap-1 hover:bg-accent/20 transition-colors"
+          className="w-full border rounded-md p-4 bg-accent/10 font-medium text-center flex flex-col gap-2 hover:bg-accent/20 transition-colors"
         >
-          <span>{`${exchange}에 대한 API 키가 없습니다`}</span>
+          <span className="text-base">{`${exchange}에 대한 API 키가 없습니다`}</span>
           <span className="text-sm text-primary">
             API 키를 추가하려면 클릭하세요
           </span>

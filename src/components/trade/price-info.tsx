@@ -68,26 +68,26 @@ export const PriceInfo = () => {
   if (isLoading) {
     return (
       <Card className="w-full bg-card/30">
-        <CardContent className="p-4">
+        <CardContent className="p-5">
           <div className="flex justify-between items-center">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-10 w-40" />
               </div>
               <div className="flex gap-2 items-center">
-                <Skeleton className="h-4 w-5" />
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-6" />
+                <Skeleton className="h-5 w-24" />
               </div>
             </div>
             
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex items-center justify-end gap-2">
-                <span className="text-xs text-muted-foreground">고가:</span>
-                <Skeleton className="h-4 w-16" />
+                <span className="text-sm text-muted-foreground">고가:</span>
+                <Skeleton className="h-5 w-20" />
               </div>
               <div className="flex items-center justify-end gap-2">
-                <span className="text-xs text-muted-foreground">저가:</span>
-                <Skeleton className="h-4 w-16" />
+                <span className="text-sm text-muted-foreground">저가:</span>
+                <Skeleton className="h-5 w-20" />
               </div>
             </div>
           </div>
@@ -111,9 +111,9 @@ export const PriceInfo = () => {
       : "text-muted-foreground";
   
   const percentageIcon = percentageValue > 0 
-    ? <TrendingUp className="h-4 w-4 text-green-500" /> 
+    ? <TrendingUp className="h-5 w-5 text-green-500" /> 
     : percentageValue < 0 
-      ? <TrendingDown className="h-4 w-4 text-red-500" />
+      ? <TrendingDown className="h-5 w-5 text-red-500" />
       : null;
 
   // 마지막 업데이트 시간
@@ -123,11 +123,11 @@ export const PriceInfo = () => {
 
   return (
     <Card className="w-full bg-card/10 border">
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <h1 className={cn("text-2xl font-bold tracking-tighter", priceColor)}>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <h1 className={cn("text-3xl font-bold tracking-tighter", priceColor)}>
                 {curPrice.price &&
                   ccxt?.[exchange]?.ccxt.priceToPrecision(
                     symbol,
@@ -137,7 +137,7 @@ export const PriceInfo = () => {
               
               {percentageValue !== 0 && (
                 <Badge variant="outline" className={cn(
-                  "flex items-center gap-0.5 font-medium px-2 py-1 rounded-full",
+                  "flex items-center gap-1 font-medium px-2.5 py-1.5 rounded-full text-base",
                   percentageValue > 0 ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20"
                 )}>
                   {percentageIcon}
@@ -148,42 +148,42 @@ export const PriceInfo = () => {
               )}
             </div>
             
-            <div className="flex flex-col space-y-1">
-              <div className="flex gap-1 items-center text-sm">
-                <BarChart4 className="h-3.5 w-3.5 text-muted-foreground" />
+            <div className="flex flex-col space-y-2">
+              <div className="flex gap-2 items-center text-base">
+                <BarChart4 className="h-4 w-4 text-muted-foreground" />
                 <span className="capitalize text-muted-foreground">거래량:</span>
                 <span className="font-medium">{formatVolume(Number(data?.quoteVolume))}</span>
               </div>
               
-              <div className="flex gap-1 items-center text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
+              <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
                 <span>업데이트: {lastUpdate}</span>
               </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-x-5 gap-y-1 bg-accent/10 p-2 rounded-md">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 bg-accent/10 p-3 rounded-md">
             <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">고가 (24h)</span>
-              <span className="text-sm font-semibold text-green-500">{formatUSDValue(Number(data?.high))}</span>
+              <span className="text-sm text-muted-foreground">고가 (24h)</span>
+              <span className="text-base font-semibold text-green-500">{formatUSDValue(Number(data?.high))}</span>
             </div>
             
             <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">저가 (24h)</span>
-              <span className="text-sm font-semibold text-red-500">{formatUSDValue(Number(data?.low))}</span>
+              <span className="text-sm text-muted-foreground">저가 (24h)</span>
+              <span className="text-base font-semibold text-red-500">{formatUSDValue(Number(data?.low))}</span>
             </div>
             
             {exchange === "bybit" ? (
               <div className="flex flex-col col-span-2 mt-1">
-                <span className="text-xs text-muted-foreground">총 거래대금</span>
-                <span className="text-sm font-semibold">
+                <span className="text-sm text-muted-foreground">총 거래대금</span>
+                <span className="text-base font-semibold">
                   {formatUSDValue(Number(data?.info.turnover24h))}
                 </span>
               </div>
             ) : (
               <div className="flex flex-col col-span-2 mt-1">
-                <span className="text-xs text-muted-foreground">VWAP (가중평균가)</span>
-                <span className="text-sm font-semibold">
+                <span className="text-sm text-muted-foreground">VWAP (가중평균가)</span>
+                <span className="text-base font-semibold">
                   {data?.vwap &&
                     ccxt?.[exchange]?.ccxt.priceToPrecision(
                       symbol,
