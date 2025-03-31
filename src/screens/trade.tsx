@@ -16,7 +16,9 @@ const TradeInContexts = () => {
   const { tickerQuery } = useTrade();
   const [searchParams] = useSearchParams();
   const symbol = searchParams.get("symbol")!;
-  const [screenLayout, setScreenLayout] = useState<"desktop" | "mobile">("desktop");
+  const [screenLayout, setScreenLayout] = useState<"desktop" | "mobile">(
+    "desktop",
+  );
   const [chartSize, setChartSize] = useState<"normal" | "compact">("normal");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -67,37 +69,45 @@ const TradeInContexts = () => {
       </div>
 
       {/* 스크롤 가능한 컨텐츠 영역 */}
-      <div 
+      <div
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
       >
-        <div className="pb-20"> {/* 하단에 여유 공간 추가 */}
+        <div className="mb-8">
+          {/* 하단에 여유 공간 추가 */}
           {/* 차트 영역 - 높이 증가 */}
-          <div className={cn(
-            "w-full py-2",
-            chartSize === "compact" ? "mb-1" : "mb-2"
-          )}>
-            <ChartComponent height={chartSize === "compact" ? 400 : 500} />
+          <div
+            className={cn(
+              "w-full py-2",
+              chartSize === "compact" ? "mb-1" : "mb-2",
+            )}
+          >
+            <ChartComponent height={400} />
           </div>
-
           {/* 트레이딩 및 포지션 영역 */}
-          <div className={cn(
-            "gap-2",
-            screenLayout === "desktop" ? "flex flex-row" : "flex flex-col"
-          )}>
+          <div
+            className={cn(
+              "gap-2",
+              screenLayout === "desktop" ? "flex flex-row" : "flex flex-col",
+            )}
+          >
             {/* 트레이딩 컴포넌트 */}
-            <div className={cn(
-              screenLayout === "desktop" ? "w-1/2" : "w-full",
-              "min-h-[200px]"
-            )}>
+            <div
+              className={cn(
+                screenLayout === "desktop" ? "w-1/2" : "w-full",
+                "min-h-[200px]",
+              )}
+            >
               <TradeComponent />
             </div>
 
             {/* 포지션 영역 */}
-            <div className={cn(
-              screenLayout === "desktop" ? "w-1/2" : "w-full", 
-              "min-h-[300px] border rounded-md my-2"
-            )}>
+            <div
+              className={cn(
+                screenLayout === "desktop" ? "w-1/2" : "w-full",
+                "min-h-[300px] border rounded-md my-2",
+              )}
+            >
               <PositionComponent />
             </div>
           </div>
