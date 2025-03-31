@@ -11,7 +11,6 @@ const App = () => {
   const [isLoaded, setIsloaded] = useState(false);
   const navigation = useNavigate();
   const { validPin, isPinCreated, isLoading: isPinCreatedLoading } = usePin();
-  // 텍스트 크기 조절 로직
 
   useEffect(() => {
     if (!validPin && !isPinCreatedLoading && !isPinCreated) {
