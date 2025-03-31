@@ -120,7 +120,19 @@ async function executeTrade({
         ),
       ]);
     } else if (exchange === "bybit") {
-      const positionIdx = 0; // 단방향 모드이므로 항상 0
+      // 계정의 포지션 모드 확인
+      const isHedgeMode = info.account?.positionMode === "hedge";
+      
+      let positionIdx = 0; // 기본값: 단방향 모드
+      
+      if (isHedgeMode) {
+        // 헷지 모드에서는 long=1, short=2
+        positionIdx = tradeType === "long" ? 1 : 2;
+        console.log(`[Debug] Using hedge mode with positionIdx: ${positionIdx} for ${tradeType} position`);
+      } else {
+        console.log(`[Debug] Using one-way mode with positionIdx: 0`);
+      }
+      
       result = await Promise.all([
         // 진입 주문
         ccxtInstance.createOrder(
@@ -130,7 +142,7 @@ async function executeTrade({
           info.position.size,
           undefined,
           {
-            positionIdx, // positionIdx: 0 전달
+            positionIdx, // 포지션 모드에 따라 동적으로 설정
             // stopLoss 파라미터는 진입 주문과 분리하는 것이 더 안정적일 수 있으나, 일단 유지
             stopLoss: {
               triggerPrice: info.stoploss.price,
@@ -147,7 +159,7 @@ async function executeTrade({
             : info.position.size,
           info.target.price,
           {
-            // positionIdx 제거, reduceOnly만 사용
+            positionIdx, // 포지션 모드에 따라 동적으로 설정
             reduceOnly: true,
           }
         ),

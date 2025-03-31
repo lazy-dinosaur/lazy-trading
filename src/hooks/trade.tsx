@@ -142,6 +142,7 @@ export const useTradeInfo = (
   symbol: string,
   leverageInfo?: { maxLeverage: number; leverageTier?: LeverageTier[] },
   availableBalance?: number,
+  accountId?: string,
 ) => {
   const [tradeInfo, setTradeInfo] = useState<TradeInfoType>();
   const ccxt = useCCXT();
@@ -155,6 +156,10 @@ export const useTradeInfo = (
     exchange,
     symbol,
   );
+  
+  // 계정 정보 추가
+  const { decryptedAccounts, isLoading: isAccountsLoading } = useAccounts();
+  const selectedAccount = accountId && decryptedAccounts ? decryptedAccounts[accountId] : null;
 
   useEffect(() => {
     const isCandleExists =
@@ -217,6 +222,17 @@ export const useTradeInfo = (
       });
 
       if (longInfo && shortInfo) {
+        // 계정의 포지션 모드 정보 추가
+        if (selectedAccount) {
+          longInfo.account = {
+            positionMode: selectedAccount.positionMode || "oneway",
+          };
+          shortInfo.account = {
+            positionMode: selectedAccount.positionMode || "oneway",
+          };
+          console.log(`[Debug] Adding account positionMode to trade info: ${selectedAccount.positionMode || "oneway"}`);
+        }
+
         setTradeInfo({
           long: longInfo,
           short: shortInfo,
@@ -240,6 +256,9 @@ export const useTradeInfo = (
     isTradingfeeLoading,
     isMarketLoading,
     isTradingConfigLoading,
+    selectedAccount, // 계정 정보 의존성 추가
+    accountId,
+    isAccountsLoading,
   ]);
 
   return tradeInfo;

@@ -349,11 +349,23 @@ const PositionsList = () => {
       // 바이낸스 헷지 모드: positionSide 사용
       params = { positionSide: side === "long" ? "LONG" : "SHORT" };
     } else if (exchange === "bybit") {
-      // 바이빗 단방향 모드: reduceOnly와 positionIdx: 0 사용
-      params = {
-        reduceOnly: true,
-        positionIdx: 0, // 단방향 모드는 0
-      };
+      // 바이빗: 계정의 포지션 모드에 따라 다른 파라미터 사용
+      const isHedgeMode = selectedAccount.positionMode === "hedge";
+      
+      if (isHedgeMode) {
+        // 양방향 모드일 경우 positionIdx 사용
+        // long: 1, short: 2
+        params = {
+          reduceOnly: true,
+          positionIdx: side === "long" ? 1 : 2,
+        };
+      } else {
+        // 단방향 모드일 경우 positionIdx: 0 사용
+        params = {
+          reduceOnly: true,
+          positionIdx: 0,
+        };
+      }
     } else {
       // 기타 거래소: reduceOnly 사용 (기본값)
       params = { reduceOnly: true };
@@ -361,8 +373,9 @@ const PositionsList = () => {
 
     console.log(
       `[Debug] Creating order for ${exchange} - Symbol: ${symbol}, Side: ${closeSide}, Size: ${size}, Params:`,
-      params
-    ); // 파라미터 로그 추가
+      params,
+      `Position Mode: ${selectedAccount.positionMode || "undefined"}`
+    ); // 파라미터 및 포지션 모드 로그 추가
 
     try {
       const order = await selectedAccount.exchangeInstance.ccxt.createOrder(

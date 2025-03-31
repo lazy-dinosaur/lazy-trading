@@ -44,6 +44,7 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
       : accountsBalance?.[id]?.balance[base]?.free
         ? Number(accountsBalance[id]?.balance[base]?.free)
         : 0,
+    id // 계정 ID 전달,
   );
 
   const marketInfoQuery = useMarketInfo(exchange, symbol);

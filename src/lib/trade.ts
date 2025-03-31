@@ -125,6 +125,9 @@ export interface PositionInfo {
     fee: number;
     totalLoss: number; // 손실 + 수수료
   };
+  account?: {
+    positionMode?: "oneway" | "hedge";
+  };
 }
 
 interface TradingFeeInfo {
