@@ -9,7 +9,11 @@ import { ExchangeType } from "@/lib/accounts";
 import { useTrade } from "@/contexts/trade/use";
 import { ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
 
-export const ChartComponent = () => {
+interface ChartComponentProps {
+  height?: number; // 차트 높이 설정을 위한 prop 추가
+}
+
+export const ChartComponent = ({ height }: ChartComponentProps) => {
   const [searchParams] = useSearchParams();
   const { data, handleScroll, chartformat, isLoading } = useChartData();
   const { tradeInfo } = useTrade();
@@ -63,7 +67,11 @@ export const ChartComponent = () => {
   }, []);
 
   return (
-    <div ref={chartContainerRef} className="relative w-full border rounded-md overflow-hidden">
+    <div 
+      ref={chartContainerRef} 
+      className="relative w-full border rounded-md overflow-hidden"
+      style={height ? { height: `${height}px` } : undefined}
+    >
       {/* 비용 및 이익 표시 오버레이 */}
       {tradeInfo && data.length > 0 && (
         <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md border flex flex-col text-xs space-y-1.5">
@@ -126,11 +134,12 @@ export const ChartComponent = () => {
         <Chart
           key={exchange + "-" + symbol + "-" + timeframe + "-chart"}
           onReachStart={handleScroll}
+          customHeight={height ? `${height}px` : undefined}
         >
           <CandleSeries ref={candle} data={data} />
         </Chart>
       ) : (
-        <div className="w-full h-[40vh] h-lg:h-[35vh] h-xl:h-[30vh] flex items-center justify-center">
+        <div className={`w-full flex items-center justify-center ${height ? '' : 'h-[40vh] h-lg:h-[35vh] h-xl:h-[30vh]'}`} style={height ? { height: `${height}px` } : undefined}>
           {isLoading ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />

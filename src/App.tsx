@@ -12,29 +12,6 @@ const App = () => {
   const navigation = useNavigate();
   const { validPin, isPinCreated, isLoading: isPinCreatedLoading } = usePin();
   // 텍스트 크기 조절 로직
-  useEffect(() => {
-    const updateTextSize = () => {
-      if (window.innerHeight < 800) {
-        document.documentElement.classList.add("very-compact-text");
-        document.documentElement.classList.remove("compact-text");
-      } else if (window.innerHeight < 1000) {
-        document.documentElement.classList.add("compact-text");
-        document.documentElement.classList.remove("very-compact-text");
-      } else {
-        document.documentElement.classList.remove(
-          "compact-text",
-          "very-compact-text",
-        );
-      }
-    };
-
-    updateTextSize();
-    window.addEventListener("resize", updateTextSize);
-
-    return () => {
-      window.removeEventListener("resize", updateTextSize);
-    };
-  }, []);
 
   useEffect(() => {
     if (!validPin && !isPinCreatedLoading && !isPinCreated) {

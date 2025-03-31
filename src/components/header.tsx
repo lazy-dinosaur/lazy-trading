@@ -31,7 +31,7 @@ const Header = ({
   };
 
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center p-2 bg-background z-20 border-b">
       <div className="flex items-center">
         {backButton && (
           <button

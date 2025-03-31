@@ -6,8 +6,9 @@ import { ArrowUpRight, ArrowDownRight, Layers, BarChart3, Wallet } from "lucide-
 
 type TabType = "orders" | "positions" | "assets";
 
+// isCompact prop은 더 이상 필요하지 않으므로 인터페이스에서 제거
 interface PositionComponentProps {
-  isCompact?: boolean;
+  // 필요한 경우 추가 props 여기에 정의
 }
 
 interface TradingItemCardProps {
@@ -29,35 +30,13 @@ interface AssetCardProps {
 /**
  * Position component with improved tabbed navigation and card layout
  */
-export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
+export const PositionComponent = ({}: PositionComponentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("positions");
-  
-  // 상단 핸들러 추가 - 컴팩트 모드에서 클릭 시 확장하는 용도
-  const handleExpandClick = () => {
-    if (isCompact) {
-      // 여기서는 UI만 수정하고 있으므로 실제 확장 로직은 부모 컴포넌트에서 처리합니다.
-      console.log("Expand requested");
-    }
-  };
 
   return (
-    <div className="w-full flex flex-col h-full border rounded-md shadow-sm bg-card">
-      {/* 컴팩트 모드에서 상단 핸들러 표시 */}
-      {isCompact && (
-        <div 
-          className="h-1.5 w-12 mx-auto bg-muted rounded-full my-1 cursor-pointer hover:bg-muted-foreground transition-colors" 
-          onClick={handleExpandClick}
-        />
-      )}
-      
+    <div className="w-full flex flex-col h-full bg-card">
       {/* 개선된 탭 네비게이션 */}
-      <div
-        className={cn(
-          "flex border-b sticky top-0 bg-background z-10 px-2",
-          isCompact && "cursor-pointer",
-        )}
-        onClick={isCompact ? handleExpandClick : undefined}
-      >
+      <div className="flex border-b sticky top-0 bg-background z-10 px-2">
         <TabButton
           isActive={activeTab === "positions"}
           onClick={() => setActiveTab("positions")}
@@ -82,7 +61,7 @@ export const PositionComponent = ({ isCompact }: PositionComponentProps) => {
       </div>
 
       {/* 컨텐츠 영역 */}
-      <div className="flex-1 overflow-y-auto min-h-0 h-full scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
         <div className="w-full p-2 space-y-2">
           {activeTab === "orders" && <OrdersList />}
           {activeTab === "positions" && <PositionsList />}

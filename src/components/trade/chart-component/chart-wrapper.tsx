@@ -10,12 +10,14 @@ interface ChartProps {
   rightPriceScale?: DeepPartial<ChartOptions["rightPriceScale"]>;
   onReachStart?: () => void; // 과거 데이터 로드를 위한 콜백
   children?: React.ReactNode;
+  customHeight?: string; // 커스텀 높이 속성 추가
 }
 
 /**
  * Chart component with responsive height handling
  */
 export const Chart = (props: ChartProps) => {
+  const { customHeight, ...restProps } = props; // customHeight 속성 추출
   const [container, setContainer] = useState<HTMLDivElement | false>(false);
   const handleRef = useCallback(
     (ref: HTMLDivElement | null) => setContainer(ref || false),
@@ -29,8 +31,9 @@ export const Chart = (props: ChartProps) => {
       heightMedium="35vh"
       heightSmall="30vh"
       mobileHeight="45vh"
+      customHeight={customHeight} // 추가된 customHeight 속성 전달
     >
-      {container && <ChartContainer {...props} container={container} />}
+      {container && <ChartContainer {...restProps} container={container} />}
     </ResponsiveContainer>
   );
 };

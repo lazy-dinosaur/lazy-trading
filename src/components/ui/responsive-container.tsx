@@ -17,6 +17,7 @@ interface ResponsiveContainerProps {
   heightLarge?: string;
   baseHeight?: string;
   mobileHeight?: string;
+  customHeight?: string; // 커스텀 높이 속성 추가
 }
 
 export const ResponsiveContainer = forwardRef<
@@ -32,6 +33,7 @@ export const ResponsiveContainer = forwardRef<
       heightLarge = "40vh",
       baseHeight = heightLarge,
       mobileHeight,
+      customHeight, // 커스텀 높이 추가
     },
     ref,
   ) => {
@@ -39,15 +41,20 @@ export const ResponsiveContainer = forwardRef<
     const isExtraLargeHeight = useIsExtraLargeHeight();
     const isMobile = useIsMobile();
 
-    // Calculate the appropriate height based on screen size
-    let height = baseHeight;
+    // 커스텀 높이가 지정된 경우 해당 높이 사용, 그렇지 않으면 반응형 계산
+    let height = customHeight;
 
-    if (isMobile && mobileHeight) {
-      height = mobileHeight;
-    } else if (isExtraLargeHeight) {
-      height = heightSmall;
-    } else if (isLargeHeight) {
-      height = heightMedium;
+    if (!customHeight) {
+      // 기존 반응형 높이 계산 로직
+      if (isMobile && mobileHeight) {
+        height = mobileHeight;
+      } else if (isExtraLargeHeight) {
+        height = heightSmall;
+      } else if (isLargeHeight) {
+        height = heightMedium;
+      } else {
+        height = baseHeight;
+      }
     }
 
     return (

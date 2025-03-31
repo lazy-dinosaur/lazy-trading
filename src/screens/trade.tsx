@@ -16,54 +16,36 @@ const TradeInContexts = () => {
   const { tickerQuery } = useTrade();
   const [searchParams] = useSearchParams();
   const symbol = searchParams.get("symbol")!;
-  const [isCompact, setIsCompact] = useState(false);
-  const [bottomDistance, setBottomDistance] = useState<number>(0);
-  const tradeComponentRef = useRef<HTMLDivElement>(null);
-  const positionRef = useRef<HTMLDivElement>(null);
+  const [screenLayout, setScreenLayout] = useState<"desktop" | "mobile">("desktop");
+  const [chartSize, setChartSize] = useState<"normal" | "compact">("normal");
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const checkAvailableSpace = () => {
-      setTimeout(() => {
-        if (!tradeComponentRef.current || !positionRef.current) return;
-
-        // TradeComponent의 bottom 위치
-        const tradeBottom =
-          tradeComponentRef.current.getBoundingClientRect().bottom;
-        // 화면 전체 높이
-        const viewportHeight = window.innerHeight;
-        // 사용 가능한 공간
-        const availableSpace = viewportHeight - tradeBottom;
-
-        // 화면의 25%보다 작으면 compact 모드
-        setIsCompact(availableSpace < viewportHeight * 0.25);
-
-        // 초기 거리 계산 (포지션 컴포넌트 하단과 화면 하단 사이의 거리)
-        const positionBottom =
-          positionRef.current.getBoundingClientRect().bottom;
-        setBottomDistance(viewportHeight - positionBottom);
-      }, 100); // 약간의 지연을 줘서 정확한 위치 계산이 되도록 함
+    const checkScreenSize = () => {
+      const isDesktop = window.innerWidth >= 1024; // lg breakpoint
+      setScreenLayout(isDesktop ? "desktop" : "mobile");
     };
 
-    const observer = new ResizeObserver(() => {
-      requestAnimationFrame(checkAvailableSpace);
-    });
-    if (tradeComponentRef.current) {
-      observer.observe(tradeComponentRef.current);
-    }
-    window.addEventListener("resize", checkAvailableSpace);
+    // 화면 크기에 따라 레이아웃 설정
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
 
-    // 초기 체크 - 컴포넌트 마운트 후 약간의 지연을 주어 실행
-    setTimeout(checkAvailableSpace, 100);
+    // 화면 높이에 따라 차트 크기 조정
+    const checkChartSize = () => {
+      setChartSize(window.innerHeight < 800 ? "compact" : "normal");
+    };
+    checkChartSize();
+    window.addEventListener("resize", checkChartSize);
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", checkAvailableSpace);
+      window.removeEventListener("resize", checkScreenSize);
+      window.removeEventListener("resize", checkChartSize);
     };
   }, []);
 
   return (
     <ScreenWrapper
-      className={["flex flex-col"]}
+      className={["flex flex-col h-full"]}
       headerProps={{
         ticker: {
           symbol: symbol ? symbol : undefined,
@@ -73,8 +55,8 @@ const TradeInContexts = () => {
         backButton: true,
       }}
     >
-      {/* 헤더 및 제어 영역 */}
-      <div className="flex-none space-y-1 h-lg:space-y-2 h-xl:space-y-3">
+      {/* 헤더 및 제어 영역 - 고정 */}
+      <div className="flex-none space-y-1 h-lg:space-y-2 h-xl:space-y-3 sticky top-0 z-10 bg-background pb-2 border-b">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-3">
           <PriceInfo />
           <div className="w-full flex items-center justify-between">
@@ -82,36 +64,43 @@ const TradeInContexts = () => {
             <AccountSelector />
           </div>
         </div>
-        <ChartComponent />
       </div>
-      
-      {/* 트레이딩 및 포지션 영역 - 화면이 넓을 경우 나란히 배치 */}
-      <div className="flex flex-col lg:flex-row gap-2 flex-1 min-h-0">
-        {/* 트레이딩 컴포넌트 */}
-        <div ref={tradeComponentRef} className="lg:w-1/2 min-h-[200px]">
-          <TradeComponent />
-        </div>
-        
-        {/* 포지션 영역 */}
-        <div
-          ref={positionRef}
-          className={cn(
-            "mt-1 h-lg:mt-2 h-xl:mt-3 lg:mt-0 lg:w-1/2",
-            isCompact &&
-              "hover:transform hover:translate-y-[var(--bottom-distance)] transition-transform duration-300",
-            isCompact
-              ? "relative h-[50vh] bg-background z-10"
-              : "flex-1 overflow-auto min-h-0",
-          )}
-          style={
-            isCompact
-              ? ({
-                  "--bottom-distance": `${bottomDistance}px`,
-                } as React.CSSProperties)
-              : undefined
-          }
-        >
-          <PositionComponent isCompact={isCompact} />
+
+      {/* 스크롤 가능한 컨텐츠 영역 */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
+      >
+        <div className="pb-20"> {/* 하단에 여유 공간 추가 */}
+          {/* 차트 영역 - 높이 증가 */}
+          <div className={cn(
+            "w-full py-2",
+            chartSize === "compact" ? "mb-1" : "mb-2"
+          )}>
+            <ChartComponent height={chartSize === "compact" ? 400 : 500} />
+          </div>
+
+          {/* 트레이딩 및 포지션 영역 */}
+          <div className={cn(
+            "gap-2",
+            screenLayout === "desktop" ? "flex flex-row" : "flex flex-col"
+          )}>
+            {/* 트레이딩 컴포넌트 */}
+            <div className={cn(
+              screenLayout === "desktop" ? "w-1/2" : "w-full",
+              "min-h-[200px]"
+            )}>
+              <TradeComponent />
+            </div>
+
+            {/* 포지션 영역 */}
+            <div className={cn(
+              screenLayout === "desktop" ? "w-1/2" : "w-full", 
+              "min-h-[300px] border rounded-md my-2"
+            )}>
+              <PositionComponent />
+            </div>
+          </div>
         </div>
       </div>
     </ScreenWrapper>

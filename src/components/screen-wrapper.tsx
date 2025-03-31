@@ -14,11 +14,16 @@ export const ScreenWrapper = ({
   className,
 }: PropsType) => {
   return (
-    <div className="h-screen flex flex-col overflow-hidden space-y-2 h-lg:space-y-3 h-xl:space-y-6">
-      <Header {...headerProps} />
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* 메인 헤더 - 항상 고정 */}
+      <div className="flex-none">
+        <Header {...headerProps} />
+      </div>
+      
+      {/* 컨텐츠 영역 */}
       <div
         className={cn(
-          "flex-1 w-full overflow-hidden space-y-1.5 h-lg:space-y-3 h-xl:space-y-5",
+          "flex-1 w-full",
           className,
         )}
       >
