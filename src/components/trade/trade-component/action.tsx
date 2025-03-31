@@ -5,13 +5,20 @@ import { useAccounts } from "@/contexts/accounts/use";
 import { useTradingConfig } from "@/contexts/settings/use";
 import { useTrade } from "@/contexts/trade/use";
 import { ExchangeType } from "@/lib/accounts";
-import { ChevronUp, ChevronDown } from "lucide-react";
-import React from "react";
+import { ChevronUp, ChevronDown, AlertTriangle, Info } from "lucide-react";
+import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTradeMutation } from "@/hooks/use-trade-mutation";
 import { PositionInfo } from "@/lib/trade";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
-export const TradingAction = () => {
+interface TradingActionProps {
+  tradeDirection?: "long" | "short";
+}
+
+export const TradingAction = ({ tradeDirection = "long" }: TradingActionProps) => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
   const exchange = searchParams.get("exchange") as ExchangeType;
@@ -22,10 +29,11 @@ export const TradingAction = () => {
   const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
   const { config } = useTradingConfig();
   const tradeMutation = useTradeMutation();
+  
+  // 설정 패널 열기/닫기 상태
+  const [settingsOpen, setSettingsOpen] = useState(true);
 
-  const handleTrade = async (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
+  const handleTrade = async () => {
     if (
       !accountInfo ||
       !account ||
@@ -39,8 +47,7 @@ export const TradingAction = () => {
       return;
 
     const ccxtInstance = account.exchangeInstance.ccxt;
-    const tradeType = event.currentTarget.value as "long" | "short";
-    const info = tradeInfo[tradeType] as PositionInfo;
+    const info = tradeInfo[tradeDirection] as PositionInfo;
 
     if (!info.position) return;
 
@@ -48,7 +55,7 @@ export const TradingAction = () => {
       await tradeMutation.mutateAsync({
         ccxtInstance,
         symbol,
-        tradeType,
+        tradeType: tradeDirection,
         exchange,
         info,
         config,
@@ -58,45 +65,119 @@ export const TradingAction = () => {
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-between h-full w-full rounded-md border-opacity-50 p-2">
-      {/* 설정 영역 */}
-      <div className="w-full mb-2">
-        <div className="w-full text-sm font-medium text-muted-foreground mb-2 border-b pb-1">
-          Trading Settings
+  // 트레이드 방향에 따른 스타일 설정
+  const buttonStyle = tradeDirection === "long" 
+    ? "bg-gradient-to-b from-green-500 to-green-600 hover:from-green-400 hover:to-green-500" 
+    : "bg-gradient-to-b from-red-500 to-red-600 hover:from-red-400 hover:to-red-500";
+
+  const directionText = tradeDirection === "long" ? "롱" : "숏";
+
+  // 거래 요약 정보
+  const getTradeSummary = () => {
+    if (!tradeInfo?.[tradeDirection]?.position) return null;
+    
+    const info = tradeInfo[tradeDirection];
+    
+    return (
+      <div className="space-y-1 text-xs">
+        <div className="flex justify-between">
+          <span>레버리지:</span>
+          <span className="font-medium">{info.calculatedLeverage}x</span>
         </div>
-        <div className="space-y-3">
+        <div className="flex justify-between">
+          <span>손절가:</span>
+          <span className={`font-medium ${tradeDirection === 'long' ? 'text-red-500' : 'text-green-500'}`}>
+            {info.stoploss.formatted} ({info.stoploss.percentage}%)
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>목표가:</span>
+          <span className={`font-medium ${tradeDirection === 'long' ? 'text-green-500' : 'text-red-500'}`}>
+            {info.target.formatted} ({info.target.percentage}%)
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-between h-full w-full rounded-md p-2">
+      {/* 거래 설정 헤더 */}
+      <div 
+        className="w-full mb-2 cursor-pointer flex items-center justify-between"
+        onClick={() => setSettingsOpen(!settingsOpen)}
+      >
+        <div className="text-sm font-medium border-b pb-1 flex items-center gap-1">
+          <span>거래 설정</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-3.5 w-3.5 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>손익비, 리스크 비율 등 거래 설정을 조정하세요</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {settingsOpen ? "접기" : "펼치기"}
+        </span>
+      </div>
+      
+      {/* 설정 패널 */}
+      {settingsOpen && (
+        <div className="space-y-3 w-full bg-accent/10 p-2 rounded-md mb-2">
           <CloseSetting />
           <RiskSetting />
           <TradingSetting />
         </div>
-      </div>
+      )}
       
-      {/* 트레이딩 버튼 영역 */}
-      <div className="w-full mt-auto grid grid-cols-2 gap-2">
+      {/* 거래 요약 정보 */}
+      <div className="w-full mb-4">
+        <Card className={cn(
+          "border", 
+          tradeDirection === "long" ? "bg-green-100/10 border-green-200/20" : "bg-red-100/10 border-red-200/20"
+        )}>
+          <CardContent className="p-2">
+            <div className={cn(
+              "text-center text-xs font-semibold mb-1",
+              tradeDirection === "long" ? "text-green-600" : "text-red-600"
+            )}>
+              {directionText} 거래 요약
+            </div>
+            {getTradeSummary() || <div className="text-xs text-center text-muted-foreground">정보 없음</div>}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 계정 선택 오류 */}
+      {!accountInfo && (
+        <div className="w-full flex items-center gap-2 p-2 bg-yellow-100/20 border border-yellow-300/30 rounded-md mb-3 text-yellow-600">
+          <AlertTriangle className="h-4 w-4 flex-none" />
+          <p className="text-xs">거래하기 전에 계정을 선택해주세요.</p>
+        </div>
+      )}
+      
+      {/* 거래 버튼 영역 */}
+      <div className="w-full mt-auto">
         <Button
-          value={"long"}
-          variant={"long"}
-          className="py-2 md:py-3 text-base font-bold shadow-md hover:shadow-lg transition-all"
-          disabled={!accountInfo || tradeMutation.isPending}
           onClick={handleTrade}
-        >
-          {tradeMutation.isPending ? "처리중..." : "LONG"}
-        </Button>
-        <Button
-          value={"short"}
-          variant={"short"}
-          className="py-2 md:py-3 text-base font-bold shadow-md hover:shadow-lg transition-all"
+          className={cn(
+            "w-full py-3 text-base font-bold shadow-md hover:shadow-lg transition-all",
+            buttonStyle
+          )}
           disabled={!accountInfo || tradeMutation.isPending}
-          onClick={handleTrade}
         >
-          {tradeMutation.isPending ? "처리중..." : "SHORT"}
+          {tradeMutation.isPending ? "처리중..." : `${directionText} 진입`}
         </Button>
       </div>
     </div>
   );
 };
 
+// 설정 컨트롤 컴포넌트 개선
 interface SettingControlProps {
   label: string;
   value: number | string;
@@ -114,11 +195,26 @@ const SettingControl = ({
   onDecrease, 
   onIncrease, 
   disabled = false,
+  tooltipText,
 }: SettingControlProps) => {
   return (
     <div className="flex flex-col w-full">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium">{label}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-medium">{label}</span>
+          {tooltipText && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-xs">{tooltipText}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <div className="font-semibold text-sm bg-accent/30 px-2 py-0.5 rounded">
           {value}{unit}
         </div>
@@ -127,7 +223,7 @@ const SettingControl = ({
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 h-7"
+          className="flex-1 h-7 bg-background/80"
           disabled={disabled}
           onClick={onDecrease}
         >
@@ -136,7 +232,7 @@ const SettingControl = ({
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 h-7"
+          className="flex-1 h-7 bg-background/80"
           disabled={disabled}
           onClick={onIncrease}
         >
@@ -162,13 +258,13 @@ const CloseSetting = () => {
           disabled={isLoading}
         />
         <Label htmlFor="partial-close" className="text-sm font-medium cursor-pointer">
-          Partial Close
+          부분 청산
         </Label>
       </div>
       
       {config?.partialClose && (
         <SettingControl
-          label="Close Ratio"
+          label="청산 비율"
           value={config.closeRatio}
           unit="%"
           disabled={isLoading}
@@ -188,7 +284,7 @@ const CloseSetting = () => {
               : 50;
             updateConfig({ closeRatio });
           }}
-          tooltipText="포지션 부분 종료 비율"
+          tooltipText="목표가 도달 시 포지션을 부분적으로 청산할 비율"
         />
       )}
     </div>
@@ -200,7 +296,7 @@ const TradingSetting = () => {
 
   return (
     <SettingControl
-      label="Risk Reward Ratio"
+      label="손익비"
       value={config?.riskRatio ?? 1.5}
       unit=" : 1"
       disabled={isLoading}
@@ -220,6 +316,7 @@ const TradingSetting = () => {
           : 1.5;
         updateConfig({ riskRatio });
       }}
+      tooltipText="손절 거리 대비 목표가 거리의 비율입니다. 예: 2:1은 손절 거리의 2배를 목표가로 설정합니다."
     />
   );
 };
@@ -229,7 +326,7 @@ const RiskSetting = () => {
 
   return (
     <SettingControl
-      label="Risk Percentage"
+      label="리스크 비율"
       value={config?.risk ?? 1.5}
       unit="%"
       disabled={isLoading}
@@ -249,6 +346,7 @@ const RiskSetting = () => {
           : 1.5;
         updateConfig({ risk });
       }}
+      tooltipText="한 번의 거래에서 감수할 수 있는 자본의 최대 손실 비율입니다."
     />
   );
 };
