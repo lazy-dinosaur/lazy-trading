@@ -58,10 +58,10 @@ const TradeInContexts = () => {
       }}
     >
       {/* 헤더 및 제어 영역 - 고정 */}
-      <div className="flex-none space-y-1 h-lg:space-y-2 h-xl:space-y-3 sticky top-0 z-10 bg-background pb-2 border-b">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-3">
+      <div className="flex-none sticky top-0 z-10 bg-background pb-1.5 border-b">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
           <PriceInfo />
-          <div className="w-full flex items-center justify-between">
+          <div className="w-full flex items-center justify-between space-x-2">
             <TimeFrame />
             <AccountSelector />
           </div>
