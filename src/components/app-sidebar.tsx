@@ -60,8 +60,9 @@ export function AppSidebar() {
                         navigate(item.url);
                         toggleSidebar();
                       }}
+                      className="text-base font-medium py-1"
                     >
-                      <item.icon />
+                      <item.icon className="w-5 h-5" />
                       <span>{item.title}</span>
                     </span>
                   </SidebarMenuButton>
