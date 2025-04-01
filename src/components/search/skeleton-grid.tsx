@@ -26,13 +26,15 @@ export const SkeletonGrid = ({ itemCount = 30 }: { itemCount?: number }) => {
   // 그리드 생성을 위한 아이템 행 계산
   const gridRows = [];
   for (let i = 0; i < itemCount; i += columnCount) {
-    const rowItems = Array.from({ length: Math.min(columnCount, itemCount - i) }).map((_, index) => i + index);
+    const rowItems = Array.from({
+      length: Math.min(columnCount, itemCount - i),
+    }).map((_, index) => i + index);
     gridRows.push(rowItems);
   }
 
   return (
     <div
-      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)] h-lg:h-[calc(100vh-11rem)] h-xl:h-[calc(100vh-13rem)]"
+      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)]"
       aria-busy="true"
       aria-live="polite"
     >
@@ -56,10 +58,10 @@ export const SkeletonGrid = ({ itemCount = 30 }: { itemCount?: number }) => {
                       </div>
                       <Skeleton className="w-20 h-5" />
                     </div>
-                    
+
                     {/* 공간 */}
                     <div className="flex-grow my-3"></div>
-                    
+
                     {/* 하단 정보 스켈레톤 */}
                     <div className="flex justify-between mt-2">
                       <div className="flex flex-col">
@@ -75,7 +77,7 @@ export const SkeletonGrid = ({ itemCount = 30 }: { itemCount?: number }) => {
                 </Card>
               </div>
             ))}
-            
+
             {/* 행에 부족한 아이템이 있는 경우 빈 공간 */}
             {row.length < columnCount &&
               Array.from({ length: columnCount - row.length }).map((_, i) => (
@@ -88,9 +90,7 @@ export const SkeletonGrid = ({ itemCount = 30 }: { itemCount?: number }) => {
           </div>
         ))}
       </div>
-      
       {/* 하단 여백 추가 */}
-      <div className="pb-6" />
     </div>
   );
 };

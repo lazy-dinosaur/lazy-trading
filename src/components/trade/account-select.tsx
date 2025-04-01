@@ -41,6 +41,11 @@ export const AccountSelector = () => {
       <Link
         to={`/account/add${exchange ? `?exchange=${exchange}` : ''}`}
         className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-md min-w-36 transition-colors"
+        onClick={() => {
+          // 현재 URL 파라미터 저장
+          const currentParams = searchParams.toString();
+          sessionStorage.setItem('returnToTradeScreen', currentParams);
+        }}
       >
         <PlusCircle className="h-4 w-4" />
         <span className="text-sm font-medium">Add Account</span>
@@ -105,6 +110,11 @@ export const AccountSelector = () => {
             <Link
               to={`/account/add${exchange ? `?exchange=${exchange}` : ''}`}
               className="flex items-center gap-2 text-primary/80 hover:text-primary p-1 text-xs transition-colors"
+              onClick={() => {
+                // 현재 URL 파라미터 저장
+                const currentParams = searchParams.toString();
+                sessionStorage.setItem('returnToTradeScreen', currentParams);
+              }}
             >
               <PlusCircle className="h-3 w-3" />
               <span>Add New Account</span>

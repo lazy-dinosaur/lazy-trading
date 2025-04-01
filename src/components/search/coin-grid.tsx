@@ -29,11 +29,15 @@ interface CoinGridProps {
   onToggleFavorite?: (ticker: TickerWithExchange) => void;
 }
 
-export const CoinGrid = ({ tickers, favorites = [], onToggleFavorite }: CoinGridProps) => {
+export const CoinGrid = ({
+  tickers,
+  favorites = [],
+  onToggleFavorite,
+}: CoinGridProps) => {
   const navigate = useNavigate();
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(3);
-  
+
   // 반응형 그리드 설정
   useEffect(() => {
     const updateColumnCount = () => {
@@ -101,7 +105,7 @@ export const CoinGrid = ({ tickers, favorites = [], onToggleFavorite }: CoinGrid
   return (
     <div
       ref={gridContainerRef}
-      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)] h-lg:h-[calc(100vh-11rem)] h-xl:h-[calc(100vh-13rem)]"
+      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)]"
     >
       {/* 가상화된 그리드 */}
       <div
@@ -127,16 +131,18 @@ export const CoinGrid = ({ tickers, favorites = [], onToggleFavorite }: CoinGrid
               className="flex w-full"
             >
               {rowItems.map((ticker: TickerWithExchange) => (
-                <div 
+                <div
                   key={`${ticker.exchange}-${ticker.symbol}`}
                   className="p-1 sm:p-2 w-full"
                   style={{ flex: `0 0 calc(100% / ${columnCount})` }}
                 >
-                  <Card 
+                  <Card
                     className="cursor-pointer hover:border-primary/50 transition-colors duration-150 h-full flex flex-col"
                     onClick={() => {
                       const symbol = encodeURIComponent(ticker.symbol);
-                      navigate(`/trade?exchange=${ticker.exchange}&symbol=${symbol}`);
+                      navigate(
+                        `/trade?exchange=${ticker.exchange}&symbol=${symbol}`,
+                      );
                     }}
                   >
                     <CardContent className="p-2 sm:p-3 flex flex-col h-full">
@@ -149,9 +155,13 @@ export const CoinGrid = ({ tickers, favorites = [], onToggleFavorite }: CoinGrid
                                 src={exchangeIcons[ticker.exchange]?.src}
                                 alt={ticker.exchange}
                               />
-                              <AvatarFallback>{exchangeIcons[ticker.exchange]?.fallback[0]}</AvatarFallback>
+                              <AvatarFallback>
+                                {exchangeIcons[ticker.exchange]?.fallback[0]}
+                              </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium text-xs h-lg:text-sm">{ticker.exchange}</span>
+                            <span className="font-medium text-xs h-lg:text-sm">
+                              {ticker.exchange}
+                            </span>
                           </div>
                           {onToggleFavorite && (
                             <button
@@ -162,58 +172,76 @@ export const CoinGrid = ({ tickers, favorites = [], onToggleFavorite }: CoinGrid
                               className="text-yellow-500 hover:text-yellow-300 flex-shrink-0"
                             >
                               <Star
-                                fill={favorites.includes(`${ticker.exchange}-${ticker.symbol}`) ? "currentColor" : "none"}
+                                fill={
+                                  favorites.includes(
+                                    `${ticker.exchange}-${ticker.symbol}`,
+                                  )
+                                    ? "currentColor"
+                                    : "none"
+                                }
                                 size={16}
                                 className="transition-all"
                               />
                             </button>
                           )}
                         </div>
-                        <div className="font-semibold text-sm h-lg:text-base break-words">{formatSymbol(ticker.symbol)}</div>
+                        <div className="font-semibold text-sm h-lg:text-base break-words">
+                          {formatSymbol(ticker.symbol)}
+                        </div>
                       </div>
-                      
+
                       {/* 중간 부분: 추가 정보 공간 */}
                       <div className="flex-grow"></div>
-                      
+
                       {/* 하단 정보: 거래량과 가격 */}
                       <div className="flex justify-between mt-2">
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground">Volume</span>
-                          <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">{formatVolume(ticker.baseVolume)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            Volume
+                          </span>
+                          <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
+                            {formatVolume(ticker.baseVolume)}
+                          </span>
                         </div>
                         <div className="flex flex-col items-end">
-                          <span className="text-xs text-muted-foreground">Price</span>
-                          <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">{ticker.last}</span>
+                          <span className="text-xs text-muted-foreground">
+                            Price
+                          </span>
+                          <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
+                            {ticker.last}
+                          </span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </div>
               ))}
-              
+
               {/* 한 행에 아이템이 columnCount보다 적은 경우 빈 공간 채우기 */}
               {rowItems.length < columnCount &&
-                Array.from({ length: columnCount - rowItems.length }).map((_, i) => (
-                  <div 
-                    key={`empty-${i}`} 
-                    className="p-1 sm:p-2"
-                    style={{ flex: `0 0 calc(100% / ${columnCount})` }}
-                  />
-                ))}
+                Array.from({ length: columnCount - rowItems.length }).map(
+                  (_, i) => (
+                    <div
+                      key={`empty-${i}`}
+                      className="p-1 sm:p-2"
+                      style={{ flex: `0 0 calc(100% / ${columnCount})` }}
+                    />
+                  ),
+                )}
             </div>
           );
         })}
       </div>
-      
+
       {/* 결과 없음 표시 */}
       {tickers.length === 0 && (
         <div className="flex items-center justify-center h-40">
           <p className="text-muted-foreground">No results found.</p>
         </div>
       )}
-      
+
       {/* 하단 여백 추가 */}
-      {tickers.length > 0 && <div className="pb-6" />}
+      {/* {tickers.length > 0 && <div className="pb-6" />} */}
     </div>
   );
 };

@@ -13,7 +13,7 @@ interface ChartComponentProps {
   height?: number; // 차트 높이 설정을 위한 prop 추가
 }
 
-export const ChartComponent = ({ height }: ChartComponentProps) => {
+export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
   const [searchParams] = useSearchParams();
   const { data, handleScroll, chartformat, isLoading } = useChartData();
   const { tradeInfo } = useTrade();

@@ -147,7 +147,7 @@ export const TradingAction = ({
       )}
 
       {/* 거래 요약 정보 */}
-      <div className="w-full mb-4">
+      <div className="w-full">
         <Card
           className={cn(
             "border",

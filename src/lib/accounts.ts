@@ -245,7 +245,15 @@ export const addAccount = async ({
   if (!encryptedAccount) {
     throw new Error("Failed to encrypt account");
   }
-  return setAccount(encryptedAccount);
+  const success = await setAccount(encryptedAccount);
+  if (success) {
+    // 성공 시 계정 ID 포함하여 반환
+    return {
+      success: true,
+      id: encryptedAccount.id
+    };
+  }
+  return { success: false };
 };
 
 export const decrypteAllAccounts = async (

@@ -22,7 +22,7 @@ export const SearchFilter = ({
   exchangeFilter,
 }: SearchFilterProps) => {
   return (
-    <div className="flex items-center w-full gap-2 mb-4">
+    <div className="flex items-center w-full gap-2">
       <Input
         placeholder="Search (e.g. 'btc usdt binance' or 'bybit btc/usdt')"
         value={searchQuery}

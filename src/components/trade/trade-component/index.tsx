@@ -48,7 +48,7 @@ export const TradeComponent = () => {
   return (
     <div className="w-full min-h-[180px] h-auto lg:h-full border rounded-md shadow-sm p-3 bg-card/20">
       <Tabs defaultValue="long" className="w-full h-full">
-        <TabsList className="w-full h-full grid grid-cols-2 mb-3">
+        <TabsList className="w-full h-min grid grid-cols-2 mb-3">
           <TabsTrigger
             value="long"
             className={`py-1 md:py-1.5 text-xs md:text-sm font-medium data-[state=active]:bg-green-500 data-[state=active]:text-white

@@ -29,17 +29,18 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
     !exchangeAccounts && (isAccountsLoading || !balanceInfo);
 
   // 트레이드 방향에 따른 스타일 설정
-  const directionStyle = tradeDirection === "long" 
-    ? { 
-        bgColor: "bg-green-500/10", 
-        textColor: "text-green-500",
-        infoBoxBg: "bg-green-500/5" 
-      }
-    : {
-        bgColor: "bg-red-500/10", 
-        textColor: "text-red-500",
-        infoBoxBg: "bg-red-500/5"
-      };
+  const directionStyle =
+    tradeDirection === "long"
+      ? {
+          bgColor: "bg-green-500/10",
+          textColor: "text-green-500",
+          infoBoxBg: "bg-green-500/5",
+        }
+      : {
+          bgColor: "bg-red-500/10",
+          textColor: "text-red-500",
+          infoBoxBg: "bg-red-500/5",
+        };
 
   return (
     <div className="h-full w-full flex flex-col gap-3 overflow-hidden p-2">
@@ -77,8 +78,16 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
       {isTradeInfoLoading ? (
         <div className="flex-1 w-full bg-accent/10 rounded-md p-3 border">
           <div className="flex justify-center mb-3">
-            <div className={cn("px-4 py-1 rounded-md text-center", directionStyle.bgColor, directionStyle.textColor)}>
-              <span className="font-semibold text-sm">{tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}</span>
+            <div
+              className={cn(
+                "px-4 py-1 rounded-md text-center",
+                directionStyle.bgColor,
+                directionStyle.textColor,
+              )}
+            >
+              <span className="font-semibold text-sm">
+                {tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}
+              </span>
             </div>
           </div>
 
@@ -103,7 +112,7 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
                 <Skeleton className="h-4 w-16 ml-auto" />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2">
               <div className="text-sm text-muted-foreground">포지션 크기</div>
               <div className="text-right">
@@ -115,15 +124,28 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
       ) : (
         <div className="flex-1 w-full bg-accent/10 rounded-md p-3 border">
           <div className="flex justify-center mb-3">
-            <div className={cn("px-4 py-1 rounded-md text-center", directionStyle.bgColor, directionStyle.textColor)}>
-              <span className="font-semibold text-sm">{tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}</span>
+            <div
+              className={cn(
+                "px-4 py-1 rounded-md text-center",
+                directionStyle.bgColor,
+                directionStyle.textColor,
+              )}
+            >
+              <span className="font-semibold text-sm">
+                {tradeDirection === "long" ? "롱 포지션" : "숏 포지션"}
+              </span>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
               <div className="text-sm text-muted-foreground">손절가</div>
-              <div className={cn("text-right p-1.5 rounded-md", directionStyle.infoBoxBg)}>
+              <div
+                className={cn(
+                  "text-right p-1.5 rounded-md",
+                  directionStyle.infoBoxBg,
+                )}
+              >
                 <div className="font-medium text-sm">
                   {tradeInfo?.[tradeDirection].stoploss.formatted}
                 </div>
@@ -135,7 +157,12 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
 
             <div className="grid grid-cols-2 gap-2">
               <div className="text-sm text-muted-foreground">목표가</div>
-              <div className={cn("text-right p-1.5 rounded-md", directionStyle.infoBoxBg)}>
+              <div
+                className={cn(
+                  "text-right p-1.5 rounded-md",
+                  directionStyle.infoBoxBg,
+                )}
+              >
                 <div className="font-medium text-sm">
                   {tradeInfo?.[tradeDirection].target.formatted}
                 </div>
@@ -151,7 +178,7 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
                 {tradeInfo?.[tradeDirection].leverage}x
               </div>
             </div>
-            
+
             {tradeInfo?.[tradeDirection].position && (
               <div className="grid grid-cols-2 gap-2">
                 <div className="text-sm text-muted-foreground">포지션 크기</div>
@@ -160,7 +187,7 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
                 </div>
               </div>
             )}
-            
+
             {tradeInfo?.[tradeDirection].position && (
               <div className="grid grid-cols-2 gap-2">
                 <div className="text-sm text-muted-foreground">마진 금액</div>
@@ -205,10 +232,18 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
           <div className="text-sm font-medium mb-2">잔고 정보</div>
           <div className="space-y-2">
             <div className="grid grid-cols-4 gap-2">
-              <div className="text-xs font-medium text-muted-foreground">자산</div>
-              <div className="text-xs font-medium text-muted-foreground">총액</div>
-              <div className="text-xs font-medium text-muted-foreground">사용 가능</div>
-              <div className="text-xs font-medium text-muted-foreground">사용 중</div>
+              <div className="text-xs font-medium text-muted-foreground">
+                자산
+              </div>
+              <div className="text-xs font-medium text-muted-foreground">
+                총액
+              </div>
+              <div className="text-xs font-medium text-muted-foreground">
+                사용 가능
+              </div>
+              <div className="text-xs font-medium text-muted-foreground">
+                사용 중
+              </div>
             </div>
 
             <div className="grid grid-cols-4 gap-2 items-center">
@@ -222,9 +257,7 @@ export const TradeInfo = ({ tradeDirection = "long" }: TradeInfoProps) => {
 
             <div className="grid grid-cols-4 gap-2 items-center border-t pt-2">
               <div className="text-xs font-bold">TOTAL USD</div>
-              <div className="text-xs font-bold">
-                {balanceInfo.usd.total}
-              </div>
+              <div className="text-xs font-bold">{balanceInfo.usd.total}</div>
               <div className="text-xs">{balanceInfo.usd.free}</div>
               <div className="text-xs">{balanceInfo.usd.used}</div>
             </div>

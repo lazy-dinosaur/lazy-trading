@@ -57,9 +57,24 @@ const AddAccount = () => {
           apiKey: data.apiKey,
           secretKey: data.secretKey,
         });
-        if (res) {
-          refreshAccounts();
-          navigate("/search");
+        if (res && res.success) {
+          // 계정 추가 후 강제로 새로고침 실행
+          await refreshAccounts();
+          
+          // 이전 화면이 trade 화면이었다면, 새 계정 ID로 거기로 리다이렉트
+          const returnTo = sessionStorage.getItem('returnToTradeScreen');
+          if (returnTo) {
+            sessionStorage.removeItem('returnToTradeScreen');
+            const params = new URLSearchParams(returnTo);
+            // 새로 생성된 계정 ID 사용
+            if (res.id) {
+              params.set("id", res.id);
+            }
+            navigate(`/trade?${params.toString()}`);
+          } else {
+            // 아니면 기본 화면으로 이동
+            navigate("/search");
+          }
         }
       }
     } catch (err) {

@@ -50,8 +50,10 @@ export const useAddAccount = () => {
   const { validPin } = usePin();
   return useMutation({
     mutationKey: ["addaccount"],
-    mutationFn: async (rawAccount: RawAccountInput) =>
-      await addAccount({ rawAccount, pin: validPin }),
+    mutationFn: async (rawAccount: RawAccountInput) => {
+      const result = await addAccount({ rawAccount, pin: validPin });
+      return result; // 결과에는 계정 ID가 포함됨
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["accountsDetail"] });
