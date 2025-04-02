@@ -82,10 +82,68 @@ export const TradingAction = ({
 
   // 거래 요약 정보
   const getTradeSummary = () => {
-    if (!tradeInfo?.[tradeDirection]?.position) return null;
+    if (!tradeInfo?.[tradeDirection]) return null;
 
     const info = tradeInfo[tradeDirection];
 
+    // 자본 부족 메시지 표시
+    if (info.insufficientCapital) {
+      return (
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-sm">레버리지:</span>
+            <span className="text-sm font-medium">{info.leverage}x</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm">손절가:</span>
+            <span
+              className={`text-sm font-medium ${tradeDirection === "long" ? "text-red-500" : "text-green-500"}`}
+            >
+              {info.stoploss.formatted} ({info.stoploss.percentage}%)
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm">목표가:</span>
+            <span
+              className={`text-sm font-medium ${tradeDirection === "long" ? "text-green-500" : "text-red-500"}`}
+            >
+              {info.target.formatted} ({info.target.percentage}%)
+            </span>
+          </div>
+          <div className="mt-2 p-2 bg-yellow-100/20 border border-yellow-300/30 rounded-md text-yellow-600 text-xs">
+            <AlertTriangle className="h-3 w-3 inline-block mr-1" />
+            자본이 부족합니다. 더 많은 자본이 필요합니다.
+          </div>
+        </div>
+      );
+    }
+
+    // 오류 메시지 표시
+    if (info.error) {
+      return (
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-sm">레버리지:</span>
+            <span className="text-sm font-medium">{info.leverage}x</span>
+          </div>
+          <div className="mt-2 p-2 bg-red-100/20 border border-red-300/30 rounded-md text-red-600 text-xs">
+            <AlertTriangle className="h-3 w-3 inline-block mr-1" />
+            계산 중 오류가 발생했습니다.
+          </div>
+        </div>
+      );
+    }
+
+    // 포지션 정보가 없는 경우
+    if (!info.position) {
+      return (
+        <div className="text-sm text-center text-muted-foreground">
+          정보 없음
+        </div>
+      );
+    }
+
+    // 기존 코드
     return (
       <div className="space-y-2">
         <div className="flex justify-between">
@@ -190,7 +248,12 @@ export const TradingAction = ({
             "w-full py-3 text-base font-bold shadow-md hover:shadow-lg transition-all",
             buttonStyle,
           )}
-          disabled={!accountInfo || tradeMutation.isPending}
+          disabled={
+            !accountInfo ||
+            tradeMutation.isPending ||
+            !!tradeInfo?.[tradeDirection]?.insufficientCapital ||
+            !!tradeInfo?.[tradeDirection]?.error
+          }
         >
           {tradeMutation.isPending ? "처리중..." : `${directionText} 진입`}
         </Button>
