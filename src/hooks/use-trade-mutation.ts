@@ -38,7 +38,7 @@ async function executeTrade({
         background: "#333",
         color: "#fff",
       },
-    }
+    },
   );
 
   try {
@@ -116,23 +116,50 @@ async function executeTrade({
             positionSide: tradeType.toUpperCase(),
             takeProfitPrice: info.target.price,
             hedged: true,
-          }
+          },
         ),
       ]);
     } else if (exchange === "bybit") {
+      // 마켓 타입 확인 (USDT 마켓인지 인버스 마켓인지)
+      const isUSDTMarket = symbol.includes("USDT");
+
       // 계정의 포지션 모드 확인
       const isHedgeMode = info.account?.positionMode === "hedge";
-      
+
       let positionIdx = 0; // 기본값: 단방향 모드
-      
-      if (isHedgeMode) {
-        // 헷지 모드에서는 long=1, short=2
+
+      // 인버스 마켓은 항상 단방향 모드 사용, USDT 마켓은 계정 설정에 따라 결정
+      if (isUSDTMarket && isHedgeMode) {
+        // 헷지 모드에서는 long=1, short=2 (USDT 마켓에서만 적용)
         positionIdx = tradeType === "long" ? 1 : 2;
-        console.log(`[Debug] Using hedge mode with positionIdx: ${positionIdx} for ${tradeType} position`);
+        console.log(
+          `[Debug] Using hedge mode with positionIdx: ${positionIdx} for ${tradeType} position on USDT market`,
+        );
       } else {
-        console.log(`[Debug] Using one-way mode with positionIdx: 0`);
+        console.log(
+          `[Debug] Using one-way mode with positionIdx: 0 ${!isUSDTMarket ? "(inverse market)" : ""}`,
+        );
       }
-      
+
+      // 포지션 모드 설정 시도 (USDT 마켓에서만)
+      if (isUSDTMarket) {
+        try {
+          await ccxtInstance.setPositionMode(isHedgeMode, symbol);
+          console.log(
+            `[Debug] Successfully set position mode to ${isHedgeMode ? "hedge" : "one-way"} for ${symbol}`,
+          );
+        } catch (error) {
+          console.warn(
+            `[Warning] Failed to set position mode for ${symbol}:`,
+            error,
+          );
+        }
+      } else {
+        console.log(
+          `[Debug] Skipping position mode setting for inverse market ${symbol}`,
+        );
+      }
+
       result = await Promise.all([
         // 진입 주문
         ccxtInstance.createOrder(
@@ -147,7 +174,7 @@ async function executeTrade({
             stopLoss: {
               triggerPrice: info.stoploss.price,
             },
-          }
+          },
         ),
         // 익절 주문 (reduceOnly)
         ccxtInstance.createOrder(
@@ -161,7 +188,7 @@ async function executeTrade({
           {
             positionIdx, // 포지션 모드에 따라 동적으로 설정
             reduceOnly: true,
-          }
+          },
         ),
       ]);
     } else if (exchange === "bitget") {
@@ -177,7 +204,7 @@ async function executeTrade({
               triggerPrice: info.stoploss.price,
             },
             hedged: true,
-          }
+          },
         ),
         ccxtInstance.createOrder(
           symbol,
@@ -191,7 +218,7 @@ async function executeTrade({
             holdSide: tradeType,
             reduceOnly: true,
             hedged: true,
-          }
+          },
         ),
       ]);
     } else {
@@ -209,7 +236,7 @@ async function executeTrade({
           background: tradeType === "long" ? "#10b981" : "#ef4444",
           color: "#fff",
         },
-      }
+      },
     );
 
     return result;
@@ -230,7 +257,7 @@ async function executeTrade({
           background: "#f43f5e",
           color: "#fff",
         },
-      }
+      },
     );
 
     throw error;
@@ -243,7 +270,7 @@ export function useTradeMutation() {
     onMutate: (variables) => {
       // 로딩 시작 시 콜백
       console.log(
-        `Starting ${variables.tradeType} position creation for ${variables.symbol}`
+        `Starting ${variables.tradeType} position creation for ${variables.symbol}`,
       );
     },
   });
