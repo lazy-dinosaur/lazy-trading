@@ -55,16 +55,9 @@ export function PositionTPSLDialog({
         setTakeProfitPrice(position.currentTakeProfitPrice.toString());
         calculateTPPercentage(position.currentTakeProfitPrice);
       } else {
-        // 기본값 설정 (예: 롱 포지션의 경우 5% 이익, 숏 포지션의 경우 5% 이익)
-        const defaultTPPercentage = 5;
-        setTakeProfitPercentage(defaultTPPercentage.toString());
-        
-        // 기본 퍼센트에 따른 가격 계산
-        const tpPrice = position.side === "long"
-          ? position.entryPrice * (1 + defaultTPPercentage / 100)
-          : position.entryPrice * (1 - defaultTPPercentage / 100);
-          
-        setTakeProfitPrice(tpPrice.toFixed(position.symbol.includes("BTC") ? 1 : 2));
+        // 기본값 설정하지 않음
+        setTakeProfitPrice("");
+        setTakeProfitPercentage("");
       }
 
       // 손절 가격이 있으면 설정
@@ -72,16 +65,9 @@ export function PositionTPSLDialog({
         setStopLossPrice(position.currentStopLossPrice.toString());
         calculateSLPercentage(position.currentStopLossPrice);
       } else {
-        // 기본값 설정 (예: 롱 포지션의 경우 3% 손실, 숏 포지션의 경우 3% 손실)
-        const defaultSLPercentage = 3;
-        setStopLossPercentage(defaultSLPercentage.toString());
-        
-        // 기본 퍼센트에 따른 가격 계산
-        const slPrice = position.side === "long"
-          ? position.entryPrice * (1 - defaultSLPercentage / 100)
-          : position.entryPrice * (1 + defaultSLPercentage / 100);
-          
-        setStopLossPrice(slPrice.toFixed(position.symbol.includes("BTC") ? 1 : 2));
+        // 기본값 설정하지 않음
+        setStopLossPrice("");
+        setStopLossPercentage("");
       }
     }
   }, [open, position]);
@@ -225,7 +211,8 @@ export function PositionTPSLDialog({
             </div>
           </DialogTitle>
           <DialogDescription>
-            {position.currentTakeProfitPrice || position.currentStopLossPrice ? (
+            {position.currentTakeProfitPrice ||
+            position.currentStopLossPrice ? (
               <div className="text-sm">
                 {position.currentTakeProfitPrice && (
                   <div className="inline-flex items-center mr-3 text-green-500">
@@ -283,9 +270,7 @@ export function PositionTPSLDialog({
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      기본: {position.side === "long" 
-                        ? `+5% (${(position.entryPrice * 1.05).toFixed(position.symbol.includes("BTC") ? 1 : 2)})` 
-                        : `-5% (${(position.entryPrice * 0.95).toFixed(position.symbol.includes("BTC") ? 1 : 2)})`}
+                      직접 입력
                     </span>
                   )}
                 </div>
@@ -307,13 +292,13 @@ export function PositionTPSLDialog({
                   </Label>
                   {position.currentTakeProfitPrice ? (
                     <span className="text-xs text-green-500">
-                      {position.side === "long" 
-                        ? `+${(((position.currentTakeProfitPrice - position.entryPrice) / position.entryPrice) * 100).toFixed(2)}%` 
+                      {position.side === "long"
+                        ? `+${(((position.currentTakeProfitPrice - position.entryPrice) / position.entryPrice) * 100).toFixed(2)}%`
                         : `+${(((position.entryPrice - position.currentTakeProfitPrice) / position.entryPrice) * 100).toFixed(2)}%`}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      기본: +5%
+                      직접 입력
                     </span>
                   )}
                 </div>
@@ -352,9 +337,7 @@ export function PositionTPSLDialog({
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      기본: {position.side === "long" 
-                        ? `-3% (${(position.entryPrice * 0.97).toFixed(position.symbol.includes("BTC") ? 1 : 2)})` 
-                        : `+3% (${(position.entryPrice * 1.03).toFixed(position.symbol.includes("BTC") ? 1 : 2)})`}
+                      직접 입력
                     </span>
                   )}
                 </div>
@@ -376,13 +359,13 @@ export function PositionTPSLDialog({
                   </Label>
                   {position.currentStopLossPrice ? (
                     <span className="text-xs text-red-500">
-                      {position.side === "long" 
-                        ? `-${(((position.entryPrice - position.currentStopLossPrice) / position.entryPrice) * 100).toFixed(2)}%` 
+                      {position.side === "long"
+                        ? `-${(((position.entryPrice - position.currentStopLossPrice) / position.entryPrice) * 100).toFixed(2)}%`
                         : `-${(((position.currentStopLossPrice - position.entryPrice) / position.entryPrice) * 100).toFixed(2)}%`}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      기본: -3%
+                      직접 입력
                     </span>
                   )}
                 </div>
