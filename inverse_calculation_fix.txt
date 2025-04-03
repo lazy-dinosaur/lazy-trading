@@ -1,0 +1,84 @@
+// USD 계약의 경우 (BTC/USD 등) - 수정된 인버스 계약 계산 로직
+if (!isUSDTContract) {
+  // 리스크 금액 계산 (USD 가치 기준)
+  const riskAmountUSD = availableBalance * currentPrice * (risk / 100);
+  
+  // 원하는 레버리지 계산
+  const targetLeverage = calculateLeverage(
+    risk,
+    parseFloat(stopLossPercentage),
+    tradingFee,
+  );
+  
+  // 레버리지 티어 확인 및 선택
+  let selectedTier: LeverageTier | undefined;
+  let finalLeverage = targetLeverage;
+  
+  if (leverageInfo.leverageTier?.length) {
+    // 티어를 레버리지 기준으로 내림차순 정렬
+    const sortedByLeverage = [...leverageInfo.leverageTier].sort(
+      (a, b) => (b.maxLeverage ?? 0) - (a.maxLeverage ?? 0)
+    );
+    
+    // 목표 레버리지를 수용할 수 있는 티어 찾기
+    for (const tier of sortedByLeverage) {
+      if ((tier.maxLeverage ?? 0) >= targetLeverage) {
+        selectedTier = tier;
+        finalLeverage = targetLeverage;
+        break;
+      }
+    }
+    
+    // 적합한 티어를 찾지 못한 경우 가장 높은 레버리지 티어 선택
+    if (!selectedTier) {
+      selectedTier = sortedByLeverage[0];
+      finalLeverage = selectedTier?.maxLeverage ?? leverageInfo.maxLeverage;
+    }
+  }
+  
+  // 인버스 시장에서는 포지션 사이즈가 계약 수량(USD 단위)를 의미
+  // 따라서 BTC 가격을 곱해서 USD 가치를 계산해야 함
+  const usdValueTotal = availableBalance * currentPrice * finalLeverage;
+  
+  // 스탑로스 거리와 수수료를 고려한 최종 계산
+  const contractSize = usdValueTotal / (stopLossDistance / 100 + totalFeeRate);
+  
+  console.log("목표 레버리지:", targetLeverage, "최종 레버리지:", finalLeverage);
+  console.log("총 USD 가치:", usdValueTotal);
+  console.log("usd기준 계산된 계약 규모:", contractSize);
+  
+  // 포지션 사이즈가 선택된 티어의 maxNotional을 초과하는지 확인
+  let finalContractSize = contractSize;
+  if (selectedTier && selectedTier.maxNotional && contractSize > selectedTier.maxNotional) {
+    finalContractSize = selectedTier.maxNotional;
+    // 실제 사용될 레버리지 재계산
+    finalLeverage = (finalContractSize * (stopLossDistance / 100 + totalFeeRate)) / (availableBalance * currentPrice);
+  }
+  
+  console.log("usd기준 최종 계약 규모:", finalContractSize);
+  
+  // 최소 주문 수량 검사
+  const market = ccxtInstance.market(symbol);
+  const minAmount = market?.limits?.amount?.min || 0;
+  
+  if (finalContractSize < minAmount) {
+    result.insufficientCapital = {
+      calculatedSize: finalContractSize,
+      minRequiredSize: minAmount,
+      message: `자본이 부족합니다. 최소 주문 수량은 ${minAmount}이지만 계산된 수량은 ${finalContractSize.toFixed(8)}입니다.`
+    };
+  } else {
+    const margin = finalContractSize / finalLeverage;
+    const totalFee = finalContractSize * totalFeeRate;
+    const stopLossLoss = finalContractSize * (stopLossDistance / 100);
+    const totalLoss = stopLossLoss + totalFee;
+
+    result.position = {
+      size: Number(ccxtInstance.amountToPrecision(symbol, finalContractSize)),
+      margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
+      fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
+      totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
+    };
+    result.calculatedLeverage = finalLeverage;
+  }
+}

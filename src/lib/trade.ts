@@ -502,14 +502,14 @@ export const calculatePositionInfo = ({
   if (availableBalance && tradingFee) {
     try {
       const isUSDTContract = symbol.includes("USDT");
-      const riskAmount = availableBalance * (risk / 100);
       const stopLossDistance = Math.abs(
         ((currentPrice - stopLossPrice) / currentPrice) * 100,
       );
       const totalFeeRate = tradingFee.taker * 2;
 
       if (isUSDTContract) {
-        // USDT 계약의 경우
+        // USDT 계약의 경우 - 기존 코드 유지
+        const riskAmount = availableBalance * (risk / 100);
         const positionSizeUSDT =
           riskAmount / (stopLossDistance / 100 + totalFeeRate);
         console.log("usdt기준 계산 전 포지션 규모:", positionSizeUSDT);
@@ -551,47 +551,175 @@ export const calculatePositionInfo = ({
           result.calculatedLeverage = leverage;
         }
       } else {
-        // USD 계약의 경우 (BTC/USD 등)
-        const positionSize =
-          (riskAmount * currentPrice) / (stopLossDistance / 100 + totalFeeRate);
-        console.log("usd기준 계산 전 포지션 규모:", positionSize);
-
-        // 최적 레버리지와 포지션 사이즈 계산
-        const { leverage, maxPositionSize } = findOptimalLeverageAndSize(
-          positionSize,
-          availableBalance * currentPrice, // USD 가치로 변환
-          leverageInfo.leverageTier || [],
+        // USD 계약의 경우 (BTC/USD 등) - 개선된 로직
+        console.log("========== 인버스 계약 계산 ==========");
+        
+        // 스탑로스 거리와 수수료를 고려한 계산
+        const stopLossDistance = Math.abs(
+          ((currentPrice - stopLossPrice) / currentPrice) * 100
         );
-        console.log("usd기준 계산 후 포지션 규모:", maxPositionSize);
-
-        const finalPositionSize = Math.min(positionSize, maxPositionSize);
+        const totalFeeRate = tradingFee.taker * 2;
         
-        // 최소 주문 수량 검사 추가
+        // 위험 금액 계산 (자본 × 가격 × 위험률)
+        const riskAmount = availableBalance * currentPrice * (risk / 100);
+        
+        // 계약 크기 계산 - 위험 금액 기반으로 계산
+        const contractSize = riskAmount / (stopLossDistance / 100 + totalFeeRate);
+        
+        console.log("계산된 계약 규모:", contractSize);
+        
+        // 목표 레버리지 계산
+        const targetLeverage = calculateLeverage(
+          risk,
+          parseFloat(stopLossPercentage),
+          tradingFee,
+        );
+        
+        let selectedTier: LeverageTier | undefined;
+        let finalLeverage = targetLeverage;
+        let finalContractSize = contractSize;
+        
+        // 티어 선택 로직 개선 - 계약 규모에 따라 적절한 티어 선택
+        if (leverageInfo.leverageTier?.length) {
+          console.log("원래 티어 정보:", JSON.stringify(leverageInfo.leverageTier, null, 2));
+          
+          // 인버스 계약에서는 티어의 maxNotional을 BTC에서 USD로 변환해서 비교
+          // USD 계약 크기 = BTC 수량 * 현재 가격
+          
+          // 티어를 maxNotional 기준으로 오름차순 정렬 (작은 값부터)
+          const sortedTiers = [...leverageInfo.leverageTier].sort(
+            (a, b) => (a.maxNotional ?? 0) - (b.maxNotional ?? 0)
+          );
+          
+          // 계산된 계약 규모(USD)를 수용할 수 있는 가장 적합한 티어 찾기
+          let usdToKonVertedContractSize = contractSize / currentPrice; // USD를 BTC로 변환
+          console.log("계산된 계약 규모(USD):", contractSize);
+          console.log("BTC로 변환된 계약 규모:", usdToKonVertedContractSize);
+          
+          for (const tier of sortedTiers) {
+            const maxNotionalUsd = (tier.maxNotional ?? 0) * currentPrice;
+            console.log(`티어 ${tier.tier}: maxNotional(BTC) ${tier.maxNotional}, maxNotional(USD) ${maxNotionalUsd}`);
+            
+            if (tier.maxNotional && usdToKonVertedContractSize <= tier.maxNotional) {
+              selectedTier = tier;
+              // 최대 레버리지 적용 (리스크 관리는 주문 크기로 조절)
+              finalLeverage = tier.maxLeverage ?? leverageInfo.maxLeverage;
+              
+              console.log("최대 레버리지 적용:", finalLeverage, "× (목표 레버리지:", targetLeverage, ")");
+              
+              finalContractSize = contractSize;
+              finalContractSize = contractSize;
+              console.log(`티어 ${tier.tier} 선택: maxNotional(BTC) ${tier.maxNotional}, maxNotional(USD) ${maxNotionalUsd}, 레버리지 ${finalLeverage}`);
+              break;
+            }
+          }
+          
+          // 적합한 티어를 찾지 못한 경우 (모든 티어의 maxNotional이 변환된 계약 규모보다 작은 경우)
+          if (!selectedTier) {
+            // 가장 큰 maxNotional을 가진 티어 선택
+            selectedTier = sortedTiers[sortedTiers.length - 1];
+            // 최대 레버리지 적용 (리스크 관리는 주문 크기로 조절)
+            finalLeverage = selectedTier?.maxLeverage ?? leverageInfo.maxLeverage;
+            
+            console.log("최대 레버리지 적용:", finalLeverage, "× (목표 레버리지:", targetLeverage, ")");
+            
+            // 최대 티어의 maxNotional을 USD로 변환한 값으로 계약 크기 제한
+            const maxNotionalUsd = (selectedTier?.maxNotional ?? 0) * currentPrice;
+            finalContractSize = Math.min(contractSize, maxNotionalUsd);
+            
+            console.log(`최대 티어 선택: tier ${selectedTier?.tier}, maxNotional(BTC) ${selectedTier?.maxNotional}, maxNotional(USD) ${maxNotionalUsd}, 레버리지 ${finalLeverage}`);
+          }
+        }
+        
+        // 시장 정보 확인
         const market = ccxtInstance.market(symbol);
-        const minAmount = market?.limits?.amount?.min || 0;
         
-        if (finalPositionSize < minAmount) {
-          // 최소 주문 수량보다 작은 경우 오류 발생 대신 경고 정보 추가
-          result.insufficientCapital = {
-            calculatedSize: finalPositionSize,
-            minRequiredSize: minAmount,
-            message: `자본이 부족합니다. 최소 주문 수량은 ${minAmount}이지만 계산된 수량은 ${finalPositionSize.toFixed(8)}입니다.`
-          };
+        // 최소 주문 크기 확인
+        let minAmount = market?.limits?.amount?.min || 1;
+        
+        // 계약 크기가 정의되어 있으면 확인
+        if (market?.contractSize) {
+          // 일부 거래소에서는 contractSize가 있으면 그 단위로 거래해야 함
+          minAmount = Math.max(minAmount, Number(market.contractSize) || 1);
+        }
+        
+        // 계약 크기가 최소보다 작은지 확인
+        if (finalContractSize < minAmount) {
+          finalContractSize = minAmount;
+        }
+        
+        // 인버스 계약은 정수로 처리
+        finalContractSize = Math.floor(finalContractSize);
+        
+        console.log("최종 계약 규모:", finalContractSize);
+        console.log("최종 레버리지:", finalLeverage);
+        
+        // 필요한 마진 계산
+        const margin = finalContractSize / finalLeverage;
+        const availableMarginUSD = availableBalance * currentPrice;
+        
+        console.log("필요 마진:", margin);
+        console.log("가용 마진(USD):", availableMarginUSD);
+        
+        // 마진 버퍼 계산 (가용 마진의 95%까지만 사용)
+        const usableMargin = availableMarginUSD * 0.95;
+        console.log("사용 가능한 마진 (95%):", usableMargin);
+        
+        // 자본 충분성 검사 - 가용 마진이 필요 마진보다 큰지 확인
+        if (margin > usableMargin) {
+          // 자본 부족 - 정보 설정
+          console.log("자본 부족 상태 감지: 필요 마진이 가용 마진보다 큼");
+          
+          // 마진이 부족하면, 가능한 최대 계약 크기 계산 (최대 레버리지 적용)
+          const maxPossibleContractSize = Math.floor(usableMargin * finalLeverage);
+          
+          // 최소 계약 크기 보다 작으면 자본 부족으로 표시
+          if (maxPossibleContractSize < minAmount) {
+            result.insufficientCapital = {
+              calculatedSize: finalContractSize,
+              minRequiredSize: minAmount,
+              message: `자본이 부족합니다. 필요 마진: ${margin.toFixed(2)} USD, 가용 마진: ${availableMarginUSD.toFixed(2)} USD`
+            };
+          } else {
+            // 가능한 최대 계약 크기로 조정하고 자본 부족 상태는 설정하지 않음
+            console.log("계약 크기 조정: 원래", finalContractSize, "→ 조정됨", maxPossibleContractSize);
+            finalContractSize = maxPossibleContractSize;
+            
+            // 마진 재계산
+            const newMargin = finalContractSize / finalLeverage;
+            console.log("조정된 마진:", newMargin);
+            
+            // 포지션 설정 
+            const totalFee = finalContractSize * totalFeeRate;
+            const stopLossLoss = finalContractSize * (stopLossDistance / 100);
+            const totalLoss = stopLossLoss + totalFee;
+
+            result.position = {
+              // 인버스 계약은 정수로 저장
+              size: Math.floor(finalContractSize),
+              margin: Number(ccxtInstance.costToPrecision(symbol, newMargin)),
+              fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
+              totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
+            };
+            result.calculatedLeverage = finalLeverage;
+            
+            // 함수를 여기서 종료
+            return result;
+          }
         } else {
-          const margin = finalPositionSize / leverage;
-          const totalFee = finalPositionSize * totalFeeRate;
-          const stopLossLoss = finalPositionSize * (stopLossDistance / 100);
+          // 정상 계산 완료
+          const totalFee = finalContractSize * totalFeeRate;
+          const stopLossLoss = finalContractSize * (stopLossDistance / 100);
           const totalLoss = stopLossLoss + totalFee;
 
           result.position = {
-            size: Number(
-              ccxtInstance.amountToPrecision(symbol, finalPositionSize),
-            ),
+            // 인버스 계약은 정수로 저장
+            size: Math.floor(finalContractSize),
             margin: Number(ccxtInstance.costToPrecision(symbol, margin)),
             fee: Number(ccxtInstance.costToPrecision(symbol, totalFee)),
             totalLoss: Number(ccxtInstance.costToPrecision(symbol, totalLoss)),
           };
-          result.calculatedLeverage = leverage;
+          result.calculatedLeverage = finalLeverage;
         }
       }
     } catch (error) {
