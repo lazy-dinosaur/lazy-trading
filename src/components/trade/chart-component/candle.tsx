@@ -1,4 +1,5 @@
 import { ChartContext } from "@/contexts/chart/type";
+import { useSettings } from "@/contexts/settings/use";
 import { searchingStopLossCandle } from "@/lib/chart";
 import {
   CandlestickSeriesOptions,
@@ -12,6 +13,7 @@ import {
   useRef,
   useLayoutEffect,
   useImperativeHandle,
+  useEffect,
 } from "react";
 
 export type CandleData = OhlcData & { volume: number };
@@ -22,12 +24,44 @@ interface CandleProps {
   options?: DeepPartial<CandlestickSeriesOptions>;
 }
 
+// 색상 테마 정의
+const lightTheme = {
+  background: "#FFFFFF",
+  text: "#121212",
+  grid: "#E5E5E5",
+  border: "#D4D4D8",
+  upColor: "rgba(34, 197, 94, 0.8)", // 상승봉 - 초록
+  downColor: "rgba(239, 68, 68, 0.8)", // 하락봉 - 빨강
+  upVolumeColor: "rgba(34, 197, 94, 0.2)", // 상승 볼륨 - 연한 초록
+  downVolumeColor: "rgba(239, 68, 68, 0.2)", // 하락 볼륨 - 연한 빨강
+  highLineColor: "rgba(239, 68, 68, 0.8)", // 고점 라인 - 빨강
+  lowLineColor: "rgba(34, 197, 94, 0.8)", // 저점 라인 - 초록
+};
+
+const darkTheme = {
+  background: "#121212",
+  text: "#F5F5F5",
+  grid: "#27272A",
+  border: "#3F3F46",
+  upColor: "rgba(34, 197, 94, 0.8)", // 상승봉 - 초록
+  downColor: "rgba(239, 68, 68, 0.8)", // 하락봉 - 빨강
+  upVolumeColor: "rgba(34, 197, 94, 0.2)", // 상승 볼륨 - 연한 초록
+  downVolumeColor: "rgba(239, 68, 68, 0.2)", // 하락 볼륨 - 연한 빨강
+  highLineColor: "rgba(239, 68, 68, 0.8)", // 고점 라인 - 빨강
+  lowLineColor: "rgba(34, 197, 94, 0.8)", // 저점 라인 - 초록
+};
+
 export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
   (props, ref) => {
+    const { theme } = useSettings();
     const parent = useContext(ChartContext);
     if (!parent) {
       throw new Error("CandleSeries must be used within a Chart Context");
     }
+
+    // 테마에 따른 색상 결정
+    const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const currentTheme = isDark ? darkTheme : lightTheme;
 
     const context = useRef<{
       _api: ISeriesApi<"Candlestick"> | undefined;
@@ -60,8 +94,8 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
             value: item.volume,
             color:
               item.close >= item.open
-                ? "rgba(34, 197, 94, 0.2)" // 상승봉 - 연한 초록
-                : "rgba(239, 68, 68, 0.2)", // 하락봉 - 연한 빨강
+                ? currentTheme.upVolumeColor
+                : currentTheme.downVolumeColor,
           }));
           this._volumeApi.setData(volumeData);
           this._volumeApi.priceScale().applyOptions({
@@ -73,11 +107,11 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
 
           // 캔들 시리즈 추가
           this._api = parent.api().addCandlestickSeries({
-            upColor: "#22C55ECC",
-            downColor: "#EF4444CC",
+            upColor: currentTheme.upColor,
+            downColor: currentTheme.downColor,
             borderVisible: false,
-            wickUpColor: "#22C55ECC",
-            wickDownColor: "#EF4444CC",
+            wickUpColor: currentTheme.upColor,
+            wickDownColor: currentTheme.downColor,
             ...options,
           });
 
@@ -85,30 +119,33 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           parent.api().applyOptions({
             layout: {
               background: {
-                color: "#0A0A0A",
+                color: currentTheme.background,
               },
-              textColor: "#FAFAFA",
+              textColor: currentTheme.text,
             },
             grid: {
               vertLines: {
-                visible: false,
+                color: currentTheme.grid,
+                visible: true,
               },
               horzLines: {
-                visible: false,
+                color: currentTheme.grid,
+                visible: true,
               },
             },
             timeScale: {
-              borderColor: "#27272a",
+              borderColor: currentTheme.border,
               timeVisible: true,
             },
             rightPriceScale: {
-              borderColor: "#27272a",
+              borderColor: currentTheme.border,
             },
           });
+          
           // 상단 라인 시리즈 추가
           this._highLineApi = parent.api().addLineSeries({
             lastPriceAnimation: 1,
-            color: "#EF4444CC",
+            color: currentTheme.highLineColor,
             lineWidth: 1,
             lineStyle: 2, // 점선
           });
@@ -116,7 +153,7 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           // 하단 라인 시리즈 추가
           this._lowLineApi = parent.api().addLineSeries({
             lastPriceAnimation: 1,
-            color: "#22C55ECC",
+            color: currentTheme.lowLineColor,
             lineWidth: 1,
             lineStyle: 2, // 점선
           });
@@ -165,6 +202,69 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       },
     });
 
+    // 테마 변경 시 차트 스타일 업데이트
+    useEffect(() => {
+      if (context.current._api) {
+        // 캔들 스타일 업데이트
+        context.current._api.applyOptions({
+          upColor: currentTheme.upColor,
+          downColor: currentTheme.downColor,
+          wickUpColor: currentTheme.upColor,
+          wickDownColor: currentTheme.downColor,
+        });
+
+        // 라인 스타일 업데이트
+        if (context.current._highLineApi) {
+          context.current._highLineApi.applyOptions({
+            color: currentTheme.highLineColor,
+          });
+        }
+        
+        if (context.current._lowLineApi) {
+          context.current._lowLineApi.applyOptions({
+            color: currentTheme.lowLineColor,
+          });
+        }
+
+        // 차트 배경 및 그리드 설정 업데이트
+        parent.api().applyOptions({
+          layout: {
+            background: {
+              color: currentTheme.background,
+            },
+            textColor: currentTheme.text,
+          },
+          grid: {
+            vertLines: {
+              color: currentTheme.grid,
+            },
+            horzLines: {
+              color: currentTheme.grid,
+            },
+          },
+          timeScale: {
+            borderColor: currentTheme.border,
+          },
+          rightPriceScale: {
+            borderColor: currentTheme.border,
+          },
+        });
+
+        // 볼륨 데이터 업데이트
+        if (context.current._volumeApi && props.data) {
+          const volumeData = props.data.map((item) => ({
+            time: item.time,
+            value: item.volume,
+            color:
+              item.close >= item.open
+                ? currentTheme.upVolumeColor
+                : currentTheme.downVolumeColor,
+          }));
+          context.current._volumeApi.setData(volumeData);
+        }
+      }
+    }, [theme, currentTheme]);
+
     useLayoutEffect(() => {
       const currentRef = context.current;
       currentRef.api();
@@ -189,8 +289,8 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           value: item.volume,
           color:
             item.close >= item.open
-              ? "rgba(34, 197, 94, 0.2)"
-              : "rgba(239, 68, 68, 0.2)",
+              ? currentTheme.upVolumeColor
+              : currentTheme.downVolumeColor,
         }));
         currentRef._volumeApi.setData(volumeData);
       }

@@ -1,12 +1,22 @@
 import { useContext } from "react";
-import { TradingConfigContext } from "./type";
+import { SettingsContext, TradingConfigContext } from "./type";
 
-export function useTradingConfig() {
-  const context = useContext(TradingConfigContext);
+export const useSettings = () => {
+  const context = useContext(SettingsContext);
+  
   if (context === undefined) {
-    throw new Error(
-      "useTradingConfig must be used within a TradingConfigProvider",
-    );
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
+  
   return context;
-}
+};
+
+export const useTradingConfig = () => {
+  const context = useContext(TradingConfigContext);
+  
+  if (!context) {
+    throw new Error("useTradingConfig must be used within a TradingConfigProvider");
+  }
+  
+  return context;
+};

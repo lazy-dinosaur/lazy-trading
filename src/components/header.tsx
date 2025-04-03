@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { SidebarTrigger } from "./ui/sidebar";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./theme/theme-toggle";
 
 export type HeaderType = {
   backButton?: boolean;
@@ -58,9 +59,12 @@ const Header = ({
           )}
         </div>
       </div>
-      {sidebarButton && (
-        <SidebarTrigger className="w-3 h-3 mr-1 h-lg:w-5 h-lg:h-5 h-xl:w-7 h-xl:h-7" />
-      )}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        {sidebarButton && (
+          <SidebarTrigger className="w-3 h-3 mr-1 h-lg:w-5 h-lg:h-5 h-xl:w-7 h-xl:h-7" />
+        )}
+      </div>
     </div>
   );
 };
