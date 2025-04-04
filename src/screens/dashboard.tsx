@@ -20,12 +20,19 @@ import {
   Wallet,
   ArrowUpCircle,
   ArrowDownCircle,
+  TrendingUp,
 } from "lucide-react";
 // React 임포트 제거
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
+import CapitalChangeChart from "@/components/capital-change-chart";
+import {
+  useBalanceHistory,
+  useHourlyBalanceHistory,
+  balanceHistoryToChartData,
+} from "@/hooks/use-balance-history";
 
 // 포지션 타입 정의
 interface Position {
@@ -75,7 +82,19 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { accounts, decryptedAccounts, accountsBalance } = useAccounts();
 
-  // React Query를 사용한 계정 잔액 정보 가져오기
+  // 일별 자본 변동 내역 조회 (7일)
+  const { data: balanceHistory = [], isLoading: isLoadingBalanceHistory } =
+    useBalanceHistory(decryptedAccounts);
+
+  // 시간별 자본 변동 내역 조회 (24시간)
+  const {
+    data: hourlyBalanceHistory = [],
+    isLoading: isLoadingHourlyBalanceHistory,
+  } = useHourlyBalanceHistory(decryptedAccounts);
+
+  // 차트 데이터 변환
+  const dailyChartData = balanceHistoryToChartData(balanceHistory);
+  const hourlyChartData = balanceHistoryToChartData(hourlyBalanceHistory);
 
   // 총 잔액 계산
   const totalBalance = Object.values(accountsBalance || {}).reduce(
@@ -228,7 +247,20 @@ const Dashboard = () => {
     staleTime: Infinity, // 30초 동안 데이터를 신선한 것으로 간주
   });
 
-  // 계정 데이터 새로고침 함수는 더 이상 필요하지 않음
+  // 최근 수익률 계산
+  const calculateRecentProfitRate = () => {
+    if (!dailyChartData || dailyChartData.length < 2) return null;
+
+    const oldest = dailyChartData[0].value;
+    const newest = dailyChartData[dailyChartData.length - 1].value;
+
+    if (oldest === 0) return null;
+
+    const profitRate = ((newest - oldest) / oldest) * 100;
+    return profitRate;
+  };
+
+  const recentProfitRate = calculateRecentProfitRate();
 
   return (
     <ScreenWrapper headerProps={{ title: "Dashboard" }} className="space-y-5">
@@ -246,6 +278,17 @@ const Dashboard = () => {
               </>
             )}
           </CardTitle>
+          {recentProfitRate !== null && (
+            <div
+              className={`flex items-center text-sm mt-1 ${recentProfitRate >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              <TrendingUp className="h-4 w-4 mr-1" />
+              <span>
+                7일 수익률: {recentProfitRate >= 0 ? "+" : ""}
+                {recentProfitRate.toFixed(2)}%
+              </span>
+            </div>
+          )}
         </CardHeader>
         <CardFooter className="pt-2 flex justify-end">
           {!accountsBalance && (
@@ -253,6 +296,14 @@ const Dashboard = () => {
           )}
         </CardFooter>
       </Card>
+
+      {/* 자본 변동 차트 */}
+      <CapitalChangeChart
+        data={dailyChartData}
+        hourlyData={hourlyChartData}
+        isLoading={isLoadingBalanceHistory || isLoadingHourlyBalanceHistory}
+        height={250}
+      />
 
       {/* 계정 요약 */}
       <Card>
@@ -384,9 +435,12 @@ const Dashboard = () => {
                     key={position.id}
                     className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10 cursor-pointer"
                     onClick={() =>
-                      navigate(`/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`, {
-                        state: { fromPosition: true }
-                      })
+                      navigate(
+                        `/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`,
+                        {
+                          state: { fromPosition: true },
+                        },
+                      )
                     }
                   >
                     <div className="flex items-center justify-between mb-1">

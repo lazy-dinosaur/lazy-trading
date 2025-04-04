@@ -36,7 +36,10 @@ export const useAccountsBalance = () => {
   const { data, isLoading: isDecrypting } = useAllDecryptedAccounts();
   return useQuery({
     queryKey: ["accountsDetails"],
-    queryFn: async () => await fetchBalance(data),
+    queryFn: async () => {
+      const balanceData = await fetchBalance(data);
+      return balanceData;
+    },
     enabled: !!data && !isDecrypting,
     refetchInterval: 1500,
     refetchOnMount: true,
