@@ -19,13 +19,13 @@ export const AccountSelector = () => {
   const exchange = searchParams.get("exchange");
 
   // 현재 선택된 계정 정보 가져오기
-  const selectedAccount = id && exchangeAccounts 
-    ? exchangeAccounts.find(account => account.id === id)
-    : null;
-    
-  const selectedBalance = id && accountsBalance
-    ? accountsBalance[id]?.balance?.usd?.total
-    : null;
+  const selectedAccount =
+    id && exchangeAccounts
+      ? exchangeAccounts.find((account) => account.id === id)
+      : null;
+
+  const selectedBalance =
+    id && accountsBalance ? accountsBalance[id]?.balance?.usd?.total : null;
 
   if (isAccountsLoading) {
     return (
@@ -35,16 +35,25 @@ export const AccountSelector = () => {
     );
   }
 
+  // 계정 ID는 있지만 해당 계정을 찾을 수 없는 경우
+  if (id && !selectedAccount) {
+    return (
+      <div className="flex items-center gap-2 bg-card border p-2 rounded-md min-w-36 h-9 text-sm text-red-500">
+        계정을 찾을 수 없음
+      </div>
+    );
+  }
+
   // 계정이 없는 경우 계정 추가 링크 보여주기
   if (!exchangeAccounts || exchangeAccounts.length === 0) {
     return (
       <Link
-        to={`/account/add${exchange ? `?exchange=${exchange}` : ''}`}
+        to={`/account/add${exchange ? `?exchange=${exchange}` : ""}`}
         className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-md min-w-36 transition-colors"
         onClick={() => {
           // 현재 URL 파라미터 저장
           const currentParams = searchParams.toString();
-          sessionStorage.setItem('returnToTradeScreen', currentParams);
+          sessionStorage.setItem("returnToTradeScreen", currentParams);
         }}
       >
         <PlusCircle className="h-4 w-4" />
@@ -61,7 +70,7 @@ export const AccountSelector = () => {
           Balance: ${selectedBalance.toFixed(2)}
         </div>
       )}
-      
+
       <Select
         value={id ? id : undefined}
         onValueChange={(value) => {
@@ -70,17 +79,13 @@ export const AccountSelector = () => {
           setSearchParams(newParams);
         }}
       >
-        <SelectTrigger
-          className="min-w-36 h-9 bg-card/80 border rounded-md"
-        >
+        <SelectTrigger className="min-w-36 h-9 bg-card/80 border rounded-md">
           <div className="flex items-center gap-2">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            <SelectValue
-              placeholder="Select Account"
-            />
+            <SelectValue placeholder="Select Account" />
           </div>
         </SelectTrigger>
-        
+
         <SelectContent className="max-h-[40vh]">
           <SelectGroup>
             {exchangeAccounts.map((account) => {
@@ -89,31 +94,33 @@ export const AccountSelector = () => {
                 accountsBalance && accountsBalance[id]?.balance?.usd?.total;
               return (
                 <div key={id} className="py-1 border-b last:border-b-0">
-                  <SelectItem 
-                    className="h-8 flex gap-2 items-center" 
+                  <SelectItem
+                    className="h-8 flex gap-2 items-center"
                     value={id}
                   >
                     <span className="text-sm font-medium">{account.name}</span>
                   </SelectItem>
-                  
+
                   <div className="flex justify-between text-xs text-muted-foreground px-8 pb-1">
                     <span>Balance:</span>
-                    <span className="font-semibold">${totalBalance?.toFixed(2) || "0.00"}</span>
+                    <span className="font-semibold">
+                      ${totalBalance?.toFixed(2) || "0.00"}
+                    </span>
                   </div>
                 </div>
               );
             })}
           </SelectGroup>
-          
+
           {/* 계정 추가 링크 */}
           <div className="pt-2 px-2 border-t mt-1">
             <Link
-              to={`/account/add${exchange ? `?exchange=${exchange}` : ''}`}
+              to={`/account/add${exchange ? `?exchange=${exchange}` : ""}`}
               className="flex items-center gap-2 text-primary/80 hover:text-primary p-1 text-xs transition-colors"
               onClick={() => {
                 // 현재 URL 파라미터 저장
                 const currentParams = searchParams.toString();
-                sessionStorage.setItem('returnToTradeScreen', currentParams);
+                sessionStorage.setItem("returnToTradeScreen", currentParams);
               }}
             >
               <PlusCircle className="h-3 w-3" />

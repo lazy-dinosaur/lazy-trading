@@ -384,9 +384,9 @@ const Dashboard = () => {
                     key={position.id}
                     className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10 cursor-pointer"
                     onClick={() =>
-                      navigate(
-                        `/trade?symbol=${position.symbol}&id=${position.accountId}`,
-                      )
+                      navigate(`/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`, {
+                        state: { fromPosition: true }
+                      })
                     }
                   >
                     <div className="flex items-center justify-between mb-1">
