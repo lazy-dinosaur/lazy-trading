@@ -17,10 +17,12 @@ import {
   Layers,
   BarChart3,
   Wallet,
-  X, // X 아이콘 추가
-  Target, // 타겟 아이콘 추가
-  Scissors, // 손절 아이콘 추가
-  Settings, // 설정 아이콘 추가
+  X,
+  Target,
+  Scissors,
+  Settings,
+  Clock, // 지정가 주문 아이콘
+  Zap, // 시장가 주문 아이콘
 } from "lucide-react";
 
 type TabType = "orders" | "positions" | "assets";
@@ -276,8 +278,10 @@ const AssetCard = ({ asset, amount }: AssetCardProps) => (
 // 주문 목록 컴포넌트 (실제 데이터 연동)
 const OrdersList = () => {
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const exchange = searchParams.get("exchange") as ExchangeType | null;
   const accountId = searchParams.get("id");
+  const symbol = searchParams.get("symbol");
   const { decryptedAccounts, isLoading: isAccountsLoading } = useAccounts();
 
   const selectedAccount =
@@ -293,12 +297,32 @@ const OrdersList = () => {
       if (!selectedAccount || !selectedAccount.exchangeInstance) {
         throw new Error("Selected account or instance not found");
       }
-      // 모든 심볼의 미체결 주문을 가져옵니다.
-      return await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders();
+      return await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders(
+        symbol ?? undefined,
+      );
     },
     enabled: !!selectedAccount && !!selectedAccount.exchangeInstance,
-    refetchInterval: 300, // 5초마다 주문 정보 갱신
+    refetchInterval: 200, // 5초마다 주문 정보 갱신
+    staleTime: Infinity,
   });
+
+  // 주문 취소 핸들러
+  const handleCancelOrder = async (orderId: string, symbol: string) => {
+    if (!selectedAccount?.exchangeInstance) {
+      toast.error("Account instance not available");
+      return;
+    }
+
+    try {
+      await selectedAccount.exchangeInstance.ccxt.cancelOrder(orderId, symbol);
+      toast.success(`Order #${orderId} cancelled`);
+      queryClient.invalidateQueries({
+        queryKey: ["openOrders", exchange, accountId],
+      });
+    } catch (error: any) {
+      toast.error(`Failed to cancel order: ${error.message}`);
+    }
+  };
 
   const isLoading = isAccountsLoading || isOrdersLoading;
 
@@ -308,7 +332,6 @@ const OrdersList = () => {
         <div className="px-1 text-sm font-medium text-muted-foreground">
           Active Orders
         </div>
-        {/* 로딩 스켈레톤 */}
         {[...Array(3)].map((_, i) => (
           <TradeCard key={i}>
             <div className="flex items-center justify-between">
@@ -330,24 +353,51 @@ const OrdersList = () => {
   if (error) {
     return (
       <div className="py-8 text-center text-red-500">
-        Error fetching open orders: {error.message}
+        <div>Failed to load orders</div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-2"
+          onClick={() =>
+            queryClient.refetchQueries({
+              queryKey: ["openOrders", exchange, accountId],
+            })
+          }
+        >
+          Retry
+        </Button>
       </div>
     );
   }
 
-  // 실제 주문 데이터를 TradingItemCardProps 형태로 변환
-  // 주문 데이터는 포지션과 구조가 다르므로 필요한 정보만 매핑
-  const orderItems = openOrders?.map((order) => ({
-    id: order.id,
-    symbol: order.symbol,
-    type: order.type, // 'limit', 'market' 등
-    isLong: order.side === "buy", // 선물에서는 buy가 long, sell이 short에 해당
-    leverage: 0, // 주문 자체에는 레버리지 정보가 없을 수 있음
-    entryPrice: order.price ?? 0, // 지정가 주문의 가격
-    size: order.amount, // 주문 수량
-    profit: 0, // 주문 상태에서는 PNL 없음
-    profitPercentage: 0, // 주문 상태에서는 PNL 없음
-  }));
+  const orderItems = openOrders?.map((order) => {
+    const isLong = order.side === "buy";
+    const filledPercentage = order.filled
+      ? (order.filled / order.amount) * 100
+      : 0;
+    const isPartiallyFilled = filledPercentage > 0 && filledPercentage < 100;
+
+    return {
+      id: order.id,
+      symbol: order.symbol,
+      type: order.type,
+      isLong,
+      leverage: order.info?.leverage || 0,
+      entryPrice: order.price ?? 0,
+      size: order.amount,
+      profit: 0,
+      profitPercentage: 0,
+      onCancelOrder: () => handleCancelOrder(order.id, order.symbol),
+      meta: {
+        status: order.status,
+        filled: order.filled,
+        remaining: order.remaining,
+        filledPercentage,
+        isPartiallyFilled,
+        createdAt: order.timestamp ? new Date(order.timestamp) : undefined,
+      },
+    };
+  });
 
   return (
     <div className="space-y-2">
@@ -355,7 +405,71 @@ const OrdersList = () => {
         Active Orders ({orderItems?.length ?? 0})
       </div>
       {orderItems && orderItems.length > 0 ? (
-        orderItems.map((item) => <TradingItemCard key={item.id} {...item} />)
+        orderItems.map((item) => (
+          <TradeCard key={item.id}>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{item.symbol}</span>
+                  <div
+                    className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      item.isLong
+                        ? "bg-green-500/10 text-green-500"
+                        : "bg-red-500/10 text-red-500"
+                    }`}
+                  >
+                    {item.isLong ? "Long" : "Short"}
+                  </div>
+                  <div className="text-xs px-2 py-0.5 rounded bg-accent/50">
+                    {item.type === "limit" ? (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 지정가
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> 시장가
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm font-medium">
+                  ${item.entryPrice.toFixed(2)}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  Size: {item.size} {item.symbol.replace("USDT", "")}
+                </span>
+                <span>{item.meta.filledPercentage.toFixed(1)}% 체결</span>
+              </div>
+
+              {item.meta.isPartiallyFilled && (
+                <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: `${item.meta.filledPercentage}%` }}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end pt-1 border-t border-border/30">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    item.onCancelOrder();
+                  }}
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  주문 취소
+                </Button>
+              </div>
+            </div>
+          </TradeCard>
+        ))
       ) : (
         <div className="py-8 text-center text-muted-foreground">
           No active orders
@@ -413,7 +527,8 @@ const PositionsList = () => {
       return rawPositions;
     },
     enabled: !!selectedAccount && !!selectedAccount.exchangeInstance,
-    refetchInterval: 2000, // 2초마다 갱신
+    refetchInterval: 200, // 2초마다 갱신
+    staleTime: Infinity,
   });
 
   // 오픈 주문 데이터 가져오기 (TP/SL 주문 정보를 위해)
@@ -423,10 +538,13 @@ const PositionsList = () => {
       if (!selectedAccount || !selectedAccount.exchangeInstance) {
         throw new Error("Selected account or instance not found");
       }
-      return await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders();
+      return await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders(
+        symbol ?? undefined,
+      );
     },
     enabled: !!selectedAccount && !!selectedAccount.exchangeInstance,
-    refetchInterval: 5000, // 5초마다 갱신
+    refetchInterval: 200, // 5초마다 갱신
+    staleTime: Infinity,
   });
 
   // 포지션별 TP/SL 주문 정보 추출
@@ -455,6 +573,7 @@ const PositionsList = () => {
       (order) =>
         (order.type === "stop" ||
           order.type === "stop_market" ||
+          order.type === "market" ||
           order.type === "stop_limit") &&
         ((positionSide === "long" && order.side === "sell") ||
           (positionSide === "short" && order.side === "buy")),
