@@ -277,13 +277,17 @@ const Dashboard = () => {
       className="flex flex-col h-full"
     >
       <ScrollArea className="flex-1">
-        {/* pb-5 추가: 스크롤 영역 하단에 여백 추가 */}
-        <div className="space-y-5 pb-20">
+        {/* pb-20: 스크롤 영역 하단 여백, lg:grid: 큰 화면에서 그리드 레이아웃, lg:grid-cols-2: 2열, lg:gap-5: 열 간격 */}
+        <div className="space-y-5 pb-20 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0">
+          {/* 총 자산과 차트를 포함할 첫 번째 열 */}
+          <div className="space-y-5 lg:col-span-1">
+
           {/* 총 자산 카드 */}
           <Card className="bg-primary/5">
             <CardHeader className="pb-2">
               <CardDescription>총 자산</CardDescription>
-              <CardTitle className="text-3xl flex items-center">
+              {/* 작은 화면에서는 text-2xl, 큰 화면에서는 text-3xl */}
+              <CardTitle className="text-2xl lg:text-3xl flex items-center">
                 {!accountsBalance ? (
                   <Skeleton className="h-10 w-32" />
                 ) : (
@@ -340,6 +344,10 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
+          </div> {/* 첫 번째 열 끝 */}
+
+          {/* 계정 목록과 활성 포지션을 포함할 두 번째 열 */}
+          <div className="space-y-5 lg:col-span-1">
           {/* 계정 요약 */}
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
@@ -437,7 +445,8 @@ const Dashboard = () => {
               )}
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[300px] pr-4">
+              {/* 작은 화면에서는 높이 200px, 큰 화면(lg)에서는 300px */}
+              <ScrollArea className="h-[200px] lg:h-[300px] pr-4">
                 <div className="space-y-2">
                   {isLoadingPositions ? (
                     Array(3)
@@ -554,6 +563,8 @@ const Dashboard = () => {
               </ScrollArea>
             </CardContent>
           </Card>
+
+          </div> {/* 두 번째 열 끝 */}
         </div>
       </ScrollArea>
     </ScreenWrapper>
