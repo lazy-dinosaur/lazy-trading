@@ -93,9 +93,14 @@ const CapitalChangeChart = ({
     if (firstValue === 0) return null;
 
     const rate = ((lastValue - firstValue) / firstValue) * 100;
+    
+    // 마지막 값이 첫 번째 값보다 크거나 같으면 양수 (상승, 녹색)
+    // 마지막 값이 첫 번째 값보다 작으면 음수 (하락, 빨간색)
+    const isPositive = lastValue >= firstValue;
+    
     return {
       rate: Math.abs(rate),
-      isPositive: rate >= 0,
+      isPositive: isPositive,
     };
   };
 
@@ -211,7 +216,7 @@ const CapitalChangeChart = ({
                     fontSize: 12,
                   }}
                 />
-                {/* 현재 가치가 기준보다 높으면 녹색, 낮으면 붉은색 */}
+                {/* 현재 가치가 과거(7일 전) 기준보다 높으면 녹색, 낮으면 붉은색 */}
                 {weeklyChangeRate?.isPositive ? (
                   <Area
                     type="monotone"

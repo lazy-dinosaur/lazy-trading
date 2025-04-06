@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusIcon, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { PlusIcon, Pencil, Trash2, Info } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -27,7 +27,8 @@ import { deleteAccount } from "@/lib/accounts";
 
 const Accounts = () => {
   const navigate = useNavigate();
-  const { accounts, accountsBalance, refreshAccounts, isLoading } = useAccounts();
+  const { accounts, accountsBalance, refreshAccounts, isLoading } =
+    useAccounts();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
@@ -38,7 +39,7 @@ const Accounts = () => {
 
   const handleDeleteConfirm = async () => {
     if (!accountToDelete) return;
-    
+
     try {
       const success = await deleteAccount(accountToDelete);
       if (success) {
@@ -74,7 +75,9 @@ const Accounts = () => {
         ) : !accounts || Object.keys(accounts).length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-              <p className="mb-4 text-muted-foreground">등록된 계정이 없습니다.</p>
+              <p className="mb-4 text-muted-foreground">
+                등록된 계정이 없습니다.
+              </p>
               <Button onClick={() => navigate("/account/add")}>
                 <PlusIcon className="h-4 w-4 mr-2" />
                 계정 추가하기
@@ -98,37 +101,45 @@ const Accounts = () => {
                   const balanceInfo = accountsBalance?.[accountId];
                   const balance = balanceInfo?.balance?.usd?.total || 0;
                   const date = new Date(account.createdAt).toLocaleDateString();
-                  
+
                   return (
                     <TableRow key={accountId}>
-                      <TableCell className="font-medium">{account.name}</TableCell>
-                      <TableCell className="capitalize">{account.exchange}</TableCell>
+                      <TableCell className="font-medium">
+                        {account.name}
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {account.exchange}
+                      </TableCell>
                       <TableCell className="text-right">
                         {formatUSDValue(balance)}
                       </TableCell>
                       <TableCell className="text-right">{date}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="icon"
-                            onClick={() => navigate(`/account/edit/${accountId}`)}
+                            onClick={() =>
+                              navigate(`/account/edit/${accountId}`)
+                            }
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
+                          <Button
+                            variant="outline"
+                            size="icon"
                             onClick={() => handleDeleteClick(accountId)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="icon"
-                            onClick={() => navigate(`/trade?id=${accountId}`)}
+                            onClick={() =>
+                              navigate(`/account/detail/${accountId}`)
+                            }
                           >
-                            <ExternalLink className="h-4 w-4" />
+                            <Info className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -150,7 +161,10 @@ const Accounts = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
               취소
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>

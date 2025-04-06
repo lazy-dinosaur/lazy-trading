@@ -178,7 +178,7 @@ export const deleteAllAccounts = async (): Promise<boolean> => {
 
 export const decryptAccount = async (
   account: Account,
-  pin: string
+  pin: string,
 ): Promise<DecryptedAccount | null> => {
   if (!pin) {
     console.warn("PIN is not set");
@@ -191,7 +191,7 @@ export const decryptAccount = async (
     const exchangeInstance = await createAccountInstance(
       account.exchange,
       decryptedApiKey,
-      decryptedSecretKey
+      decryptedSecretKey,
     );
 
     return {
@@ -209,7 +209,7 @@ export const decryptAccount = async (
 
 export const encryptAccount = async (
   account: RawAccountInput,
-  pin: string | null | undefined
+  pin: string | null | undefined,
 ): Promise<Account | null> => {
   if (!pin) {
     console.warn("PIN is not set");
@@ -250,7 +250,7 @@ export const addAccount = async ({
     // 성공 시 계정 ID 포함하여 반환
     return {
       success: true,
-      id: encryptedAccount.id
+      id: encryptedAccount.id,
     };
   }
   return { success: false };
@@ -258,7 +258,7 @@ export const addAccount = async ({
 
 export const decrypteAllAccounts = async (
   validPin: string,
-  accounts: Accounts
+  accounts: Accounts,
 ) => {
   if (!accounts || !validPin) return {};
 
@@ -296,7 +296,7 @@ async function handleBybitBalance(balance: Balances): Promise<USDBalance> {
 
 async function handleBinanceBalance(
   exchange: Exchange,
-  balance: Balances
+  balance: Balances,
 ): Promise<USDBalance> {
   const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
   const stableCoins = ["USDT", "USDC", "FDUSD", "USD", "BUSD"];
@@ -347,7 +347,7 @@ async function handleBitgetBalance(balance: Balances): Promise<USDBalance> {
 
 async function handleDefaultBalance(
   exchange: Exchange,
-  balance: Balances
+  balance: Balances,
 ): Promise<USDBalance> {
   const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
   const stableCoins = ["USDT", "USDC", "USD", "BUSD"];
@@ -392,7 +392,7 @@ async function handleDefaultBalance(
 
 export async function calculateUSDBalance(
   exchange: Exchange,
-  balance: Balances
+  balance: Balances,
 ): Promise<USDBalance> {
   try {
     let result;
@@ -438,7 +438,7 @@ export const fetchBalance = async (data?: DecryptedAccountObj) => {
 
         const usdBalance = await calculateUSDBalance(
           exchangeInstance,
-          rawBalance
+          rawBalance,
         );
         console.log("rawBalance:", rawBalance);
         const balance = {
@@ -456,10 +456,10 @@ export const fetchBalance = async (data?: DecryptedAccountObj) => {
         console.error(
           `Error fetching balance for account ${account.id}:`,
 
-          error
+          error,
         );
       }
-    })
+    }),
   );
 
   return accountsInfo;
@@ -485,7 +485,7 @@ export const isAccountValid = async ({
     if (exchange === "bitget") {
       exchangeInstance.password = "lazytrading";
     } else {
-      exchangeInstance.setSandboxMode(true);
+      // exchangeInstance.setSandboxMode(true);
 
       // Binance의 경우 헤더 설정
       if (exchange === "binance") {
@@ -515,7 +515,7 @@ export const isAccountValid = async ({
 export const createAccountInstance = async (
   exchange: ExchangeType,
   apiKey: string,
-  secret: string
+  secret: string,
 ) => {
   const exchangeCCXT = new ccxt[exchange]({
     apiKey,
@@ -535,8 +535,8 @@ export const createAccountInstance = async (
     },
   });
   if (exchange != "bitget") {
-    exchangeCCXT.setSandboxMode(true);
-    exchangePro.setSandboxMode(true);
+    // exchangeCCXT.setSandboxMode(true);
+    // exchangePro.setSandboxMode(true);
   }
 
   if (exchange == "bitget") {

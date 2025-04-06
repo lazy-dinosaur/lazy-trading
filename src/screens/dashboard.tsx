@@ -22,16 +22,13 @@ import {
   ArrowDownCircle,
   TrendingUp,
 } from "lucide-react";
-// React 임포트 제거
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import CapitalChangeChart from "@/components/capital-change-chart";
-import {
-  useBalanceHistory,
-  balanceHistoryToChartData,
-} from "@/hooks/use-balance-history";
+// useBalanceHistory만 import하고 balanceHistoryToChartData는 import하지 않음
+import { useBalanceHistory, ChartData as BalanceChartData } from "@/hooks/use-balance-history";
 
 // 포지션 타입 정의
 interface Position {
@@ -77,6 +74,8 @@ interface CCXTPosition {
   [key: string]: any;
 }
 
+// ChartData 인터페이스는 hooks/use-balance-history에서 가져옴
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const {
@@ -86,15 +85,21 @@ const Dashboard = () => {
     isLoading: isLoadingAccounts,
   } = useAccounts();
 
-  // 일별 스테이블 코인 잔고 변동 내역 조회 (7일)
+  // "all" 계정 ID를 사용하여 모든 계정의 합산 잔고 변동 내역 조회
   const {
     data: balanceHistory = [],
     isLoading: isLoadingBalanceHistory,
-    isError: isErrorBalanceHistory, // 에러 상태 추가
-  } = useBalanceHistory(decryptedAccounts);
+    error: balanceHistoryError,
+  } = useBalanceHistory("all");
+  
+  const isErrorBalanceHistory = !!balanceHistoryError;
 
+  // 차트 데이터 변환 (balance 필드 사용, 없으면 total 필드 사용)
   // 차트 데이터 변환
-  const dailyChartData = balanceHistoryToChartData(balanceHistory);
+  const dailyChartData: BalanceChartData[] = balanceHistory?.map(item => ({
+    time: item.time || item.date || '',
+    value: item.value || item.balance || 0
+  })) || [];
 
   // 총 잔액 계산
   const totalBalance = Object.values(accountsBalance || {}).reduce(
@@ -259,11 +264,12 @@ const Dashboard = () => {
       return null;
     }
 
-    const oldestBalance = dailyChartData[0].value;
-    const newestBalance = dailyChartData[dailyChartData.length - 1].value;
+    const oldestBalance = dailyChartData[0]?.value;
+    const newestBalance = dailyChartData[dailyChartData.length - 1]?.value;
 
     // 시작 잔고가 0이면 변동률 계산 불가 (분모 0 방지)
-    if (oldestBalance === 0) return null;
+    if (!oldestBalance || oldestBalance === 0) return null;
+    if (!newestBalance) return null;
 
     const changeRate = ((newestBalance - oldestBalance) / oldestBalance) * 100;
     return changeRate;
@@ -389,7 +395,7 @@ const Dashboard = () => {
                   <div
                     key={item.account.id}
                     className="flex items-center justify-between p-2 hover:bg-secondary/20 rounded cursor-pointer"
-                    onClick={() => navigate(`/accounts?id=${item.account.id}`)}
+                    onClick={() => navigate(`/account/detail/${item.account.id}`)}
                   >
                     <div className="flex items-center gap-3">
                       <Wallet className="h-5 w-5 text-primary" />

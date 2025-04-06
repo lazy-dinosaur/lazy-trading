@@ -74,9 +74,9 @@ export const ccxtHelper = async (
   });
 
   //testnet
-  if (exchange !== "bitget") {
-    exchangeInstance.setSandboxMode(true);
-  }
+  // if (exchange !== "bitget") {
+  //   exchangeInstance.setSandboxMode(true);
+  // }
 
   if (exchange === "bitget") {
     exchangeInstance.password = "lazytrading";

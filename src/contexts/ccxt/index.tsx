@@ -12,10 +12,10 @@ export function CCXTProvider({ children }: { children: React.ReactNode }) {
     if (exchangeInstancesRef.current) {
       const { bybit, binance, bitget } = exchangeInstancesRef.current;
       // 테스트 계정용
-      bybit.ccxt.setSandboxMode(true);
-      bybit.pro.setSandboxMode(true);
-      binance.ccxt.setSandboxMode(true);
-      binance.pro.setSandboxMode(true);
+      // bybit.ccxt.setSandboxMode(true);
+      // bybit.pro.setSandboxMode(true);
+      // binance.ccxt.setSandboxMode(true);
+      // binance.pro.setSandboxMode(true);
       binance.ccxt.options.defaultType = "swap";
       binance.pro.options.defaultType = "swap";
 
