@@ -1,4 +1,4 @@
-import { ChartCandlestick, HandCoins, Home, Search } from "lucide-react";
+import { HandCoins, Home, Search } from "lucide-react";
 
 import {
   Sidebar,
@@ -30,11 +30,11 @@ const items = [
     url: "/Accounts",
     icon: HandCoins,
   },
-  {
-    title: "Trade",
-    url: "/trade",
-    icon: ChartCandlestick,
-  },
+  // {
+  //   title: "Trade",
+  //   url: "/trade",
+  //   icon: ChartCandlestick,
+  // },
   // {
   //   title: "Settings",
   //   url: "#",

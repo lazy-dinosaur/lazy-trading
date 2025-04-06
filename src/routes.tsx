@@ -15,6 +15,7 @@ const Index = lazy(() => import("./screens/index"));
 const SetPin = lazy(() => import("./screens/set-pin"));
 const Locked = lazy(() => import("./screens/locked"));
 const AddAccount = lazy(() => import("./screens/add-account"));
+const AccountEdit = lazy(() => import("./screens/account-edit"));
 const Dashboard = lazy(() => import("./screens/dashboard"));
 const Accounts = lazy(() => import("./screens/accounts"));
 const Search = lazy(() => import("./screens/search"));
@@ -55,6 +56,14 @@ export function AppRoutes() {
               element={
                 <Suspense fallback={<LoadingComponent />}>
                   <AddAccount />
+                </Suspense>
+              }
+            />
+            <Route
+              path="edit/:id"
+              element={
+                <Suspense fallback={<LoadingComponent />}>
+                  <AccountEdit />
                 </Suspense>
               }
             />
