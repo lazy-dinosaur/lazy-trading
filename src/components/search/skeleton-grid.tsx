@@ -23,7 +23,7 @@ export const SkeletonGrid = ({ itemCount = 30 }: { itemCount?: number }) => {
     window.addEventListener("resize", updateColumnCount);
     return () => window.removeEventListener("resize", updateColumnCount);
   }, []);
-  
+
   // useMemo를 사용하여 그리드 행을 계산 - 렌더링할 때마다 새로 계산하지 않도록 최적화
   const gridRows = useMemo(() => {
     const rows = [];
@@ -94,11 +94,11 @@ export const SkeletonGrid = ({ itemCount = 30 }: { itemCount?: number }) => {
           <div key={`row-${rowIndex}`} className="flex w-full">
             {/* 스켈레톤 아이템 렌더링 */}
             {row.map(renderSkeletonItem)}
-            
+
             {/* 부족한 아이템이 있는 경우 빈 공간 채우기 */}
             {row.length < columnCount &&
-              Array.from({ length: columnCount - row.length }).map(
-                (_, index) => renderEmptySpace(rowIndex, index)
+              Array.from({ length: columnCount - row.length }).map((_, index) =>
+                renderEmptySpace(rowIndex, index),
               )}
           </div>
         ))}

@@ -1,18 +1,19 @@
-// 자본 변동 데이터를 위한 인터페이스
+// 일별 잔고 기록 (스테이블 코인 기준)
 export interface BalanceHistory {
   date: string; // ISO 문자열 형식의 날짜 (YYYY-MM-DD)
-  total: number; // USD 총액
+  total: number; // 해당 날짜의 추정 스테이블 코인 총 잔고 (USD 가치와 거의 동일)
 }
 
-// 거래소별 원장 데이터 정보 인터페이스
+// 거래소별 원장 데이터 정보 인터페이스 (스테이블 코인 거래 위주)
 export interface LedgerEntryInfo {
   id: string;
   timestamp: number;
   datetime: string;
-  amount: number;
+  amount: number; // 스테이블 코인의 경우, 해당 코인의 양 변화
   currency: string;
-  usdValue?: number;
+  usdValue?: number; // 이 필드는 더 이상 정확한 계산에 사용되지 않음 (스테이블 코인 기준)
   type?: string;
+  info?: any; // 원본 데이터 저장용
 }
 
 // 거래소별 원장 데이터

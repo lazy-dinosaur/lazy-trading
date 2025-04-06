@@ -1,20 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { BalanceHistory, LedgerEntryInfo } from "@/lib/balance-history";
-import { DecryptedAccount } from "@/lib/accounts";
+import { DecryptedAccount, calculateUSDBalance } from "@/lib/accounts"; // calculateUSDBalance import 추가
 
 // 차트용 데이터 인터페이스
 export interface ChartData {
   time: string; // 'YYYY-MM-DD' format for daily or 'YYYY-MM-DD HH:MM' for hourly
-  value: number;
+  value: number; // 스테이블 코인 총 잔고
 }
 
-// CCXT를 사용하여 계정의 자본 변동 내역 가져오기
+// 주요 스테이블 코인 목록 (소문자로 비교)
+const STABLE_COINS = ["usdt", "usdc", "busd", "dai", "tusd", "usdp", "fdusd"];
+
+
+// CCXT를 사용하여 계정의 전체 원장 내역 및 USD 가치 추정치 가져오기
 export const fetchAccountLedger = async (
   account: DecryptedAccount,
   days: number = 7,
 ): Promise<LedgerEntryInfo[]> => {
   try {
-    console.log(`[DEBUG] ${account.exchange} 원장 데이터 조회 시작`);
+    console.log(`[DEBUG] ${account.exchange} 전체 원장 데이터 조회 시작`);
 
     // 시작 시간 계산 (현재 시간에서 지정된 일수만큼 이전)
     const now = new Date();
@@ -37,406 +41,207 @@ export const fetchAccountLedger = async (
       params = { recvWindow: 60000 };
     }
 
-    console.log(
+    console.log( // console.log 추가
       `[DEBUG] ${account.exchange} fetchLedger 호출 - since: ${new Date(since).toISOString()}, limit: ${limit}`,
     );
 
     // 원장 데이터 조회
     const ledger = await exchange.fetchLedger(undefined, since, limit, params);
     console.log(
-      `[DEBUG] ${account.exchange} 원장 데이터 조회 성공 - 항목 수: ${ledger.length}`,
+      `[DEBUG] ${account.exchange} 전체 원장 데이터 조회 성공 - 항목 수: ${ledger.length}`,
     );
 
-    // 원본 원장 데이터 로깅
-    if (ledger.length > 0) {
-      console.log(
-        `[DEBUG] ${account.exchange} 원장 데이터 첫 번째 항목:`,
-        ledger[0],
-      );
-    }
-
-    // USD 값 계산 (필요한 경우 - 모든 거래소가 USD 값을 기본 제공하지 않을 수 있음)
+    // 각 원장 항목의 USD 가치 추정 (현재 시세 기준)
     const processedLedger = await Promise.all(
-      ledger.map(async (entry: any) => {
-        let usdValue = 0;
-
-        // 이미 USD 값이 있으면 그대로 사용
-        if (entry.info && entry.info.usdValue) {
-          usdValue = parseFloat(entry.info.usdValue);
+      ledger.map(async (entry: any): Promise<LedgerEntryInfo | null> => {
+        // amount나 currency 정보가 없으면 처리 불가
+        if (entry.amount === undefined || !entry.currency) {
+          return null;
         }
-        // 없으면 계산 시도
-        else if (entry.amount && entry.currency) {
-          try {
-            // 스테이블 코인인 경우 USD 1:1 가정
-            if (
-              ["USDT", "USDC", "BUSD", "DAI", "TUSD", "USDP", "FDUSD"].includes(
-                entry.currency,
-              )
-            ) {
-              usdValue = Math.abs(entry.amount);
-            }
-            // 다른 코인은 현재 시세로 계산 시도
-            else {
-              const ticker = await exchange.fetchTicker(
-                `${entry.currency}/USDT`,
-              );
-              usdValue = Math.abs(entry.amount) * (ticker.last || 0);
-            }
-          } catch (error) {
-            console.warn(`[DEBUG] USD 값 계산 실패: ${entry.currency}`, error);
+
+        let usdValue = 0;
+        const currencyCode = entry.currency.toLowerCase();
+        const amount = Number(entry.amount) || 0;
+
+        try {
+          // 스테이블 코인인 경우 amount를 USD 가치로 간주 (부호 유지)
+          if (STABLE_COINS.includes(currencyCode)) {
+            usdValue = amount;
           }
+          // 다른 코인은 현재 USDT 시세로 계산 시도
+          else {
+            const tickerSymbol = `${entry.currency.toUpperCase()}/USDT`;
+            try {
+              const ticker = await exchange.fetchTicker(tickerSymbol);
+              const price = ticker.last || 0;
+              usdValue = amount * price; // 부호 유지
+              console.log(`[DEBUG] ${account.exchange} ${tickerSymbol} 시세 조회: ${price}, 계산된 USD 가치: ${usdValue}`);
+            } catch (tickerError) {
+              // USDT 페어가 없는 경우 등 예외 처리
+              console.warn(`[DEBUG] ${account.exchange} ${tickerSymbol} 시세 조회 실패, USD 가치 0으로 처리:`, tickerError);
+              usdValue = 0; // 시세 조회 실패 시 0으로 처리
+            }
+          }
+        } catch (calcError) {
+          console.error(`[DEBUG] ${account.exchange} ${entry.currency} USD 가치 계산 중 오류:`, calcError);
+          usdValue = 0; // 계산 오류 시 0으로 처리
         }
 
         return {
           id: entry.id,
           timestamp: entry.timestamp,
           datetime: entry.datetime,
-          amount: entry.amount,
+          amount: amount,
           currency: entry.currency,
-          usdValue,
+          usdValue: usdValue, // 계산된 USD 가치 (부호 포함)
           type: entry.type,
-          info: entry.info, // 추가 정보 저장
+          info: entry.info,
         };
       }),
     );
 
-    console.log(`[DEBUG] ${account.exchange} 원장 데이터 처리 완료`);
-    return processedLedger;
+    // null 항목 제거 및 유효한 항목만 반환
+    const validLedgerEntries = processedLedger.filter(entry => entry !== null) as LedgerEntryInfo[];
+
+    console.log(
+      `[DEBUG] ${account.exchange} 원장 데이터 USD 가치 계산 완료 - 유효 항목 수: ${validLedgerEntries.length}`,
+    );
+
+    if (validLedgerEntries.length > 0) {
+      console.log(
+        `[DEBUG] ${account.exchange} 처리된 원장 첫 항목:`,
+        validLedgerEntries[0],
+      );
+    }
+
+    return validLedgerEntries;
   } catch (error) {
     console.error(
-      `[DEBUG] ${account.exchange} 계정의 원장 데이터 조회 실패:`,
+      `[DEBUG] ${account.exchange} 계정의 전체 원장 데이터 조회 또는 처리 실패:`,
       error,
     );
     return [];
   }
 };
 
-// 각 계정의 현재 총 자산 가져오기
-export const fetchAccountCurrentBalance = async (
+// 각 계정의 현재 총 자산 USD 가치 가져오기 (calculateUSDBalance 활용)
+export const fetchAccountCurrentTotalBalance = async (
   account: DecryptedAccount,
 ): Promise<number> => {
+  // calculateUSDBalance 함수를 재사용하기 위해 임시로 fetchBalance 호출
+  // 실제로는 useAccountsBalance 훅의 결과를 사용하는 것이 더 효율적이지만,
+  // useBalanceHistory 훅 내부에서 직접 계산하기 위해 이 방식을 사용합니다.
   try {
-    console.log(`[DEBUG] ${account.exchange} 현재 잔고 조회 시작`);
+    console.log(`[DEBUG] ${account.exchange} 현재 총 자산 USD 가치 조회 시작`);
     const exchange = account.exchangeInstance.ccxt;
-    const balance = await exchange.fetchBalance();
-
-    // USD 값 계산
-    let total = 0;
-
-    // 각 거래소마다 다른 방식으로 처리
-    if (account.exchange === "bybit") {
-      // bybit의 경우 balance.info.result.list[0].coin에 USD 정보가 있음
-      if (balance.info?.result?.list?.[0]?.coin) {
-        balance.info.result.list[0].coin.forEach((coin: any) => {
-          if (coin.usdValue) {
-            total += parseFloat(coin.usdValue);
-          }
-        });
-      }
-      console.log(`[DEBUG] Bybit 계정 잔고: $${total}`);
-    } else if (account.exchange === "binance") {
-      // binance의 경우 balance.info.assets에 정보가 있음
-      if (balance.info?.assets) {
-        for (const asset of balance.info.assets) {
-          if (asset.walletBalance) {
-            const walletBalance = parseFloat(asset.walletBalance);
-
-            // 스테이블 코인인 경우 1:1로 계산
-            if (["USDT", "USDC", "BUSD", "FDUSD"].includes(asset.asset)) {
-              total += walletBalance;
-            } else {
-              // 다른 코인은 시세를 가져와 계산 시도
-              try {
-                const ticker = await exchange.fetchTicker(
-                  `${asset.asset}/USDT`,
-                );
-                const price = ticker.last || 0;
-                total += walletBalance * price;
-              } catch (e) {
-                console.log(e);
-                // 해당 코인의 USDT 페어가 없으면 무시
-              }
-            }
-          }
-        }
-      }
-      console.log(`[DEBUG] Binance 계정 잔고: $${total}`);
-    } else {
-      // 일반적인 경우의 처리
-      const stableCoins = [
-        "USDT",
-        "USDC",
-        "BUSD",
-        "DAI",
-        "TUSD",
-        "USDP",
-        "FDUSD",
-      ];
-
-      // free와 used를 any로 타입 단언하여 인덱스 접근 가능하게 함
-      const freeBalance = balance.free as any;
-      const usedBalance = balance.used as any;
-
-      // 스테이블 코인 먼저 처리
-      for (const coin of stableCoins) {
-        if (freeBalance && typeof freeBalance[coin] === "number") {
-          total += freeBalance[coin] || 0;
-        }
-        if (usedBalance && typeof usedBalance[coin] === "number") {
-          total += usedBalance[coin] || 0;
-        }
-      }
-
-      // 다른 통화 처리
-      for (const key in freeBalance) {
-        if (stableCoins.includes(key)) continue; // 스테이블 코인은 이미 처리됨
-
-        const value = freeBalance[key];
-        if (typeof value === "number" && value > 0) {
-          try {
-            const ticker = await exchange.fetchTicker(`${key}/USDT`);
-            const price = ticker.last || 0;
-            total += value * price;
-          } catch (e) {
-            console.log(e);
-            // 해당 코인의 USDT 페어가 없으면 무시
-          }
-        }
-      }
-
-      // used 잔고도 포함
-      for (const key in usedBalance) {
-        if (stableCoins.includes(key)) continue; // 스테이블 코인은 이미 처리됨
-
-        const value = usedBalance[key];
-        if (typeof value === "number" && value > 0) {
-          try {
-            const ticker = await exchange.fetchTicker(`${key}/USDT`);
-            const price = ticker.last || 0;
-            total += value * price;
-          } catch (e) {
-            console.log(e);
-            // 해당 코인의 USDT 페어가 없으면 무시
-          }
-        }
-      }
-      console.log(`[DEBUG] ${account.exchange} 계정 잔고: $${total}`);
-    }
-
-    const roundedTotal = Math.round(total * 100) / 100; // 소수점 두 자리까지 반올림
+    const rawBalance = await exchange.fetchBalance();
+    // calculateUSDBalance 함수는 src/lib/accounts.ts 에 정의되어 있어야 함
+    // 해당 함수를 import 하거나, 로직을 여기에 직접 구현해야 합니다.
+    // 여기서는 calculateUSDBalance가 import 되었다고 가정합니다.
+    // import { calculateUSDBalance } from "@/lib/accounts"; // 이 import가 필요
+    const usdBalance = await calculateUSDBalance(exchange, rawBalance); // calculateUSDBalance 호출
     console.log(
-      `[DEBUG] ${account.exchange} 현재 잔고 조회 완료: $${roundedTotal}`,
+      `[DEBUG] ${account.exchange} 현재 총 자산 USD 가치 조회 완료: ${usdBalance.total}`,
     );
-    return roundedTotal;
+    return usdBalance.total; // 총 USD 가치 반환
   } catch (error) {
     console.error(
-      `[DEBUG] ${account.exchange} 계정의 현재 잔고 조회 실패:`,
+      `[DEBUG] ${account.exchange} 계정의 현재 총 자산 USD 가치 조회 실패:`,
       error,
     );
-    return 0;
+    return 0; // 실패 시 0 반환
   }
 };
 
-// 과거 7일간의 일별 자산 추이 생성 (자산 변화를 만들기 위한 임시 함수)
-export const generateSimulatedDailyBalances = (
-  currentBalance: number,
-  days: number = 7,
-): BalanceHistory[] => {
-  console.log(
-    `[DEBUG] 일별 시뮬레이션된 과거 자산 생성 - 현재 자산: $${currentBalance}`,
-  );
+// 시뮬레이션 함수 제거됨
 
-  const result: BalanceHistory[] = [];
-  const today = new Date();
 
-  // 변동 패턴: 일주일 동안 5-15% 정도의 변동
-  // 랜덤하게 상승 또는 하락 추세 결정
-  const isUptrend = Math.random() > 0.5;
-
-  // 가장 낮은 금액(일주일 전)은 현재의 85-95% 사이
-  const lowestPercentage = isUptrend
-    ? 0.85 + Math.random() * 0.1
-    : 1.05 + Math.random() * 0.1;
-  const lowestBalance = isUptrend
-    ? currentBalance * lowestPercentage
-    : currentBalance / lowestPercentage;
-
-  // 일별 변동률 계산
-  const dailyChangeRate = (currentBalance - lowestBalance) / (days - 1);
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-
-    // 기본 변동 (선형)
-    let balance = isUptrend
-      ? lowestBalance + dailyChangeRate * (days - 1 - i)
-      : currentBalance - dailyChangeRate * i;
-
-    // 약간의 랜덤 변동 추가 (±2%)
-    const randomFactor = 1 + (Math.random() * 0.04 - 0.02);
-    balance *= randomFactor;
-
-    // 음수 방지 및 반올림
-    balance = Math.max(0, Math.round(balance * 100) / 100);
-
-    result.push({
-      date: date.toISOString().split("T")[0],
-      total: balance,
-    });
-  }
-
-  console.log(`[DEBUG] 일별 시뮬레이션된 과거 자산 생성 완료:`, result);
-  return result;
-};
-
-// 24시간 내 시간별 자산 추이 생성 (자산 변화를 만들기 위한 임시 함수)
-export const generateSimulatedHourlyBalances = (
-  currentBalance: number,
-  hours: number = 24,
-): BalanceHistory[] => {
-  console.log(
-    `[DEBUG] 시간별 시뮬레이션된 과거 자산 생성 - 현재 자산: $${currentBalance}`,
-  );
-
-  const result: BalanceHistory[] = [];
-  const now = new Date();
-
-  // 변동 패턴: 24시간 동안 2-8% 정도의 변동
-  // 랜덤하게 상승 또는 하락 추세 결정
-  const isUptrend = Math.random() > 0.5;
-
-  // 가장 낮은 금액(24시간 전)은 현재의 92-98% 사이
-  const lowestPercentage = isUptrend
-    ? 0.92 + Math.random() * 0.06
-    : 1.02 + Math.random() * 0.06;
-  const lowestBalance = isUptrend
-    ? currentBalance * lowestPercentage
-    : currentBalance / lowestPercentage;
-
-  // 시간별 변동률 계산
-  const hourlyChangeRate = (currentBalance - lowestBalance) / (hours - 1);
-
-  for (let i = hours - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setHours(date.getHours() - i);
-
-    // 기본 변동 (선형)
-    let balance = isUptrend
-      ? lowestBalance + hourlyChangeRate * (hours - 1 - i)
-      : currentBalance - hourlyChangeRate * i;
-
-    // 약간의 랜덤 변동 추가 (±1%)
-    const randomFactor = 1 + (Math.random() * 0.02 - 0.01);
-    balance *= randomFactor;
-
-    // 음수 방지 및 반올림
-    balance = Math.max(0, Math.round(balance * 100) / 100);
-
-    // 시간 포맷: "YYYY-MM-DD HH:MM"
-    const dateStr = date.toISOString().substring(0, 16).replace("T", " ");
-
-    result.push({
-      date: dateStr,
-      total: balance,
-    });
-  }
-
-  console.log(`[DEBUG] 시간별 시뮬레이션된 과거 자산 생성 완료:`, result);
-  return result;
-};
-
-// 현재 총 자산을 기준으로 과거 7일간의 자산 추이 계산
-export const calculateDailyCapital = async (
+// 총 자산 USD 가치 기준으로 일별 잔고 계산
+export const calculateDailyBalance = async (
   decryptedAccounts: Record<string, DecryptedAccount>,
   days: number = 7,
 ): Promise<BalanceHistory[]> => {
   try {
     console.log(
-      `[DEBUG] 일별 자본 계산 시작 - 계정 수: ${Object.keys(decryptedAccounts).length}`,
+      `[DEBUG] (총 자산 USD 기반) 일별 잔고 계산 시작 - 계정 수: ${Object.keys(decryptedAccounts).length}`,
     );
 
-    // 모든 계정의 현재 총 자산 계산
-    let totalCurrentBalance = 0;
-
-    for (const accountId in decryptedAccounts) {
-      const account = decryptedAccounts[accountId];
-      const balance = await fetchAccountCurrentBalance(account);
-      totalCurrentBalance += balance;
-      console.log(
-        `[DEBUG] 계정 ${account.name}(${account.exchange}) 잔고 추가: $${balance}`,
-      );
-    }
-
-    console.log(`[DEBUG] 현재 총 자산: $${totalCurrentBalance}`);
-
-    // 실제 거래소 데이터 대신 시뮬레이션된 데이터 사용
-    // (실제 거래소는 과거 총 자산 변화가 잘 안보여서 시뮬레이션 데이터로 대체)
-    return generateSimulatedDailyBalances(totalCurrentBalance, days);
-  } catch (error) {
-    console.error(`[DEBUG] 일별 자본 계산 실패:`, error);
-
-    // 실패 시 현재 자산을 바탕으로 시뮬레이션된 데이터 생성
-    const currentBalance = Object.values(decryptedAccounts).reduce(
-      async (sum, account) => {
-        const balance = await fetchAccountCurrentBalance(account);
-        return (await sum) + balance;
-      },
-      Promise.resolve(0),
+    // 모든 계정의 스테이블 코인 원장 데이터 병렬 수집
+    const ledgerPromises = Object.values(decryptedAccounts).map(account =>
+      fetchAccountLedger(account, days)
     );
+    const allLedgersArrays = await Promise.all(ledgerPromises);
+    const allLedgers = allLedgersArrays.flat();
 
-    return generateSimulatedDailyBalances(await currentBalance);
-  }
-};
-
-// 현재 총 자산을 기준으로 과거 24시간의 자산 추이 계산
-export const calculateHourlyCapital = async (
-  decryptedAccounts: Record<string, DecryptedAccount>,
-  hours: number = 24,
-): Promise<BalanceHistory[]> => {
-  try {
     console.log(
-      `[DEBUG] 시간별 자본 계산 시작 - 계정 수: ${Object.keys(decryptedAccounts).length}`,
+      `[DEBUG] 모든 계정 원장 데이터 수집 및 처리 완료, 총 ${allLedgers.length}건`,
     );
 
-    // 모든 계정의 현재 총 자산 계산
-    let totalCurrentBalance = 0;
-
-    for (const accountId in decryptedAccounts) {
-      const account = decryptedAccounts[accountId];
-      const balance = await fetchAccountCurrentBalance(account);
-      totalCurrentBalance += balance;
-      console.log(
-        `[DEBUG] 계정 ${account.name}(${account.exchange}) 잔고 추가: $${balance}`,
-      );
+    // 날짜별 USD 가치 변화량 합산 (usdValue 사용)
+    const dailyChanges: Record<string, number> = {};
+    for (const entry of allLedgers) {
+      // usdValue가 유효한 숫자일 경우에만 합산
+      if (entry.datetime && typeof entry.usdValue === 'number' && !isNaN(entry.usdValue)) {
+         const date = entry.datetime.split("T")[0]; // 'YYYY-MM-DD'
+         dailyChanges[date] = (dailyChanges[date] || 0) + entry.usdValue;
+      }
     }
 
-    console.log(`[DEBUG] 현재 총 자산: $${totalCurrentBalance}`);
+    console.log("[DEBUG] 날짜별 USD 가치 변화량 계산 완료", dailyChanges);
 
-    // 실제 거래소 데이터 대신 시뮬레이션된 데이터 사용
-    return generateSimulatedHourlyBalances(totalCurrentBalance, hours);
-  } catch (error) {
-    console.error(`[DEBUG] 시간별 자본 계산 실패:`, error);
-
-    // 실패 시 현재 자산을 바탕으로 시뮬레이션된 데이터 생성
-    const currentBalance = Object.values(decryptedAccounts).reduce(
-      async (sum, account) => {
-        const balance = await fetchAccountCurrentBalance(account);
-        return (await sum) + balance;
-      },
-      Promise.resolve(0),
+    // 현재 총 자산 USD 가치 병렬 계산
+    const balancePromises = Object.values(decryptedAccounts).map(account =>
+        fetchAccountCurrentTotalBalance(account) // 수정된 함수 호출
     );
+    const currentBalances = await Promise.all(balancePromises);
+    const currentTotalBalance = currentBalances.reduce((sum, balance) => sum + balance, 0);
 
-    return generateSimulatedHourlyBalances(await currentBalance);
+
+    console.log(`[DEBUG] 현재 총 자산 USD 가치: ${currentTotalBalance}`);
+
+    // 지정된 일수만큼 날짜 배열 생성 (과거 → 현재 순서)
+    const dates: string[] = [];
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      dates.push(d.toISOString().split("T")[0]);
+    }
+
+    // 누적 잔고 계산 (현재 총 자산 USD 가치에서 과거 변화량을 빼면서 역산)
+    const history: BalanceHistory[] = [];
+    let currentBalance = currentTotalBalance; // 현재 총 자산 USD 가치로 시작
+
+    for (let i = dates.length - 1; i >= 0; i--) {
+      const date = dates[i];
+      const change = dailyChanges[date] || 0; // 해당 날짜의 USD 가치 변화량
+      history.unshift({
+        date,
+        total: Math.round(currentBalance * 100) / 100, // 현재 날짜의 추정 총 자산 기록
+      });
+      // 다음 과거 날짜의 잔고를 계산하기 위해 변화량을 <0xC2><0xA0>뺌 (역산)
+      currentBalance -= change;
+    }
+
+    console.log("[DEBUG] 최종 일별 총 자산 USD 가치 변동 계산 완료", history);
+
+    return history;
+  } catch (error) {
+    console.error(`[DEBUG] (총 자산 USD 기반) 일별 잔고 계산 실패:`, error);
+    // 실패 시 빈 배열 반환 (시뮬레이션 데이터 제거)
+    return [];
   }
 };
 
-// 일별 자본 변동 내역 조회 훅
+// 총 자산 USD 가치 기준 잔고 내역 조회 훅
 export const useBalanceHistory = (
   decryptedAccounts: Record<string, DecryptedAccount> | undefined,
 ) => {
-  return useQuery({
-    queryKey: ["balanceHistory", decryptedAccounts],
+  // calculateUSDBalance 함수 import 확인 필요
+  // import { calculateUSDBalance } from "@/lib/accounts";
+
+  return useQuery<BalanceHistory[], Error>({ // 에러 타입 명시
+    queryKey: ["balanceHistory", decryptedAccounts], // 쿼리 키 복원
     queryFn: async () => {
       if (!decryptedAccounts || Object.keys(decryptedAccounts).length === 0) {
         console.log(`[DEBUG] 복호화된 계정 정보 없음, 빈 배열 반환`);
@@ -444,14 +249,14 @@ export const useBalanceHistory = (
       }
 
       console.log(
-        `[DEBUG] 일별 자본 변동 내역 조회 시작 - 계정 수: ${Object.keys(decryptedAccounts).length}`,
+        `[DEBUG] 일별 총 자산 USD 변동 내역 조회 시작 - 계정 수: ${Object.keys(decryptedAccounts).length}`,
       );
 
-      // 현재 총 자산 기준으로 과거 7일간의 자산 추이 계산
-      const result = await calculateDailyCapital(decryptedAccounts);
+      // 총 자산 USD 기준으로 과거 7일간의 잔고 추이 계산
+      const result = await calculateDailyBalance(decryptedAccounts);
 
       console.log(
-        `[DEBUG] 일별 자본 변동 내역 조회 완료 - 데이터 포인트 수: ${result.length}`,
+        `[DEBUG] 일별 총 자산 USD 변동 내역 조회 완료 - 데이터 포인트 수: ${result.length}`,
       );
 
       return result;
@@ -463,48 +268,21 @@ export const useBalanceHistory = (
   });
 };
 
-// 시간별 자본 변동 내역 조회 훅
-export const useHourlyBalanceHistory = (
-  decryptedAccounts: Record<string, DecryptedAccount> | undefined,
-) => {
-  return useQuery({
-    queryKey: ["hourlyBalanceHistory", decryptedAccounts],
-    queryFn: async () => {
-      if (!decryptedAccounts || Object.keys(decryptedAccounts).length === 0) {
-        console.log(`[DEBUG] 복호화된 계정 정보 없음, 빈 배열 반환`);
-        return [];
-      }
-
-      console.log(
-        `[DEBUG] 시간별 자본 변동 내역 조회 시작 - 계정 수: ${Object.keys(decryptedAccounts).length}`,
-      );
-
-      // 현재 총 자산 기준으로 과거 24시간의 자산 추이 계산
-      const result = await calculateHourlyCapital(decryptedAccounts);
-
-      console.log(
-        `[DEBUG] 시간별 자본 변동 내역 조회 완료 - 데이터 포인트 수: ${result.length}`,
-      );
-
-      return result;
-    },
-    enabled:
-      !!decryptedAccounts && Object.keys(decryptedAccounts || {}).length > 0,
-    staleTime: 1000 * 60 * 1, // 1분간 데이터 신선 유지
-    refetchInterval: 1000 * 60 * 1, // 1분마다 자동 갱신
-  });
-};
-
-// 잔고 내역을 차트용 데이터로 변환하는 함수
 export const balanceHistoryToChartData = (
   history: BalanceHistory[],
 ): ChartData[] => {
+  // history가 비어있거나 유효하지 않은 경우 빈 배열 반환
+  if (!Array.isArray(history) || history.length === 0) {
+    console.log(`[DEBUG] 변환할 잔고 내역 데이터 없음, 빈 차트 데이터 반환`);
+    return [];
+  }
+
   const chartData = history.map((item) => ({
-    time: item.date,
-    value: item.total,
+    time: item.date, // YYYY-MM-DD 형식
+    value: item.total, // 해당 날짜의 추정 총 자산 USD 가치
   }));
 
-  console.log(`[DEBUG] 차트 데이터 변환 완료:`, chartData);
+  console.log(`[DEBUG] 총 자산 USD 잔고 내역 차트 데이터 변환 완료:`, chartData);
 
   return chartData;
 };
