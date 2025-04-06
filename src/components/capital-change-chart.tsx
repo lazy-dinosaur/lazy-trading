@@ -217,27 +217,15 @@ const CapitalChangeChart = ({
                   }}
                 />
                 {/* 현재 가치가 과거(7일 전) 기준보다 높으면 녹색, 낮으면 붉은색 */}
-                {weeklyChangeRate?.isPositive ? (
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#10b981"
-                    fillOpacity={1}
-                    fill="url(#colorGreen)"
-                    strokeWidth={2}
-                    activeDot={{ r: 6 }}
-                  />
-                ) : (
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#ef4444"
-                    fillOpacity={1}
-                    fill="url(#colorRed)"
-                    strokeWidth={2}
-                    activeDot={{ r: 6 }}
-                  />
-                )}
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={data[data.length - 1].value >= weeklyBaselineValue ? "#10b981" : "#ef4444"}
+                  fillOpacity={1}
+                  fill={data[data.length - 1].value >= weeklyBaselineValue ? "url(#colorGreen)" : "url(#colorRed)"}
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
