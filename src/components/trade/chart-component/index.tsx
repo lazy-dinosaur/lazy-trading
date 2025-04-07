@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ISeriesApi } from "lightweight-charts";
 import { useSearchParams } from "react-router";
 import { Chart } from "./chart-wrapper";
@@ -17,14 +17,12 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
   const [searchParams] = useSearchParams();
   const { data, handleScroll, chartformat, isLoading } = useChartData();
   const { tradeInfo } = useTrade();
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const timeframe = searchParams.get("timeframe")!;
   const exchange = searchParams.get("exchange")! as ExchangeType;
   const symbol = searchParams.get("symbol")!;
 
   const candle = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // 차트 데이터 업데이트
   useEffect(() => {
@@ -39,36 +37,8 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
     });
   }, [data, chartformat]);
 
-  // 전체 화면 토글 핸들러
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement && chartContainerRef.current) {
-      chartContainerRef.current.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-      setIsFullscreen(true);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    }
-  };
-
-  // 전체 화면 변경 이벤트 리스너
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-
   return (
-    <div 
-      ref={chartContainerRef} 
+    <div
       className="relative w-full border rounded-md overflow-hidden"
       style={height ? { height: `${height}px` } : undefined}
     >
@@ -95,41 +65,8 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
           </div>
         </div>
       )}
-      
-      {/* 전체 화면 버튼 */}
-      <button 
-        onClick={toggleFullscreen}
-        className="absolute left-2 top-2 z-10 bg-background/80 backdrop-blur-sm p-1.5 rounded-md border hover:bg-accent/80 transition-colors"
-      >
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="16" 
-          height="16" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        >
-          {isFullscreen ? (
-            <>
-              <path d="M8 3v4a1 1 0 0 1-1 1H3"></path>
-              <path d="M21 8h-4a1 1 0 0 1-1-1V3"></path>
-              <path d="M3 16h4a1 1 0 0 1 1 1v4"></path>
-              <path d="M16 21v-4a1 1 0 0 1 1-1h4"></path>
-            </>
-          ) : (
-            <>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <polyline points="9 21 3 21 3 15"></polyline>
-              <line x1="21" y1="3" x2="14" y2="10"></line>
-              <line x1="3" y1="21" x2="10" y2="14"></line>
-            </>
-          )}
-        </svg>
-      </button>
 
+      {/* 차트 렌더링 */}
       {data.length > 0 ? (
         <Chart
           key={exchange + "-" + symbol + "-" + timeframe + "-chart"}
