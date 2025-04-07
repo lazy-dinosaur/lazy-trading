@@ -2,17 +2,31 @@ import { TradingAction } from "./action";
 import { TradeInfo } from "./info";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useTrade } from "@/contexts/trade/use"; // useTrade 훅 임포트
 
 export const TradeComponent = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
   const isExtraLargeScreen = useMediaQuery("(min-width: 1280px)");
+  const { setTradeDirection, tradeDirection } = useTrade(); // setTradeDirection 함수 가져오기
+
+  // 탭 변경 시 컨텍스트 상태 업데이트
+  const handleTabChange = (value: string) => {
+    if (value === "long" || value === "short") {
+      setTradeDirection(value);
+    }
+  };
 
   // 모바일에서는 롱/숏 탭 형태로 표시
   if (isMobile) {
     return (
       <div className="w-full min-h-[180px] h-auto border rounded-md shadow-sm p-2">
-        <Tabs defaultValue="long" className="w-full h-full">
+        <Tabs
+          defaultValue="long"
+          value={tradeDirection} // 현재 tradeDirection으로 탭 상태 제어
+          onValueChange={handleTabChange} // 탭 변경 핸들러 추가
+          className="w-full h-full"
+        >
           <TabsList className="w-full grid grid-cols-2 mb-2">
             <TabsTrigger
               value="long"
@@ -47,7 +61,12 @@ export const TradeComponent = () => {
   // 데스크톱에서는 롱/숏 탭 형태로 표시하되 좀 더 큰 화면으로
   return (
     <div className="w-full min-h-[180px] h-auto lg:h-full border rounded-md shadow-sm p-3 bg-card/20">
-      <Tabs defaultValue="long" className="w-full h-full">
+      <Tabs
+        defaultValue="long"
+        value={tradeDirection} // 현재 tradeDirection으로 탭 상태 제어
+        onValueChange={handleTabChange} // 탭 변경 핸들러 추가
+        className="w-full h-full"
+      >
         <TabsList className="w-full h-min grid grid-cols-2 mb-3">
           <TabsTrigger
             value="long"

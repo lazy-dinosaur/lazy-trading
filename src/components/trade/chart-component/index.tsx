@@ -4,9 +4,9 @@ import { useSearchParams } from "react-router";
 import { Chart } from "./chart-wrapper";
 import { CandleSeries } from "./candle";
 import { useChartData } from "@/contexts/chart-data/use";
-import { getStopLossMarkers } from "@/lib/chart";
+// import { getStopLossMarkers } from "@/lib/chart"; // 사용되지 않으므로 제거
 import { ExchangeType } from "@/lib/accounts";
-import { useTrade } from "@/contexts/trade/use";
+import { useTrade } from "@/contexts/trade/use"; // useTrade 훅 임포트 확인
 import { ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
 
 interface ChartComponentProps {
@@ -16,7 +16,7 @@ interface ChartComponentProps {
 export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
   const [searchParams] = useSearchParams();
   const { data, handleScroll, chartformat, isLoading } = useChartData();
-  const { tradeInfo } = useTrade();
+  const { tradeInfo, tradeDirection } = useTrade(); // tradeDirection 상태 가져오기
 
   const timeframe = searchParams.get("timeframe")!;
   const exchange = searchParams.get("exchange")! as ExchangeType;
@@ -28,7 +28,8 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
   useEffect(() => {
     if (!candle.current) return;
     candle.current.setData(data);
-    candle.current.setMarkers(getStopLossMarkers(data));
+    // 스탑로스 마커 설정 로직은 CandleSeries 내부로 이동했으므로 여기서는 제거
+    // candle.current.setMarkers(getStopLossMarkers(data));
     candle.current.applyOptions({
       priceFormat: {
         type: "price",
@@ -42,27 +43,33 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
       className="relative w-full border rounded-md overflow-hidden"
       style={height ? { height: `${height}px` } : undefined}
     >
-      {/* 비용 및 이익 표시 오버레이 */}
+      {/* 비용 및 이익 표시 오버레이 - 선택된 탭에 따라 표시 */}
       {tradeInfo && data.length > 0 && (
         <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md border flex flex-col text-xs space-y-1.5">
-          <div className="flex items-center gap-1.5 text-green-500">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span className="font-medium">Long:</span>
-            <div className="flex gap-1">
-              <span>TP: {tradeInfo.long.target.formatted}</span>
-              <span>|</span>
-              <span>SL: {tradeInfo.long.stoploss.formatted}</span>
+          {/* 롱 포지션 정보 (tradeDirection이 'long'일 때만 표시) */}
+          {tradeDirection === "long" && (
+            <div className="flex items-center gap-1.5 text-green-500">
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span className="font-medium">Long:</span>
+              <div className="flex gap-1">
+                <span>TP: {tradeInfo.long.target.formatted}</span>
+                <span>|</span>
+                <span>SL: {tradeInfo.long.stoploss.formatted}</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-red-500">
-            <ArrowDownRight className="w-3.5 h-3.5" />
-            <span className="font-medium">Short:</span>
-            <div className="flex gap-1">
-              <span>TP: {tradeInfo.short.target.formatted}</span>
-              <span>|</span>
-              <span>SL: {tradeInfo.short.stoploss.formatted}</span>
+          )}
+          {/* 숏 포지션 정보 (tradeDirection이 'short'일 때만 표시) */}
+          {tradeDirection === "short" && (
+            <div className="flex items-center gap-1.5 text-red-500">
+              <ArrowDownRight className="w-3.5 h-3.5" />
+              <span className="font-medium">Short:</span>
+              <div className="flex gap-1">
+                <span>TP: {tradeInfo.short.target.formatted}</span>
+                <span>|</span>
+                <span>SL: {tradeInfo.short.stoploss.formatted}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 

@@ -9,10 +9,12 @@ import { ExchangeType } from "@/lib/accounts";
 import { useSearchParams } from "react-router";
 import { useAccounts } from "../accounts/use";
 import { TradeContext } from "./type";
+import { useState } from "react"; // useState 임포트 추가
 
 export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, exchangeAccounts } = useInitialLoading();
   const [searchParams] = useSearchParams();
+  const [tradeDirection, setTradeDirection] = useState<"long" | "short">("long"); // tradeDirection 상태 추가 및 초기값 설정
 
   const exchange = searchParams.get("exchange") as ExchangeType;
   const symbol = decodeURIComponent(searchParams.get("symbol")!) as string;
@@ -61,6 +63,8 @@ export const TradeProvider = ({ children }: { children: React.ReactNode }) => {
         isAccountsLoading,
         isLoaded,
         balanceInfo,
+        tradeDirection, // 컨텍스트 값에 추가
+        setTradeDirection, // 컨텍스트 값에 추가
       }}
     >
       {children}
