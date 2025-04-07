@@ -5,9 +5,12 @@
   "version": "1.0.0",
   "action": {
     "default_popup": "index.html",
-    "default_title:": "LazyTrading",
+    "default_title": "LazyTrading",
     "default_icon": {
-      "32": "vite.svg"
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   },
   "side_panel": {
@@ -51,7 +54,10 @@
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
   "icons": {
-    "32": "vite.svg"
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "declarative_net_request": {
     "rule_resources": [
