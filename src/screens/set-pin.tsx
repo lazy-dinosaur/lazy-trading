@@ -20,23 +20,23 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
-  ShieldCheck, 
-  Lock, 
+import {
+  ShieldCheck,
+  Lock,
   Unlock,
   X,
   Fingerprint,
   RefreshCw,
   ArrowLeft,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger 
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 const formSchema = z.object({
@@ -56,25 +56,26 @@ const numpadKeys = [
   [1, 2, 3],
   [4, 5, 6],
   [7, 8, 9],
-  ["clear", 0, "delete"]
+  ["clear", 0, "delete"],
 ];
 
 // PIN 보안 강도 평가 함수
 const getPinStrength = (pin: string): "weak" | "medium" | "strong" => {
   if (!pin || pin.length < 4) return "weak";
-  
+
   // 연속된 숫자 체크 (1234, 4321, 1111 등)
-  const isSequential = 
-    (parseInt(pin[0]) + 1 === parseInt(pin[1]) && 
-     parseInt(pin[1]) + 1 === parseInt(pin[2]) &&
-     parseInt(pin[2]) + 1 === parseInt(pin[3])) ||
-    (parseInt(pin[0]) - 1 === parseInt(pin[1]) && 
-     parseInt(pin[1]) - 1 === parseInt(pin[2]) &&
-     parseInt(pin[2]) - 1 === parseInt(pin[3]));
-     
-  const isRepeated = pin[0] === pin[1] && pin[1] === pin[2] && pin[2] === pin[3];
+  const isSequential =
+    (parseInt(pin[0]) + 1 === parseInt(pin[1]) &&
+      parseInt(pin[1]) + 1 === parseInt(pin[2]) &&
+      parseInt(pin[2]) + 1 === parseInt(pin[3])) ||
+    (parseInt(pin[0]) - 1 === parseInt(pin[1]) &&
+      parseInt(pin[1]) - 1 === parseInt(pin[2]) &&
+      parseInt(pin[2]) - 1 === parseInt(pin[3]));
+
+  const isRepeated =
+    pin[0] === pin[1] && pin[1] === pin[2] && pin[2] === pin[3];
   const hasPairs = pin[0] === pin[1] && pin[2] === pin[3];
-  
+
   if (isSequential || isRepeated) return "weak";
   if (hasPairs) return "medium";
   return "strong";
@@ -84,14 +85,14 @@ const getPinStrength = (pin: string): "weak" | "medium" | "strong" => {
 const strengthColors = {
   weak: "bg-red-500",
   medium: "bg-yellow-500",
-  strong: "bg-green-500"
+  strong: "bg-green-500",
 };
 
 // 보안 강도 텍스트
 const strengthText = {
   weak: "취약",
   medium: "보통",
-  strong: "강력"
+  strong: "강력",
 };
 
 const SetPin = () => {
@@ -100,7 +101,9 @@ const SetPin = () => {
   const [attempts, setAttempts] = useState<number>(0);
   const [showPin, setShowPin] = useState<boolean>(false);
   const [shakeError, setShakeError] = useState<boolean>(false);
-  const [pinStrength, setPinStrength] = useState<"weak" | "medium" | "strong">("weak");
+  const [pinStrength, setPinStrength] = useState<"weak" | "medium" | "strong">(
+    "weak",
+  );
   const { setPin } = usePin();
   const navigation = useNavigate();
 
@@ -130,22 +133,22 @@ const SetPin = () => {
       setStep("confirm");
       form.reset();
       toast.success("PIN이 입력되었습니다. 확인을 위해 한번 더 입력해주세요.", {
-        icon: '🔐',
-        duration: 2000
+        icon: "🔐",
+        duration: 2000,
       });
     } else {
       // PIN 확인 단계
       if (data.pin === firstPin) {
         console.log("PIN confirmed:", data.pin);
         toast.loading("PIN을 설정 중입니다...");
-        
+
         try {
           const res = await setPin(data.pin);
           if (res) {
             toast.dismiss();
             toast.success("PIN이 성공적으로 설정되었습니다!", {
-              icon: '✅',
-              duration: 2000
+              icon: "✅",
+              duration: 2000,
             });
             navigation("/dashboard", { replace: true });
           }
@@ -157,13 +160,15 @@ const SetPin = () => {
       } else {
         setShakeError(true);
         setTimeout(() => setShakeError(false), 500);
-        
+
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
 
         if (newAttempts >= 5) {
           // 5번 실패시 처음으로 돌아가기
-          toast.error("입력 시도 횟수 초과! PIN 설정을 처음부터 다시 시작합니다.");
+          toast.error(
+            "입력 시도 횟수 초과! PIN 설정을 처음부터 다시 시작합니다.",
+          );
           setStep("create");
           setFirstPin("");
           setAttempts(0);
@@ -174,7 +179,9 @@ const SetPin = () => {
           });
         } else {
           form.reset();
-          toast.error(`PIN이 일치하지 않습니다. 남은 시도 횟수: ${5 - newAttempts}회`);
+          toast.error(
+            `PIN이 일치하지 않습니다. 남은 시도 횟수: ${5 - newAttempts}회`,
+          );
           form.setError("pin", {
             type: "manual",
             message: `PIN이 일치하지 않습니다. 남은 시도 횟수: ${5 - newAttempts}회`,
@@ -195,7 +202,7 @@ const SetPin = () => {
   // 숫자 키패드 처리
   const handleNumpadPress = (key: number | string) => {
     const currentPin = form.getValues("pin");
-    
+
     if (key === "clear") {
       form.setValue("pin", "");
     } else if (key === "delete") {
@@ -218,9 +225,9 @@ const SetPin = () => {
               <Fingerprint className="h-10 w-10 text-primary" />
             </motion.div>
           </div>
-          
+
           <AnimatePresence mode="wait">
-            <motion.div 
+            <motion.div
               key={step}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -244,26 +251,25 @@ const SetPin = () => {
               <ShieldCheck className="h-4 w-4 text-primary" />
               <AlertTitle>보안 안내</AlertTitle>
               <AlertDescription className="text-xs">
-                PIN은 API 키를 안전하게 암호화하는 데 사용됩니다. 
-                PIN을 잊어버리면 모든 데이터가 초기화됩니다.
-                안전한 곳에 PIN을 기록해두세요.
+                PIN은 API 키를 안전하게 암호화하는 데 사용됩니다. PIN을
+                잊어버리면 모든 데이터가 초기화됩니다. 안전한 곳에 PIN을
+                기록해두세요.
               </AlertDescription>
             </Alert>
           )}
 
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="pin"
                 render={({ field }) => (
                   <FormItem className="space-y-4">
                     <FormControl>
-                      <motion.div 
-                        animate={shakeError ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+                      <motion.div
+                        animate={
+                          shakeError ? { x: [0, -10, 10, -10, 10, 0] } : {}
+                        }
                         transition={{ duration: 0.5 }}
                         className="w-full flex justify-center" // 중앙 정렬 수정
                       >
@@ -280,27 +286,27 @@ const SetPin = () => {
                           type={showPin ? "text" : "password"}
                         >
                           <InputOTPGroup>
-                            <InputOTPSlot 
+                            <InputOTPSlot
                               index={0}
-                              className={`h-16 w-16 text-2xl border-2 ${field.value[0] ? 'border-primary' : ''}`}
+                              className={`h-16 w-16 text-2xl border-2 ${field.value[0] ? "border-primary" : ""}`}
                             />
                           </InputOTPGroup>
                           <InputOTPGroup>
-                            <InputOTPSlot 
+                            <InputOTPSlot
                               index={1}
-                              className={`h-16 w-16 text-2xl border-2 ${field.value[1] ? 'border-primary' : ''}`}
+                              className={`h-16 w-16 text-2xl border-2 ${field.value[1] ? "border-primary" : ""}`}
                             />
                           </InputOTPGroup>
                           <InputOTPGroup>
-                            <InputOTPSlot 
+                            <InputOTPSlot
                               index={2}
-                              className={`h-16 w-16 text-2xl border-2 ${field.value[2] ? 'border-primary' : ''}`}
+                              className={`h-16 w-16 text-2xl border-2 ${field.value[2] ? "border-primary" : ""}`}
                             />
                           </InputOTPGroup>
                           <InputOTPGroup>
-                            <InputOTPSlot 
+                            <InputOTPSlot
                               index={3}
-                              className={`h-16 w-16 text-2xl border-2 ${field.value[3] ? 'border-primary' : ''}`}
+                              className={`h-16 w-16 text-2xl border-2 ${field.value[3] ? "border-primary" : ""}`}
                             />
                           </InputOTPGroup>
                         </InputOTP>
@@ -309,41 +315,52 @@ const SetPin = () => {
 
                     {/* PIN 보안 강도 표시 (1단계에서만 표시) */}
                     {step === "create" && field.value.length === 4 && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         className="flex items-center justify-center gap-2 mt-2"
                       >
                         <div className="flex items-center space-x-1">
-                          <div className={`h-2 w-8 rounded-full ${pinStrength === "weak" ? strengthColors.weak : "bg-gray-200"}`}></div>
-                          <div className={`h-2 w-8 rounded-full ${pinStrength === "medium" || pinStrength === "strong" ? strengthColors[pinStrength] : "bg-gray-200"}`}></div>
-                          <div className={`h-2 w-8 rounded-full ${pinStrength === "strong" ? strengthColors.strong : "bg-gray-200"}`}></div>
+                          <div
+                            className={`h-2 w-8 rounded-full ${pinStrength === "weak" ? strengthColors.weak : "bg-gray-200"}`}
+                          ></div>
+                          <div
+                            className={`h-2 w-8 rounded-full ${pinStrength === "medium" || pinStrength === "strong" ? strengthColors[pinStrength] : "bg-gray-200"}`}
+                          ></div>
+                          <div
+                            className={`h-2 w-8 rounded-full ${pinStrength === "strong" ? strengthColors.strong : "bg-gray-200"}`}
+                          ></div>
                         </div>
-                        <span className={`text-xs ${
-                          pinStrength === "weak" 
-                            ? "text-red-500" 
-                            : pinStrength === "medium" 
-                              ? "text-yellow-500" 
-                              : "text-green-500"
-                        }`}>
+                        <span
+                          className={`text-xs ${
+                            pinStrength === "weak"
+                              ? "text-red-500"
+                              : pinStrength === "medium"
+                                ? "text-yellow-500"
+                                : "text-green-500"
+                          }`}
+                        >
                           {`보안 강도: ${strengthText[pinStrength]}`}
                         </span>
-                        
+
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 ml-1"
+                              >
                                 <AlertCircle className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <p className="text-xs">
-                                {pinStrength === "weak" 
-                                  ? "연속된 숫자(1234)나 반복된 숫자(1111)는 추측하기 쉽습니다." 
-                                  : pinStrength === "medium" 
-                                    ? "더 안전한 PIN을 위해 무작위 숫자를 사용하세요." 
-                                    : "좋은 PIN 입니다! 잊지 마세요."
-                                }
+                                {pinStrength === "weak"
+                                  ? "연속된 숫자(1234)나 반복된 숫자(1111)는 추측하기 쉽습니다."
+                                  : pinStrength === "medium"
+                                    ? "더 안전한 PIN을 위해 무작위 숫자를 사용하세요."
+                                    : "좋은 PIN 입니다! 잊지 마세요."}
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -376,20 +393,28 @@ const SetPin = () => {
               />
 
               {/* 숫자 키패드 */}
-              <div className="mt-6 max-w-[280px] mx-auto"> {/* 키패드 중앙 정렬 */}
+              <div className="mt-6 max-w-[280px] mx-auto">
+                {" "}
+                {/* 키패드 중앙 정렬 */}
                 <div className="grid grid-cols-3 gap-3">
-                  {numpadKeys.map((row, rowIndex) => (
+                  {numpadKeys.map((row, rowIndex) =>
                     row.map((key, colIndex) => (
-                      <motion.div 
+                      <motion.div
                         key={`${rowIndex}-${colIndex}`}
                         whileTap={{ scale: 0.95 }}
                       >
                         <Button
                           type="button"
-                          variant={key === "clear" || key === "delete" ? "outline" : "secondary"}
+                          variant={
+                            key === "clear" || key === "delete"
+                              ? "outline"
+                              : "secondary"
+                          }
                           size="lg"
                           className={`h-14 w-14 text-xl font-semibold ${
-                            typeof key === "number" ? "hover:bg-primary hover:text-primary-foreground" : ""
+                            typeof key === "number"
+                              ? "hover:bg-primary hover:text-primary-foreground"
+                              : ""
                           }`}
                           onClick={() => handleNumpadPress(key)}
                         >
@@ -402,8 +427,8 @@ const SetPin = () => {
                           )}
                         </Button>
                       </motion.div>
-                    ))
-                  ))}
+                    )),
+                  )}
                 </div>
               </div>
 
@@ -419,8 +444,8 @@ const SetPin = () => {
                       variant="outline"
                       onClick={() => {
                         toast("이전 단계로 돌아갑니다", {
-                          icon: '⬅️',
-                          duration: 1500
+                          icon: "⬅️",
+                          duration: 1500,
                         });
                         setStep("create");
                         setFirstPin("");
@@ -434,7 +459,7 @@ const SetPin = () => {
                     </Button>
                   </motion.div>
                 )}
-                
+
                 {step === "create" && form.watch("pin").length === 4 && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -460,21 +485,24 @@ const SetPin = () => {
       {/* 진행 단계 표시기 */}
       <div className="flex items-center gap-2 mt-6">
         <motion.div
-          animate={{ 
-            backgroundColor: step === "create" ? "var(--primary)" : "var(--muted)" 
+          animate={{
+            backgroundColor:
+              step === "create" ? "var(--primary)" : "var(--muted)",
           }}
           className="h-2 w-10 rounded-full"
         />
         <motion.div
-          animate={{ 
-            backgroundColor: step === "confirm" ? "var(--primary)" : "var(--muted)" 
+          animate={{
+            backgroundColor:
+              step === "confirm" ? "var(--primary)" : "var(--muted)",
           }}
           className="h-2 w-10 rounded-full"
         />
       </div>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
-        PIN은 API 키를 안전하게 보호하는 데 사용됩니다.<br />
+        PIN은 API 키를 안전하게 보호하는 데 사용됩니다.
+        <br />
         PIN을 잊어버린 경우 모든 계정 데이터를 새로 설정해야 합니다.
       </p>
     </div>
