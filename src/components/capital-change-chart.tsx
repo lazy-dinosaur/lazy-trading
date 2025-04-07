@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ChartData } from "@/hooks/use-balance-history";
+import { ChartData, AdjustedReturnMetrics } from "@/hooks/use-balance-history";
 import { formatUSDValue } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 import {
@@ -22,8 +22,9 @@ import {
 interface CapitalChangeChartProps {
   data: ChartData[];
   isLoading: boolean;
-  isError: boolean; // isError prop 추가
+  isError: boolean;
   height?: number;
+  adjustedReturn?: AdjustedReturnMetrics; // 보정 수익률 데이터를 선택적으로 받음
 }
 
 // 날짜 포맷 함수
@@ -62,8 +63,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 const CapitalChangeChart = ({
   data,
   isLoading,
-  isError, // isError prop 받기
+  isError,
   height = 300,
+  adjustedReturn,
 }: CapitalChangeChartProps) => {
   // 차트 데이터의 시작과 끝 날짜를 문자열로 반환
   const getDateRangeText = (): string => {
@@ -80,11 +82,20 @@ const CapitalChangeChart = ({
     return `${formatDate(startDate)} ~ ${formatDate(endDate)}`;
   };
 
-  // 변동률 계산 (주간)
+  // 변동률 계산 (주간) - 보정 수익률이 있으면 그 값을 우선 사용
   const calculateWeeklyChangeRate = (): {
     rate: number;
     isPositive: boolean;
   } | null => {
+    // 보정 수익률 데이터가 있으면 해당 값을 사용
+    if (adjustedReturn?.hasValidData) {
+      return {
+        rate: Math.abs(adjustedReturn.adjustedReturnRate),
+        isPositive: adjustedReturn.adjustedReturnRate >= 0
+      };
+    }
+    
+    // 없으면 기존 방식으로 계산
     if (!data || data.length < 2) return null;
 
     const firstValue = data[0].value;

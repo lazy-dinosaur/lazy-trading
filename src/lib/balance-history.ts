@@ -10,14 +10,25 @@ export interface BalanceHistory {
 
 // 거래소별 원장 데이터 정보 인터페이스
 export interface LedgerEntryInfo {
-  id: string;
-  timestamp: number;
-  datetime: string;
-  amount: number;
-  currency: string;
-  usdValue: number; // USD 가치
-  type?: string;
-  info?: any; // 원본 데이터 저장용
+  id: string;           // 원장 항목의 고유 ID
+  timestamp: number;    // 타임스탬프 (밀리초)
+  datetime: string;     // ISO8601 형식의 날짜/시간 문자열
+  amount: number;       // 금액 (절대값, 수수료 미포함)
+  currency: string;     // 통화 코드 (예: 'BTC', 'ETH', 'USDT')
+  usdValue: number;     // 계산된 USD 가치
+  type?: string;        // 항목 유형 (예: 'deposit', 'withdrawal', 'trade')
+  direction?: string;   // 'in' 또는 'out'
+  account?: string;     // 계정 ID
+  referenceId?: string; // 거래 참조 ID
+  referenceAccount?: string; // 반대 계정 ID
+  before?: number;      // 이전 잔고
+  after?: number;       // 이후 잔고
+  status?: string;      // 상태 ('ok', 'pending', 'canceled')
+  fee?: {               // 수수료 정보
+    cost: number;       // 수수료 비용
+    currency: string;   // 수수료 통화
+  };
+  info?: any;           // 원본 거래소 데이터
 }
 
 // 거래소별 원장 데이터

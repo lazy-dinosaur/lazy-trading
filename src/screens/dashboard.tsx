@@ -21,14 +21,21 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   TrendingUp,
+  Info,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import CapitalChangeChart from "@/components/capital-change-chart";
-// useBalanceHistory만 import하고 balanceHistoryToChartData는 import하지 않음
-import { useBalanceHistory, ChartData as BalanceChartData } from "@/hooks/use-balance-history";
+// 보정 수익률 계산 함수 추가 import
+import { 
+  useBalanceHistory, 
+  ChartData as BalanceChartData,
+  calculateAdjustedReturn,
+  AdjustedReturnMetrics
+} from "@/hooks/use-balance-history";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // 포지션 타입 정의
 interface Position {
@@ -252,9 +259,40 @@ const Dashboard = () => {
     staleTime: Infinity, // 30초 동안 데이터를 신선한 것으로 간주
   });
 
-  // 최근 7일간 스테이블 코인 잔고 변동률 계산
+  // 보정 수익률 계산
+  const { data: adjustedReturnData, isLoading: isLoadingAdjustedReturn } = useQuery<AdjustedReturnMetrics>({
+    queryKey: ["adjustedReturn", balanceHistory, decryptedAccounts],
+    queryFn: async () => {
+      // 데이터 로딩 중이거나 에러 발생 시, 또는 데이터 포인트가 부족하면 계산 불가
+      if (
+        isLoadingBalanceHistory ||
+        isErrorBalanceHistory ||
+        !balanceHistory ||
+        balanceHistory.length < 2 ||
+        !decryptedAccounts ||
+        Object.keys(decryptedAccounts).length === 0
+      ) {
+        return {
+          initialAsset: 0,
+          finalAsset: 0,
+          deposits: 0,
+          withdrawals: 0,
+          averageCapital: 0,
+          periodReturn: 0,
+          adjustedReturnRate: 0,
+          hasValidData: false
+        };
+      }
+
+      return calculateAdjustedReturn(decryptedAccounts, balanceHistory);
+    },
+    enabled: !isLoadingBalanceHistory && !isErrorBalanceHistory && 
+      !!balanceHistory && balanceHistory.length >= 2 && 
+      !!decryptedAccounts && Object.keys(decryptedAccounts).length > 0
+  });
+
+  // 일반 변동률 계산 (기존 코드 활용)
   const calculateRecentStableCoinChangeRate = () => {
-    // 데이터 로딩 중이거나 에러 발생 시, 또는 데이터 포인트가 부족하면 계산 불가
     if (
       isLoadingBalanceHistory ||
       isErrorBalanceHistory ||
@@ -267,7 +305,6 @@ const Dashboard = () => {
     const oldestBalance = dailyChartData[0]?.value;
     const newestBalance = dailyChartData[dailyChartData.length - 1]?.value;
 
-    // 시작 잔고가 0이면 변동률 계산 불가 (분모 0 방지)
     if (!oldestBalance || oldestBalance === 0) return null;
     if (!newestBalance) return null;
 
@@ -303,27 +340,68 @@ const Dashboard = () => {
                   </>
                 )}
               </CardTitle>
-              {/* 최근 스테이블 코인 변동률 표시 */}
-              {recentStableCoinChangeRate !== null && (
+              {/* 보정 수익률 표시 */}
+              {adjustedReturnData?.hasValidData ? (
                 <div
-                  className={`flex items-center text-sm mt-1 ${recentStableCoinChangeRate >= 0 ? "text-green-500" : "text-red-500"}`}
+                  className={`flex items-center text-sm mt-1 ${adjustedReturnData.adjustedReturnRate >= 0 ? "text-green-500" : "text-red-500"}`}
                 >
                   <TrendingUp className="h-4 w-4 mr-1" />
-                  <span>
-                    7일 자산 변동: {recentStableCoinChangeRate >= 0 ? "+" : ""}
-                    {recentStableCoinChangeRate.toFixed(2)}%
+                  <span className="flex items-center">
+                    7일 보정 수익률: {adjustedReturnData.adjustedReturnRate >= 0 ? "+" : ""}
+                    {adjustedReturnData.adjustedReturnRate.toFixed(2)}%
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[280px]">
+                          <p className="font-medium mb-1">보정 수익률 = 기간수익금 / 투자자본금 평균</p>
+                          <ul className="text-xs space-y-1">
+                            <li>• 기간수익금: ${formatUSDValue(adjustedReturnData.periodReturn)}</li>
+                            <li>• 투자자본금: ${formatUSDValue(adjustedReturnData.averageCapital)}</li>
+                            <li className="pt-1">• 초기자산: ${formatUSDValue(adjustedReturnData.initialAsset)}</li>
+                            <li>• 현재자산: ${formatUSDValue(adjustedReturnData.finalAsset)}</li>
+                            <li>• 입금액: ${formatUSDValue(adjustedReturnData.deposits)}</li>
+                            <li>• 출금액: ${formatUSDValue(adjustedReturnData.withdrawals)}</li>
+                            <li className="pt-1 text-muted-foreground">투자자본금 = (입금액 - 출금액) + 초기자산</li>
+                          </ul>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </span>
                 </div>
+              ) : (
+                <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                  {isLoadingBalanceHistory || isLoadingAdjustedReturn ? (
+                    <>
+                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                      보정 수익률 계산 중...
+                    </>
+                  ) : (
+                    <>
+                      <span>보정 수익률 계산 불가</span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>데이터가 부족하거나 계산 중 문제가 발생했습니다.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </>
+                  )}
+                </div>
               )}
-              {/* 로딩 중이거나 에러 발생 시 수익률 대신 메시지 표시 */}
-              {(isLoadingBalanceHistory || isErrorBalanceHistory) &&
-                recentStableCoinChangeRate === null && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {isLoadingBalanceHistory
-                      ? "변동률 계산 중..."
-                      : "변동률 계산 실패"}
-                  </div>
-                )}
+
+              {/* 기존 변동률도 함께 표시 (작게) */}
+              {recentStableCoinChangeRate !== null && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  단순 변동률: {recentStableCoinChangeRate >= 0 ? "+" : ""}
+                  {recentStableCoinChangeRate.toFixed(2)}%
+                </div>
+              )}
             </CardHeader>
             <CardFooter className="pt-2 flex justify-end">
               {!accountsBalance && (
@@ -336,16 +414,22 @@ const Dashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>주요 자산(USD) 변동</CardTitle>
-              <CardDescription>
-                지난 7일간 스테이블 코인 잔고 추이
+              <CardDescription className="flex flex-col">
+                <span>지난 7일간 자산 및 보정 수익률 추이</span>
+                {adjustedReturnData?.hasValidData && (
+                  <span className="text-xs mt-1">
+                    투자자본금: ${formatUSDValue(adjustedReturnData.averageCapital)}
+                  </span>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <CapitalChangeChart
                 data={dailyChartData}
-                isLoading={isLoadingBalanceHistory || isLoadingAccounts} // 계정 로딩도 고려
-                isError={isErrorBalanceHistory} // 에러 상태 전달
+                isLoading={isLoadingBalanceHistory || isLoadingAccounts || isLoadingAdjustedReturn}
+                isError={isErrorBalanceHistory}
                 height={250}
+                adjustedReturn={adjustedReturnData}
               />
             </CardContent>
           </Card>
