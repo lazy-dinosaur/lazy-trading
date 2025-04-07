@@ -19,21 +19,21 @@ export const PositionComponent = () => {
           onClick={() => setActiveTab("positions")}
           icon={<BarChart3 className="w-4 h-4 mr-1" />}
         >
-          Positions
+          포지션 {/* 한글 변경 */}
         </TabButton>
         <TabButton
           isActive={activeTab === "orders"}
           onClick={() => setActiveTab("orders")}
           icon={<Layers className="w-4 h-4 mr-1" />}
         >
-          Orders
+          주문 {/* 한글 변경 */}
         </TabButton>
         <TabButton
           isActive={activeTab === "assets"}
           onClick={() => setActiveTab("assets")}
           icon={<Wallet className="w-4 h-4 mr-1" />}
         >
-          Assets
+          자산 {/* 한글 변경 */}
         </TabButton>
       </div>
 

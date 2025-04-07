@@ -11,21 +11,21 @@ interface SortControlsProps {
   onFavoriteFilter: (showFavorites: boolean) => void;
 }
 
-export const SortControls = ({ 
-  sortConfig, 
-  onSort, 
-  showFavorites, 
-  onFavoriteFilter 
+export const SortControls = ({
+  sortConfig,
+  onSort,
+  showFavorites,
+  onFavoriteFilter
 }: SortControlsProps) => {
   // 정렬 버튼 컴포넌트
-  const SortButton = ({ 
-    label, 
-    sortKey 
-  }: { 
-    label: string; 
-    sortKey: "baseVolume" | "last" | "symbol"; 
+  const SortButton = ({
+    label,
+    sortKey
+  }: {
+    label: string;
+    sortKey: "baseVolume" | "last" | "symbol";
   }) => (
-    <button 
+    <button
       onClick={() => onSort(sortKey)}
       className="flex items-center justify-center text-xs h-lg:text-sm"
     >
@@ -44,8 +44,8 @@ export const SortControls = ({
 
   return (
     <div className="flex justify-between items-center space-x-4 p-2 bg-background border-b">
-      <Tabs 
-        defaultValue={showFavorites ? "favorites" : "all"} 
+      <Tabs
+        defaultValue={showFavorites ? "favorites" : "all"}
         className="h-6 h-lg:h-8 h-xl:h-10"
         onValueChange={(value) => onFavoriteFilter(value === "favorites")}
       >
@@ -54,11 +54,11 @@ export const SortControls = ({
           <TabsTrigger value="favorites">즐겨찾기</TabsTrigger>
         </TabsList>
       </Tabs>
-      
+
       <div className="flex space-x-4">
-        <SortButton label="Symbol" sortKey="symbol" />
-        <SortButton label="Volume" sortKey="baseVolume" />
-        <SortButton label="Price" sortKey="last" />
+        <SortButton label="심볼" sortKey="symbol" /> {/* 한글 라벨 */}
+        <SortButton label="거래량" sortKey="baseVolume" /> {/* 한글 라벨 */}
+        <SortButton label="가격" sortKey="last" /> {/* 한글 라벨 */}
       </div>
     </div>
   );

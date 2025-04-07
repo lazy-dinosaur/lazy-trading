@@ -21,15 +21,15 @@ interface SkeletonTableProps {
  */
 export const SkeletonTable = ({
   columnWidths = [40, 200, 150, 100],
-  columnNames = ["", "Symbol", "Volume", "Price"],
+  columnNames = ["", "심볼", "거래량", "가격"], // 한글 컬럼명
   rowCount = 50
 }: SkeletonTableProps) => {
   return (
     <div
       className="rounded-md border overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
-      style={{ 
-        height: `calc(100vh - ${LAYOUT.HEADER_HEIGHT})`, 
-        "--table-height": `calc(100vh - ${LAYOUT.HEADER_HEIGHT})` 
+      style={{
+        height: `calc(100vh - ${LAYOUT.HEADER_HEIGHT})`,
+        "--table-height": `calc(100vh - ${LAYOUT.HEADER_HEIGHT})`
       } as React.CSSProperties}
       aria-busy="true"
       aria-live="polite"
@@ -56,16 +56,16 @@ export const SkeletonTable = ({
           {Array.from({ length: rowCount }).map((_, index) => (
             <TableRow key={index}>
               <TableCell>
-                <Skeleton className={SKELETON_SIZES.ICON.MD} aria-label="Loading icon" />
+                <Skeleton className={SKELETON_SIZES.ICON.MD} aria-label="로딩 아이콘" />
               </TableCell>
               <TableCell>
-                <Skeleton className={SKELETON_SIZES.TEXT.MD} aria-label="Loading symbol" />
+                <Skeleton className={SKELETON_SIZES.TEXT.MD} aria-label="로딩 심볼" />
               </TableCell>
               <TableCell>
-                <Skeleton className={SKELETON_SIZES.TEXT.SM} aria-label="Loading volume" />
+                <Skeleton className={SKELETON_SIZES.TEXT.SM} aria-label="로딩 거래량" />
               </TableCell>
               <TableCell>
-                <Skeleton className={SKELETON_SIZES.TEXT.XS} aria-label="Loading price" />
+                <Skeleton className={SKELETON_SIZES.TEXT.XS} aria-label="로딩 가격" />
               </TableCell>
             </TableRow>
           ))}

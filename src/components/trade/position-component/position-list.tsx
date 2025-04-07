@@ -50,7 +50,7 @@ export const PositionsList = () => {
     queryKey: ["positions", exchange, accountId, symbol],
     queryFn: async () => {
       if (!selectedAccount || !selectedAccount.exchangeInstance) {
-        throw new Error("Selected account or instance not found");
+        throw new Error("선택된 계정 또는 인스턴스를 찾을 수 없습니다."); // 한글 변경
       }
 
       let rawPositions: Position[];
@@ -75,7 +75,7 @@ export const PositionsList = () => {
     queryKey: ["openOrders", exchange, accountId],
     queryFn: async () => {
       if (!selectedAccount || !selectedAccount.exchangeInstance) {
-        throw new Error("Selected account or instance not found");
+        throw new Error("선택된 계정 또는 인스턴스를 찾을 수 없습니다."); // 한글 변경
       }
       return await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders(
         symbol ?? undefined,
@@ -147,7 +147,7 @@ export const PositionsList = () => {
     size: number,
   ) => {
     if (!selectedAccount || !selectedAccount.exchangeInstance) {
-      toast.error("Account not selected or instance not available.");
+      toast.error("계정이 선택되지 않았거나 인스턴스를 사용할 수 없습니다."); // 한글 변경
       return;
     }
 
@@ -192,7 +192,7 @@ export const PositionsList = () => {
       );
 
       toast.success(
-        `Position ${symbol} closed successfully. Order ID: ${order.id}`,
+        `${symbol} 포지션이 성공적으로 종료되었습니다. 주문 ID: ${order.id}`, // 한글 변경
       );
 
       // 포지션 및 잔액 쿼리 무효화하여 데이터 새로고침
@@ -201,8 +201,8 @@ export const PositionsList = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["accountsBalance"] });
     } catch (error: any) {
-      console.error("Failed to close position:", error);
-      toast.error(`Failed to close position: ${error.message}`);
+      console.error("포지션 종료 실패:", error); // 한글 변경
+      toast.error(`포지션 종료 실패: ${error.message}`); // 한글 변경
       throw error; // 에러를 다시 던져서 버튼 로딩 상태 해제
     }
   };
@@ -233,7 +233,7 @@ export const PositionsList = () => {
     return (
       <div className="space-y-2">
         <div className="px-1 text-sm font-medium text-muted-foreground">
-          Open Positions
+          진입 중인 포지션 {/* 한글 변경 */}
         </div>
         {/* 로딩 스켈레톤 */}
         {[...Array(3)].map((_, i) => (
@@ -257,7 +257,7 @@ export const PositionsList = () => {
   if (error) {
     return (
       <div className="py-8 text-center text-red-500">
-        Error fetching positions: {error.message}
+        포지션 로딩 오류: {error.message} {/* 한글 변경 */}
       </div>
     );
   }
@@ -327,13 +327,13 @@ export const PositionsList = () => {
   return (
     <div className="space-y-2">
       <div className="px-1 text-sm font-medium text-muted-foreground">
-        Open Positions ({positionItems?.length ?? 0})
+        진입 중인 포지션 ({positionItems?.length ?? 0}) {/* 한글 변경 */}
       </div>
       {positionItems && positionItems.length > 0 ? (
         positionItems.map((item) => <TradingItemCard key={item.id} {...item} />)
       ) : (
         <div className="py-8 text-center text-muted-foreground">
-          No open positions
+          진입 중인 포지션 없음 {/* 한글 변경 */}
         </div>
       )}
 
@@ -408,17 +408,17 @@ const TradingItemCard = ({
                 }`}
               >
                 {directionIcon}
-                {isLong ? "Long" : "Short"}
+                {isLong ? "롱" : "숏"} {/* 한글 변경 */}
               </div>
               <span className="text-xs px-2 py-0.5 rounded bg-accent/50">
                 {leverage}x
               </span>
             </div>
             <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-              <span>Entry: ${entryPrice}</span>
+              <span>진입가: ${entryPrice}</span> {/* 한글 변경 */}
               <span>•</span>
               <span>
-                Size: {size} {symbol.replace("USDT", "")}
+                크기: {size} {symbol.replace("USDT", "")} {/* 한글 변경 */}
               </span>
             </div>
           </div>
@@ -436,7 +436,7 @@ const TradingItemCard = ({
                 isPositive ? "bg-green-500/10" : "bg-red-500/10"
               }`}
             >
-              PNL: {isPositive ? "+" : ""}
+              손익: {isPositive ? "+" : ""} {/* 한글 변경 */}
               {profitPercentage.toFixed(2)}%
             </div>
           </div>
@@ -476,7 +476,7 @@ const TradingItemCard = ({
               }}
             >
               <Settings className="w-3 h-3 mr-1" />
-              타겟/손절 설정
+              타겟/손절 {/* 한글 변경 */}
             </Button>
           )}
 
@@ -500,7 +500,7 @@ const TradingItemCard = ({
               disabled={isClosing}
             >
               <X className="w-3 h-3 mr-1" />
-              {isClosing ? "Closing..." : "청산"}
+              {isClosing ? "종료 중..." : "포지션 종료"} {/* 한글 변경 */}
             </Button>
           )}
         </div>

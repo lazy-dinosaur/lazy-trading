@@ -30,7 +30,7 @@ export const AssetsList = () => {
     return (
       <div className="space-y-2">
         <div className="px-1 text-sm font-medium text-muted-foreground">
-          Available Assets
+          보유 자산 {/* 한글 변경 */}
         </div>
         {[...Array(4)].map((_, i) => (
           <TradeCard key={i} variant="compact">
@@ -47,13 +47,13 @@ export const AssetsList = () => {
   return (
     <div className="space-y-2">
       <div className="px-1 text-sm font-medium text-muted-foreground">
-        Available Assets ({assetItems.length})
+        보유 자산 ({assetItems.length}) {/* 한글 변경 */}
       </div>
       {assetItems.length > 0 ? (
         assetItems.map((item) => <AssetCard key={item.id} {...item} />)
       ) : (
         <div className="py-8 text-center text-muted-foreground">
-          No assets available
+          보유 자산 없음 {/* 한글 변경 */}
         </div>
       )}
     </div>

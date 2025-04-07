@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react"; // useMemo 추가
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import { useAllTickers } from "@/hooks/coin";
 import { TickerWithExchange } from "@/lib/ccxt";
@@ -19,6 +19,16 @@ const getFavorites = (): string[] => {
     return [];
   }
 };
+
+// 거래소 이름 한글 매핑 (검색용)
+const exchangeNameMap: Record<string, string> = {
+  bybit: "바이빗",
+  binance: "바이낸스",
+  bitget: "비트겟",
+};
+const reverseExchangeNameMap: Record<string, string> = Object.fromEntries(
+  Object.entries(exchangeNameMap).map(([key, value]) => [value, key])
+);
 
 const Search = () => {
   const { data: tickersData, isLoading } = useAllTickers();
@@ -51,59 +61,74 @@ const Search = () => {
     setFormattedTickers(formatted as any);
   }, [tickersData, isLoading, ccxt]);
 
-  // 필터링 및 정렬 로직
-  const filteredAndSortedTickers = formattedTickers
-    .filter((ticker) => {
-      // 즐겨찾기 필터
-      if (showFavorites) {
-        const tickerKey = `${ticker.exchange}-${ticker.symbol}`;
-        if (!favorites.includes(tickerKey)) {
+  // 필터링 및 정렬 로직 (useMemo로 최적화)
+  const filteredAndSortedTickers = useMemo(() => {
+    return formattedTickers
+      .filter((ticker) => {
+        // 즐겨찾기 필터
+        if (showFavorites) {
+          const tickerKey = `${ticker.exchange}-${ticker.symbol}`;
+          if (!favorites.includes(tickerKey)) {
+            return false;
+          }
+        }
+
+        // 거래소 필터
+        if (exchangeFilter && ticker.exchange !== exchangeFilter) {
           return false;
         }
-      }
 
-      // 거래소 필터
-      if (exchangeFilter && ticker.exchange !== exchangeFilter) {
-        return false;
-      }
+        // 검색어 필터
+        if (searchQuery) {
+          const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean); // 공백 제거
 
-      // 검색어 필터
-      if (searchQuery) {
-        const terms = searchQuery.toLowerCase().split(/\s+/);
-        
-        // 거래소 키워드 제외
-        const exchanges = ["bybit", "binance", "bitget"];
-        const searchTerms = terms.filter((term) => !exchanges.includes(term));
-        
-        // 심볼 검색
-        const symbol = String(ticker.symbol).toLowerCase();
-        return searchTerms.every((term) => {
-          const searchParts = term.split("/");
-          if (searchParts.length > 1) {
-            return searchParts.every((part) => symbol.includes(part));
+          // 거래소 키워드 (영문/한글) 확인 및 제외
+          const exchangeKeywords = [
+            ...Object.keys(exchangeNameMap),
+            ...Object.values(exchangeNameMap),
+          ];
+          const searchTerms = terms.filter(term => !exchangeKeywords.includes(term));
+          const exchangeTerm = terms.find(term => exchangeKeywords.includes(term));
+
+          // 검색어에 거래소 키워드가 있고, 현재 거래소 필터와 다른 경우 필터링
+          if (exchangeTerm) {
+            const targetExchange = reverseExchangeNameMap[exchangeTerm] || exchangeTerm;
+            if (ticker.exchange !== targetExchange) {
+              return false;
+            }
           }
-          return symbol.includes(term);
-        });
-      }
-      
-      return true;
-    })
-    .sort((a, b) => {
-      const { key, direction } = sortConfig;
-      
-      if (key === "symbol") {
-        const symbolA = String(a[key]).toLowerCase();
-        const symbolB = String(b[key]).toLowerCase();
-        return direction === "asc" 
-          ? symbolA.localeCompare(symbolB) 
-          : symbolB.localeCompare(symbolA);
-      }
-      
-      // 숫자 타입의 필드인 경우
-      const valueA = a[key] || 0;
-      const valueB = b[key] || 0;
-      return direction === "asc" ? valueA - valueB : valueB - valueA;
-    });
+
+          // 심볼 검색 (남은 검색어로)
+          const symbol = String(ticker.symbol).toLowerCase();
+          return searchTerms.every((term) => {
+            const searchParts = term.split("/");
+            if (searchParts.length > 1) {
+              return searchParts.every((part) => symbol.includes(part));
+            }
+            return symbol.includes(term);
+          });
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        const { key, direction } = sortConfig;
+
+        if (key === "symbol") {
+          const symbolA = String(a[key]).toLowerCase().replace(/^[0-9]+/, ""); // 숫자 제거 후 비교
+          const symbolB = String(b[key]).toLowerCase().replace(/^[0-9]+/, ""); // 숫자 제거 후 비교
+          return direction === "asc"
+            ? symbolA.localeCompare(symbolB)
+            : symbolB.localeCompare(symbolA);
+        }
+
+        // 숫자 타입의 필드인 경우
+        const valueA = a[key] || 0;
+        const valueB = b[key] || 0;
+        return direction === "asc" ? valueA - valueB : valueB - valueA;
+      });
+  }, [formattedTickers, showFavorites, favorites, exchangeFilter, searchQuery, sortConfig]);
+
 
   const handleFavoriteFilter = (showFavs: boolean) => {
     setShowFavorites(showFavs);
@@ -115,23 +140,41 @@ const Search = () => {
     const newFavorites = favorites.includes(tickerKey)
       ? favorites.filter(key => key !== tickerKey)
       : [...favorites, tickerKey];
-    
+
     setFavorites(newFavorites);
-    localStorage.setItem('coin_favorites', JSON.stringify(newFavorites));
+    // 로컬 스토리지 업데이트는 비동기로 처리하여 UI 반응성 유지
+    setTimeout(() => {
+      try {
+        localStorage.setItem('coin_favorites', JSON.stringify(newFavorites));
+      } catch (error) {
+        console.error('Failed to save favorites:', error);
+      }
+    }, 0);
   };
-  
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    
-    // 거래소 키워드 확인 및 필터 설정
-    const exchanges = ["bybit", "binance", "bitget"];
-    const lowerValue = query.toLowerCase();
-    const foundExchange = exchanges.find(ex => lowerValue.includes(ex));
-    
-    if (foundExchange) {
-      setExchangeFilter(foundExchange);
+
+    // 검색어에서 거래소 키워드(한글 포함) 확인 및 필터 자동 설정
+    const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    const exchangeKeywords = [
+      ...Object.keys(exchangeNameMap),
+      ...Object.values(exchangeNameMap),
+    ];
+    const foundKeyword = terms.find(term => exchangeKeywords.includes(term));
+
+    if (foundKeyword) {
+      const targetExchange = reverseExchangeNameMap[foundKeyword] || foundKeyword;
+      // 현재 필터와 다를 경우에만 업데이트
+      if (exchangeFilter !== targetExchange) {
+        setExchangeFilter(targetExchange);
+      }
+    } else {
+      // 검색어에 거래소 키워드가 없으면 거래소 필터 해제 (선택 사항)
+      // setExchangeFilter(null);
     }
   };
+
 
   const handleExchangeFilter = (exchange: string | null) => {
     setExchangeFilter(exchange);
@@ -140,15 +183,15 @@ const Search = () => {
   const handleSort = (key: "baseVolume" | "last" | "symbol") => {
     setSortConfig(prevConfig => ({
       key,
-      direction: 
+      direction:
         prevConfig.key === key && prevConfig.direction === "desc" ? "asc" : "desc"
     }));
   };
 
   return (
-    <ScreenWrapper headerProps={{ title: "Search" }}>
-      <SearchFilter 
-        onSearch={handleSearch} 
+    <ScreenWrapper headerProps={{ title: "검색" }}> {/* title 직접 전달 */}
+      <SearchFilter
+        onSearch={handleSearch}
         onExchangeFilter={handleExchangeFilter}
         searchQuery={searchQuery}
         exchangeFilter={exchangeFilter}
@@ -166,7 +209,7 @@ const Search = () => {
             showFavorites={showFavorites}
             onFavoriteFilter={handleFavoriteFilter}
           />
-          <CoinGrid 
+          <CoinGrid
             tickers={filteredAndSortedTickers}
             favorites={favorites}
             onToggleFavorite={toggleFavorite}

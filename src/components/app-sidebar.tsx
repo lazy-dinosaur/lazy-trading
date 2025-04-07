@@ -16,17 +16,17 @@ import { useNavigate } from "react-router";
 // Menu items.
 const items = [
   {
-    title: "Dashboard",
+    title: "대시보드",
     url: "/dashboard",
     icon: Home,
   },
   {
-    title: "Search",
+    title: "검색",
     url: "/search",
     icon: Search,
   },
   {
-    title: "Accounts",
+    title: "계정 관리",
     url: "/Accounts",
     icon: HandCoins,
   },
@@ -49,7 +49,7 @@ export function AppSidebar() {
     <Sidebar side="right">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>네비게이션</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

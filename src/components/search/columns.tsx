@@ -16,7 +16,7 @@ const grepFilter: FilterFn<TickerWithExchange> = (row, columnId, value) => {
   const terms = searchStr.split(/\s+/);
 
   // 거래소 키워드 제외
-  const exchanges = ["bybit", "binance", "bitget"];
+  const exchanges = ["bybit", "binance", "bitget", "바이빗", "바이낸스", "비트겟"]; // 한글 키워드 추가
   const searchTerms = terms.filter((term) => !exchanges.includes(term));
 
   // 심볼 검색어 처리
@@ -42,9 +42,9 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
           <Avatar className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-6 h-xl:h-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/521.png"
-              alt="@shadcn"
+              alt="Bybit"
             />
-            <AvatarFallback>Bybit</AvatarFallback>
+            <AvatarFallback>By</AvatarFallback>
           </Avatar>
         );
       } else if (exchange == "binance") {
@@ -52,9 +52,9 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
           <Avatar className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-6 h-xl:h-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/270.png"
-              alt="@shadcn"
+              alt="Binance"
             />
-            <AvatarFallback>Binance</AvatarFallback>
+            <AvatarFallback>Bi</AvatarFallback>
           </Avatar>
         );
       } else {
@@ -62,9 +62,9 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
           <Avatar className="w-3 h-3 h-lg:w-5 h-lg:h-5 h-xl:w-6 h-xl:h-6">
             <AvatarImage
               src="https://s2.coinmarketcap.com/static/img/exchanges/64x64/513.png"
-              alt="@shadcn"
+              alt="Bitget"
             />
-            <AvatarFallback>Bitget</AvatarFallback>
+            <AvatarFallback>Bg</AvatarFallback>
           </Avatar>
         );
       }
@@ -81,7 +81,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
           onClick={() => column.toggleSorting()}
           className="flex items-center"
         >
-          Symbol
+          심볼 {/* 한글 헤더 */}
           {column.getIsSorted() === "asc" ? (
             <ArrowUp className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : column.getIsSorted() === "desc" ? (
@@ -110,7 +110,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
           onClick={() => column.toggleSorting()}
           className="flex items-center"
         >
-          Volume
+          거래량 {/* 한글 헤더 */}
           {column.getIsSorted() === "asc" ? (
             <ArrowUp className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : column.getIsSorted() === "desc" ? (
@@ -136,7 +136,7 @@ export const columns: ColumnDef<TickerWithExchange>[] = [
           onClick={() => column.toggleSorting()}
           className="flex items-center"
         >
-          Price
+          가격 {/* 한글 헤더 */}
           {column.getIsSorted() === "asc" ? (
             <ArrowUp className="ml-2 w-2 h-2 h-lg:w-3 h-lg:h-3 h-xl:w-4 h-xl:h-4" />
           ) : column.getIsSorted() === "desc" ? (

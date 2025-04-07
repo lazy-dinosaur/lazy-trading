@@ -15,6 +15,7 @@ import { ExchangeType } from "@/lib/accounts";
 import { usePositionTPSL } from "@/hooks/use-position-tp-sl";
 import { Exchange } from "ccxt";
 import { ArrowUpRight, ArrowDownRight, Target, Scissors } from "lucide-react";
+import toast from "react-hot-toast"; // toast 추가
 
 interface TPSLDialogProps {
   open: boolean;
@@ -165,7 +166,7 @@ export function PositionTPSLDialog({
   // 타겟 / 손절 값 설정 함수
   const handleSubmit = async () => {
     if (!ccxtInstance || !exchange) {
-      console.error("거래소 인스턴스나 계정 정보가 없습니다");
+      toast.error("거래소 인스턴스나 계정 정보가 없습니다"); // 한글 변경
       return;
     }
 
@@ -187,8 +188,10 @@ export function PositionTPSLDialog({
 
       // 성공 후 다이얼로그 닫기
       onOpenChange(false);
+      toast.success("타겟/손절 가격이 설정되었습니다."); // 한글 변경
     } catch (error) {
       console.error("TP/SL 설정 실패:", error);
+      toast.error("타겟/손절 설정에 실패했습니다."); // 한글 변경
     }
   };
 

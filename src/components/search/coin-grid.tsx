@@ -11,16 +11,23 @@ import { Star } from "lucide-react";
 const exchangeIcons: Record<string, { src: string; fallback: string }> = {
   bybit: {
     src: "https://s2.coinmarketcap.com/static/img/exchanges/64x64/521.png",
-    fallback: "Bybit",
+    fallback: "By", // 짧은 대체 텍스트
   },
   binance: {
     src: "https://s2.coinmarketcap.com/static/img/exchanges/64x64/270.png",
-    fallback: "Binance",
+    fallback: "Bi", // 짧은 대체 텍스트
   },
   bitget: {
     src: "https://s2.coinmarketcap.com/static/img/exchanges/64x64/513.png",
-    fallback: "Bitget",
+    fallback: "Bg", // 짧은 대체 텍스트
   },
+};
+
+// 거래소 이름 한글 매핑
+const exchangeNames: Record<string, string> = {
+  bybit: "바이빗",
+  binance: "바이낸스",
+  bitget: "비트겟",
 };
 
 interface CoinGridProps {
@@ -92,9 +99,12 @@ export const CoinGrid = ({
 
   // 코인 카드 렌더링 함수
   const renderCoinCard = useCallback((ticker: TickerWithExchange) => {
+    const tickerKey = `${ticker.exchange}-${ticker.symbol}`;
+    const isFavorite = favorites.includes(tickerKey);
+
     return (
       <div
-        key={`${ticker.exchange}-${ticker.symbol}`}
+        key={tickerKey}
         className="p-1 sm:p-2 w-full"
         style={{ flex: `0 0 calc(100% / ${columnCount})` }}
       >
@@ -115,14 +125,14 @@ export const CoinGrid = ({
                   <Avatar className="w-5 h-5 h-lg:w-6 h-lg:h-6 mr-1">
                     <AvatarImage
                       src={exchangeIcons[ticker.exchange]?.src}
-                      alt={ticker.exchange}
+                      alt={exchangeNames[ticker.exchange]} // 한글 이름 사용
                     />
                     <AvatarFallback>
-                      {exchangeIcons[ticker.exchange]?.fallback[0]}
+                      {exchangeIcons[ticker.exchange]?.fallback}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-xs h-lg:text-sm">
-                    {ticker.exchange}
+                  <span className="font-medium text-xs h-lg:text-sm capitalize">
+                    {exchangeNames[ticker.exchange]} {/* 한글 이름 사용 */}
                   </span>
                 </div>
                 {onToggleFavorite && (
@@ -131,16 +141,11 @@ export const CoinGrid = ({
                       e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 함
                       onToggleFavorite(ticker);
                     }}
-                    className="text-yellow-500 hover:text-yellow-300 flex-shrink-0"
+                    className="text-yellow-500 hover:text-yellow-300 flex-shrink-0 p-1 -m-1" // 클릭 영역 확보
+                    aria-label={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                   >
                     <Star
-                      fill={
-                        favorites.includes(
-                          `${ticker.exchange}-${ticker.symbol}`,
-                        )
-                          ? "currentColor"
-                          : "none"
-                      }
+                      fill={isFavorite ? "currentColor" : "none"}
                       size={16}
                       className="transition-all"
                     />
@@ -159,7 +164,7 @@ export const CoinGrid = ({
             <div className="flex justify-between mt-2">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground">
-                  Volume
+                  거래량 {/* 한글 라벨 */}
                 </span>
                 <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
                   {formatVolume(ticker.baseVolume)}
@@ -167,7 +172,7 @@ export const CoinGrid = ({
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-xs text-muted-foreground">
-                  Price
+                  가격 {/* 한글 라벨 */}
                 </span>
                 <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
                   {ticker.last}
@@ -194,7 +199,7 @@ export const CoinGrid = ({
   // 가상화된 행 렌더링 함수
   const renderVirtualRow = useCallback((virtualRow: any) => {
     const rowItems = gridItems[virtualRow.index];
-    
+
     return (
       <div
         key={`row-${virtualRow.index}`}
@@ -223,7 +228,7 @@ export const CoinGrid = ({
   return (
     <div
       ref={gridContainerRef}
-      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)]"
+      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)]" // 높이 조정 필요 시 수정
     >
       {/* 가상화된 그리드 */}
       <div
@@ -233,7 +238,7 @@ export const CoinGrid = ({
           position: "relative",
         }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => 
+        {rowVirtualizer.getVirtualItems().map((virtualRow) =>
           renderVirtualRow(virtualRow)
         )}
       </div>
@@ -241,7 +246,7 @@ export const CoinGrid = ({
       {/* 결과 없음 표시 */}
       {tickers.length === 0 && (
         <div className="flex items-center justify-center h-40">
-          <p className="text-muted-foreground">No results found.</p>
+          <p className="text-muted-foreground">결과가 없습니다.</p> {/* 한글 메시지 */}
         </div>
       )}
     </div>
