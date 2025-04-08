@@ -28,20 +28,19 @@ interface CandleProps {
   options?: DeepPartial<CandlestickSeriesOptions>;
 }
 
-// 색상 테마 정의 (TP/SL 색상 추가)
+// 색상 테마 정의 (TP/SL 색상 및 부분청산 색상 추가)
 const lightTheme = {
   background: "#FFFFFF",
   text: "#121212",
   grid: "#E5E5E5",
   border: "#D4D4D8",
-  upColor: "rgba(34, 197, 94, 0.8)",
-  downColor: "rgba(239, 68, 68, 0.8)",
+  upColor: "rgba(34, 197, 94, 0.8)", // 캔들 상승
+  downColor: "rgba(239, 68, 68, 0.8)", // 캔들 하락
   upVolumeColor: "rgba(34, 197, 94, 0.2)",
   downVolumeColor: "rgba(239, 68, 68, 0.2)",
-  tpColorLong: "rgba(34, 197, 94, 0.9)", // 롱 TP 색상 (초록)
-  slColorLong: "rgba(239, 68, 68, 0.9)", // 롱 SL 색상 (빨강)
-  tpColorShort: "rgba(239, 68, 68, 0.9)", // 숏 TP 색상 (빨강)
-  slColorShort: "rgba(34, 197, 94, 0.9)", // 숏 SL 색상 (초록)
+  tpColor: "rgba(34, 197, 94, 0.9)", // TP 색상 (초록) - 고정
+  slColor: "rgba(239, 68, 68, 0.9)", // SL 색상 (빨강) - 고정
+  partialTpColor: "rgba(59, 130, 246, 0.9)", // 부분청산 색상 (파랑) - 추가
   labelTextColor: "#FFFFFF", // 라벨 텍스트 색상 (흰색) - 현재 사용되지 않음
 };
 
@@ -50,14 +49,13 @@ const darkTheme = {
   text: "#F5F5F5",
   grid: "#27272A",
   border: "#3F3F46",
-  upColor: "rgba(34, 197, 94, 0.8)",
-  downColor: "rgba(239, 68, 68, 0.8)",
+  upColor: "rgba(34, 197, 94, 0.8)", // 캔들 상승
+  downColor: "rgba(239, 68, 68, 0.8)", // 캔들 하락
   upVolumeColor: "rgba(34, 197, 94, 0.2)",
   downVolumeColor: "rgba(239, 68, 68, 0.2)",
-  tpColorLong: "rgba(34, 197, 94, 0.9)", // 롱 TP 색상 (초록)
-  slColorLong: "rgba(239, 68, 68, 0.9)", // 롱 SL 색상 (빨강)
-  tpColorShort: "rgba(239, 68, 68, 0.9)", // 숏 TP 색상 (빨강)
-  slColorShort: "rgba(34, 197, 94, 0.9)", // 숏 SL 색상 (초록)
+  tpColor: "rgba(34, 197, 94, 0.9)", // TP 색상 (초록) - 고정
+  slColor: "rgba(239, 68, 68, 0.9)", // SL 색상 (빨강) - 고정
+  partialTpColor: "rgba(96, 165, 250, 0.9)", // 부분청산 색상 (파랑) - 추가 (다크모드에 맞게 조정)
   labelTextColor: "#FFFFFF", // 라벨 텍스트 색상 (흰색) - 현재 사용되지 않음
 };
 
@@ -85,9 +83,7 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
     const context = useRef<{
       _api: ISeriesApi<"Candlestick"> | undefined;
       _volumeApi: ISeriesApi<"Histogram"> | undefined;
-      // _highLineApi, _lowLineApi 제거
       api: () => ISeriesApi<"Candlestick">;
-      // updateStopLossLines 제거
       free: () => void;
     }>({
       _api: undefined,
@@ -140,8 +136,6 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
 
           // 캔들 데이터 설정
           this._api.setData(data);
-
-          // 초기 가격 라인 생성 (useEffect에서 처리하므로 여기서는 제거)
         }
         return this._api;
       },
@@ -177,7 +171,6 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       const seriesApi = context.current._api; // 시리즈 API 가져오기
 
       // --- 기존 라인 제거 로직 ---
-      // seriesApi가 존재하고, 해당 라인 참조가 있을 경우에만 제거
       if (seriesApi) {
         if (slPriceLineRef.current) {
           seriesApi.removePriceLine(slPriceLineRef.current);
@@ -195,13 +188,11 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       // --- 기존 라인 제거 로직 끝 ---
 
       // --- 새로운 라인 생성 조건 확인 ---
-      // seriesApi가 없거나, 필요한 정보가 없으면 여기서 종료
       if (!seriesApi || !tradeInfo || !tradeDirection) {
         return;
       }
 
       const directionInfo = tradeInfo[tradeDirection];
-      // 해당 방향의 정보나 가격 정보가 없으면 종료
       if (!directionInfo || !directionInfo.stoploss || !directionInfo.target) {
         return;
       }
@@ -211,58 +202,45 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       // --- 새로운 라인 생성 조건 확인 끝 ---
 
       // --- 새로운 라인 생성 ---
-      // SL 라인 생성
+      // SL 라인 생성 (항상 빨간색)
       if (slPrice) {
         slPriceLineRef.current = seriesApi.createPriceLine({
           price: slPrice,
-          color:
-            tradeDirection === "long"
-              ? currentTheme.slColorLong
-              : currentTheme.slColorShort,
+          color: currentTheme.slColor, // 고정된 빨간색 사용
           lineWidth: 2,
           lineStyle: LineStyle.Dashed, // 점선 스타일
           axisLabelVisible: true,
           title: "SL",
-          // axisLabelBackgroundColor 제거
-          // axisLabelTextColor 제거
         });
       }
 
-      // TP 라인 생성 - 손익비 정보 추가
-      if (tpPrice) {
+      // TP 라인 생성 - 손익비 정보 추가 (항상 초록색)
+      if (tpPrice && !config?.partialClose) {
         tpPriceLineRef.current = seriesApi.createPriceLine({
           price: tpPrice,
-          color:
-            tradeDirection === "long"
-              ? currentTheme.tpColorLong
-              : currentTheme.tpColorShort,
+          color: currentTheme.tpColor, // 고정된 초록색 사용
           lineWidth: 2,
           lineStyle: LineStyle.Solid, // 실선 스타일
           axisLabelVisible: true,
           title: `TP (${config?.riskRatio || 1.5}:1)`, // 손익비 표시
-          // axisLabelBackgroundColor 제거
-          // axisLabelTextColor 제거
         });
       }
 
-      // 부분청산 활성화된 경우 부분청산 정보 표시
+      // 부분청산 활성화된 경우 부분청산 정보 표시 (항상 파란색)
       if (config?.partialClose && tpPrice) {
         partialTPPriceLineRef.current = seriesApi.createPriceLine({
           price: tpPrice, // 같은 가격에 위치
-          color:
-            tradeDirection === "long"
-              ? currentTheme.tpColorLong
-              : currentTheme.tpColorShort,
+          color: currentTheme.partialTpColor, // 고정된 파란색 사용
           lineWidth: 1,
           lineStyle: LineStyle.Dotted, // 점선 스타일로 구분
           axisLabelVisible: true,
-          title: `${config.closeRatio}% 청산`, // 부분청산 비율 표시
+          title: `TP (${config.riskRatio}:1) ${config.closeRatio}% 청산`, // 부분청산 비율 표시
         });
       }
       // --- 새로운 라인 생성 끝 ---
     }, [
       tradeInfo,
-      tradeDirection,
+      tradeDirection, // tradeDirection은 여전히 필요 (directionInfo를 가져오기 위해)
       theme,
       currentTheme,
       context.current._api,
