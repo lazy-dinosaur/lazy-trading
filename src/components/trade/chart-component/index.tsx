@@ -6,8 +6,7 @@ import { CandleSeries } from "./candle";
 import { useChartData } from "@/contexts/chart-data/use";
 // import { getStopLossMarkers } from "@/lib/chart"; // 사용되지 않으므로 제거
 import { ExchangeType } from "@/lib/accounts";
-import { useTrade } from "@/contexts/trade/use"; // useTrade 훅 임포트 확인
-import { ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface ChartComponentProps {
   height?: number; // 차트 높이 설정을 위한 prop 추가
@@ -16,7 +15,6 @@ interface ChartComponentProps {
 export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
   const [searchParams] = useSearchParams();
   const { data, handleScroll, chartformat, isLoading } = useChartData();
-  const { tradeInfo, tradeDirection } = useTrade(); // tradeDirection 상태 가져오기
 
   const timeframe = searchParams.get("timeframe")!;
   const exchange = searchParams.get("exchange")! as ExchangeType;
@@ -44,34 +42,33 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
       style={height ? { height: `${height}px` } : undefined}
     >
       {/* 비용 및 이익 표시 오버레이 - 선택된 탭에 따라 표시 */}
-      {tradeInfo && data.length > 0 && (
-        <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md border flex flex-col text-xs space-y-1.5">
-          {/* 롱 포지션 정보 (tradeDirection이 'long'일 때만 표시) */}
-          {tradeDirection === "long" && (
-            <div className="flex items-center gap-1.5 text-green-500">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span className="font-medium">Long:</span>
-              <div className="flex gap-1">
-                <span>TP: {tradeInfo.long.target.formatted}</span>
-                <span>|</span>
-                <span>SL: {tradeInfo.long.stoploss.formatted}</span>
-              </div>
-            </div>
-          )}
-          {/* 숏 포지션 정보 (tradeDirection이 'short'일 때만 표시) */}
-          {tradeDirection === "short" && (
-            <div className="flex items-center gap-1.5 text-red-500">
-              <ArrowDownRight className="w-3.5 h-3.5" />
-              <span className="font-medium">Short:</span>
-              <div className="flex gap-1">
-                <span>TP: {tradeInfo.short.target.formatted}</span>
-                <span>|</span>
-                <span>SL: {tradeInfo.short.stoploss.formatted}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+
+      {/* {tradeInfo && data.length > 0 && ( */}
+      {/*   <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md border flex flex-col text-xs space-y-1.5"> */}
+      {/*     {tradeDirection === "long" && ( */}
+      {/*       <div className="flex items-center gap-1.5 text-green-500"> */}
+      {/*         <ArrowUpRight className="w-3.5 h-3.5" /> */}
+      {/*         <span className="font-medium">Long:</span> */}
+      {/*         <div className="flex gap-1"> */}
+      {/*           <span>TP: {tradeInfo.long.target.formatted}</span> */}
+      {/*           <span>|</span> */}
+      {/*           <span>SL: {tradeInfo.long.stoploss.formatted}</span> */}
+      {/*         </div> */}
+      {/*       </div> */}
+      {/*     )} */}
+      {/*     {tradeDirection === "short" && ( */}
+      {/*       <div className="flex items-center gap-1.5 text-red-500"> */}
+      {/*         <ArrowDownRight className="w-3.5 h-3.5" /> */}
+      {/*         <span className="font-medium">Short:</span> */}
+      {/*         <div className="flex gap-1"> */}
+      {/*           <span>TP: {tradeInfo.short.target.formatted}</span> */}
+      {/*           <span>|</span> */}
+      {/*           <span>SL: {tradeInfo.short.stoploss.formatted}</span> */}
+      {/*         </div> */}
+      {/*       </div> */}
+      {/*     )} */}
+      {/*   </div> */}
+      {/* )} */}
 
       {/* 차트 렌더링 */}
       {data.length > 0 ? (
@@ -83,7 +80,10 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
           <CandleSeries ref={candle} data={data} />
         </Chart>
       ) : (
-        <div className={`w-full flex items-center justify-center ${height ? '' : 'h-[40vh] h-lg:h-[35vh] h-xl:h-[30vh]'}`} style={height ? { height: `${height}px` } : undefined}>
+        <div
+          className={`w-full flex items-center justify-center ${height ? "" : "h-[40vh] h-lg:h-[35vh] h-xl:h-[30vh]"}`}
+          style={height ? { height: `${height}px` } : undefined}
+        >
           {isLoading ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -91,8 +91,12 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
             </div>
           ) : (
             <div className="text-center p-4">
-              <div className="text-lg font-medium mb-1">차트 데이터가 없습니다</div>
-              <div className="text-sm text-muted-foreground">다른 시간대나 심볼을 선택해 보세요</div>
+              <div className="text-lg font-medium mb-1">
+                차트 데이터가 없습니다
+              </div>
+              <div className="text-sm text-muted-foreground">
+                다른 시간대나 심볼을 선택해 보세요
+              </div>
             </div>
           )}
         </div>

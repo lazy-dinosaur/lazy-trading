@@ -64,13 +64,6 @@ export const AccountSelector = () => {
 
   return (
     <div className="flex flex-col">
-      {/* 선택된 계정 정보가 있으면 잔액 표시 */}
-      {selectedAccount && selectedBalance && (
-        <div className="text-xs text-right text-muted-foreground mb-1">
-          Balance: ${selectedBalance.toFixed(2)}
-        </div>
-      )}
-
       <Select
         value={id ? id : undefined}
         onValueChange={(value) => {
@@ -129,6 +122,12 @@ export const AccountSelector = () => {
           </div>
         </SelectContent>
       </Select>
+      {/* 선택된 계정 정보가 있으면 잔액 표시 */}
+      {selectedAccount && selectedBalance && (
+        <div className="text-xs text-right text-muted-foreground mt-1">
+          Balance: ${selectedBalance.toFixed(2)}
+        </div>
+      )}
     </div>
   );
 };

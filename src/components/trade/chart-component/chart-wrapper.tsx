@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { ChartContainer } from "./chart-container";
 import { DeepPartial, ChartOptions } from "lightweight-charts";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
+import { useTrade } from "@/contexts/trade/use";
+import { useTradingConfig } from "@/contexts/settings/use";
 
 interface ChartProps {
   layout?: DeepPartial<ChartOptions["layout"]>;
@@ -23,7 +25,11 @@ export const Chart = (props: ChartProps) => {
     (ref: HTMLDivElement | null) => setContainer(ref || false),
     [],
   );
-  
+
+  // 트레이드 정보와 설정 가져오기
+  const { tradeInfo, tradeDirection } = useTrade();
+  const { config } = useTradingConfig();
+
   return (
     <ResponsiveContainer
       ref={handleRef}
@@ -34,6 +40,58 @@ export const Chart = (props: ChartProps) => {
       customHeight={customHeight} // 추가된 customHeight 속성 전달
     >
       {container && <ChartContainer {...restProps} container={container} />}
+
+      {/* 차트 오버레이 정보 표시 */}
+      {tradeInfo && tradeDirection && config && (
+        <div className="absolute top-2 left-2 bg-background/60 p-2 rounded shadow text-xs z-10">
+          <div className="font-semibold mb-1">
+            {tradeDirection === "long" ? "롱 포지션" : "숏 포지션"} 정보
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+            <span className="text-muted-foreground">손익비:</span>
+            <span className="font-medium">{config?.riskRatio || 1.5}:1</span>
+
+            {config?.partialClose && (
+              <>
+                <span className="text-muted-foreground">부분청산:</span>
+                <span className="font-medium">{config.closeRatio}%</span>
+              </>
+            )}
+
+            {tradeInfo[tradeDirection]?.stoploss && (
+              <>
+                <span className="text-muted-foreground">손절가:</span>
+                <span
+                  className={
+                    tradeDirection === "long"
+                      ? "text-red-500"
+                      : "text-green-500"
+                  }
+                >
+                  {tradeInfo[tradeDirection].stoploss.formatted} (
+                  {tradeInfo[tradeDirection].stoploss.percentage}%)
+                </span>
+              </>
+            )}
+
+            {tradeInfo[tradeDirection]?.target && (
+              <>
+                <span className="text-muted-foreground">목표가:</span>
+                <span
+                  className={
+                    tradeDirection === "long"
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }
+                >
+                  {tradeInfo[tradeDirection].target.formatted} (
+                  {tradeInfo[tradeDirection].target.percentage}%)
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </ResponsiveContainer>
   );
 };

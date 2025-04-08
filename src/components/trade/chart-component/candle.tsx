@@ -71,7 +71,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       throw new Error("CandleSeries must be used within a Chart Context");
     }
 
-    const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
     const currentTheme = isDark ? darkTheme : lightTheme;
 
     // 가격 라인 참조 저장
@@ -101,7 +104,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           const volumeData = data.map((item) => ({
             time: item.time,
             value: item.volume,
-            color: item.close >= item.open ? currentTheme.upVolumeColor : currentTheme.downVolumeColor,
+            color:
+              item.close >= item.open
+                ? currentTheme.upVolumeColor
+                : currentTheme.downVolumeColor,
           }));
           this._volumeApi.setData(volumeData);
           this._volumeApi.priceScale().applyOptions({
@@ -145,7 +151,8 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           parent.free(this._volumeApi);
         }
         // 가격 라인 제거 (컴포넌트 unmount 시)
-        if (this._api) { // _api가 정의되어 있을 때만 removePriceLine 호출
+        if (this._api) {
+          // _api가 정의되어 있을 때만 removePriceLine 호출
           if (slPriceLineRef.current) {
             this._api.removePriceLine(slPriceLineRef.current);
           }
@@ -164,7 +171,7 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
 
     // 거래 설정 가져오기
     const { config } = useTradingConfig();
-    
+
     // tradeInfo, tradeDirection, 테마 변경 시 가격 라인 업데이트
     useEffect(() => {
       const seriesApi = context.current._api; // 시리즈 API 가져오기
@@ -187,7 +194,6 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       }
       // --- 기존 라인 제거 로직 끝 ---
 
-
       // --- 새로운 라인 생성 조건 확인 ---
       // seriesApi가 없거나, 필요한 정보가 없으면 여기서 종료
       if (!seriesApi || !tradeInfo || !tradeDirection) {
@@ -204,13 +210,15 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       const tpPrice = directionInfo.target.price;
       // --- 새로운 라인 생성 조건 확인 끝 ---
 
-
       // --- 새로운 라인 생성 ---
       // SL 라인 생성
       if (slPrice) {
         slPriceLineRef.current = seriesApi.createPriceLine({
           price: slPrice,
-          color: tradeDirection === 'long' ? currentTheme.slColorLong : currentTheme.slColorShort,
+          color:
+            tradeDirection === "long"
+              ? currentTheme.slColorLong
+              : currentTheme.slColorShort,
           lineWidth: 2,
           lineStyle: LineStyle.Dashed, // 점선 스타일
           axisLabelVisible: true,
@@ -224,7 +232,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       if (tpPrice) {
         tpPriceLineRef.current = seriesApi.createPriceLine({
           price: tpPrice,
-          color: tradeDirection === 'long' ? currentTheme.tpColorLong : currentTheme.tpColorShort,
+          color:
+            tradeDirection === "long"
+              ? currentTheme.tpColorLong
+              : currentTheme.tpColorShort,
           lineWidth: 2,
           lineStyle: LineStyle.Solid, // 실선 스타일
           axisLabelVisible: true,
@@ -238,7 +249,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
       if (config?.partialClose && tpPrice) {
         partialTPPriceLineRef.current = seriesApi.createPriceLine({
           price: tpPrice, // 같은 가격에 위치
-          color: tradeDirection === 'long' ? currentTheme.tpColorLong : currentTheme.tpColorShort,
+          color:
+            tradeDirection === "long"
+              ? currentTheme.tpColorLong
+              : currentTheme.tpColorShort,
           lineWidth: 1,
           lineStyle: LineStyle.Dotted, // 점선 스타일로 구분
           axisLabelVisible: true,
@@ -246,8 +260,14 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
         });
       }
       // --- 새로운 라인 생성 끝 ---
-
-    }, [tradeInfo, tradeDirection, theme, currentTheme, context.current._api, config]); // config 의존성 추가
+    }, [
+      tradeInfo,
+      tradeDirection,
+      theme,
+      currentTheme,
+      context.current._api,
+      config,
+    ]); // config 의존성 추가
 
     // 테마 변경 시 차트 스타일 업데이트 (볼륨, 캔들, 배경 등)
     useEffect(() => {
@@ -279,7 +299,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           const volumeData = props.data.map((item) => ({
             time: item.time,
             value: item.volume,
-            color: item.close >= item.open ? currentTheme.upVolumeColor : currentTheme.downVolumeColor,
+            color:
+              item.close >= item.open
+                ? currentTheme.upVolumeColor
+                : currentTheme.downVolumeColor,
           }));
           context.current._volumeApi.setData(volumeData);
         }
@@ -313,7 +336,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
         const volumeData = data.map((item) => ({
           time: item.time,
           value: item.volume,
-          color: item.close >= item.open ? currentTheme.upVolumeColor : currentTheme.downVolumeColor,
+          color:
+            item.close >= item.open
+              ? currentTheme.upVolumeColor
+              : currentTheme.downVolumeColor,
         }));
         currentRef._volumeApi.setData(volumeData);
       }
