@@ -1,5 +1,6 @@
 import { ChartContext } from "@/contexts/chart/type";
 import { useSettings } from "@/contexts/settings/use";
+import { useTradingConfig } from "@/contexts/settings/use"; // 추가: useTradingConfig 훅 임포트
 // import { searchingStopLossCandle } from "@/lib/chart"; // 더 이상 사용하지 않음
 import {
   CandlestickSeriesOptions,
@@ -76,6 +77,7 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
     // 가격 라인 참조 저장
     const slPriceLineRef = useRef<IPriceLine | null>(null);
     const tpPriceLineRef = useRef<IPriceLine | null>(null);
+    const partialTPPriceLineRef = useRef<IPriceLine | null>(null); // 부분청산 라인 참조 추가
 
     const context = useRef<{
       _api: ISeriesApi<"Candlestick"> | undefined;
@@ -150,12 +152,19 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           if (tpPriceLineRef.current) {
             this._api.removePriceLine(tpPriceLineRef.current);
           }
+          if (partialTPPriceLineRef.current) {
+            this._api.removePriceLine(partialTPPriceLineRef.current);
+          }
         }
         slPriceLineRef.current = null;
         tpPriceLineRef.current = null;
+        partialTPPriceLineRef.current = null;
       },
     });
 
+    // 거래 설정 가져오기
+    const { config } = useTradingConfig();
+    
     // tradeInfo, tradeDirection, 테마 변경 시 가격 라인 업데이트
     useEffect(() => {
       const seriesApi = context.current._api; // 시리즈 API 가져오기
@@ -170,6 +179,10 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
         if (tpPriceLineRef.current) {
           seriesApi.removePriceLine(tpPriceLineRef.current);
           tpPriceLineRef.current = null;
+        }
+        if (partialTPPriceLineRef.current) {
+          seriesApi.removePriceLine(partialTPPriceLineRef.current);
+          partialTPPriceLineRef.current = null;
         }
       }
       // --- 기존 라인 제거 로직 끝 ---
@@ -207,7 +220,7 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
         });
       }
 
-      // TP 라인 생성
+      // TP 라인 생성 - 손익비 정보 추가
       if (tpPrice) {
         tpPriceLineRef.current = seriesApi.createPriceLine({
           price: tpPrice,
@@ -215,14 +228,26 @@ export const CandleSeries = forwardRef<ISeriesApi<"Candlestick">, CandleProps>(
           lineWidth: 2,
           lineStyle: LineStyle.Solid, // 실선 스타일
           axisLabelVisible: true,
-          title: "TP",
+          title: `TP (${config?.riskRatio || 1.5}:1)`, // 손익비 표시
           // axisLabelBackgroundColor 제거
           // axisLabelTextColor 제거
         });
       }
+
+      // 부분청산 활성화된 경우 부분청산 정보 표시
+      if (config?.partialClose && tpPrice) {
+        partialTPPriceLineRef.current = seriesApi.createPriceLine({
+          price: tpPrice, // 같은 가격에 위치
+          color: tradeDirection === 'long' ? currentTheme.tpColorLong : currentTheme.tpColorShort,
+          lineWidth: 1,
+          lineStyle: LineStyle.Dotted, // 점선 스타일로 구분
+          axisLabelVisible: true,
+          title: `${config.closeRatio}% 청산`, // 부분청산 비율 표시
+        });
+      }
       // --- 새로운 라인 생성 끝 ---
 
-    }, [tradeInfo, tradeDirection, theme, currentTheme, context.current._api]); // 의존성 배열에 필요한 값 추가
+    }, [tradeInfo, tradeDirection, theme, currentTheme, context.current._api, config]); // config 의존성 추가
 
     // 테마 변경 시 차트 스타일 업데이트 (볼륨, 캔들, 배경 등)
     useEffect(() => {
