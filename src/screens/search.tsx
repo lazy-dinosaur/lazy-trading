@@ -12,10 +12,10 @@ import { SkeletonSortControls } from "@/components/search/skeleton-sort-controls
 // 즐겨찾기 목록 저장/불러오기 함수
 const getFavorites = (): string[] => {
   try {
-    const favorites = localStorage.getItem('coin_favorites');
+    const favorites = localStorage.getItem("coin_favorites");
     return favorites ? JSON.parse(favorites) : [];
   } catch (error) {
-    console.error('Failed to load favorites:', error);
+    console.error("Failed to load favorites:", error);
     return [];
   }
 };
@@ -27,12 +27,14 @@ const exchangeNameMap: Record<string, string> = {
   bitget: "비트겟",
 };
 const reverseExchangeNameMap: Record<string, string> = Object.fromEntries(
-  Object.entries(exchangeNameMap).map(([key, value]) => [value, key])
+  Object.entries(exchangeNameMap).map(([key, value]) => [value, key]),
 );
 
 const Search = () => {
   const { data: tickersData, isLoading } = useAllTickers();
-  const [formattedTickers, setFormattedTickers] = useState<TickerWithExchange[]>([]);
+  const [formattedTickers, setFormattedTickers] = useState<
+    TickerWithExchange[]
+  >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [exchangeFilter, setExchangeFilter] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
@@ -87,12 +89,17 @@ const Search = () => {
             ...Object.keys(exchangeNameMap),
             ...Object.values(exchangeNameMap),
           ];
-          const searchTerms = terms.filter(term => !exchangeKeywords.includes(term));
-          const exchangeTerm = terms.find(term => exchangeKeywords.includes(term));
+          const searchTerms = terms.filter(
+            (term) => !exchangeKeywords.includes(term),
+          );
+          const exchangeTerm = terms.find((term) =>
+            exchangeKeywords.includes(term),
+          );
 
           // 검색어에 거래소 키워드가 있고, 현재 거래소 필터와 다른 경우 필터링
           if (exchangeTerm) {
-            const targetExchange = reverseExchangeNameMap[exchangeTerm] || exchangeTerm;
+            const targetExchange =
+              reverseExchangeNameMap[exchangeTerm] || exchangeTerm;
             if (ticker.exchange !== targetExchange) {
               return false;
             }
@@ -115,8 +122,12 @@ const Search = () => {
         const { key, direction } = sortConfig;
 
         if (key === "symbol") {
-          const symbolA = String(a[key]).toLowerCase().replace(/^[0-9]+/, ""); // 숫자 제거 후 비교
-          const symbolB = String(b[key]).toLowerCase().replace(/^[0-9]+/, ""); // 숫자 제거 후 비교
+          const symbolA = String(a[key])
+            .toLowerCase()
+            .replace(/^[0-9]+/, ""); // 숫자 제거 후 비교
+          const symbolB = String(b[key])
+            .toLowerCase()
+            .replace(/^[0-9]+/, ""); // 숫자 제거 후 비교
           return direction === "asc"
             ? symbolA.localeCompare(symbolB)
             : symbolB.localeCompare(symbolA);
@@ -127,8 +138,14 @@ const Search = () => {
         const valueB = b[key] || 0;
         return direction === "asc" ? valueA - valueB : valueB - valueA;
       });
-  }, [formattedTickers, showFavorites, favorites, exchangeFilter, searchQuery, sortConfig]);
-
+  }, [
+    formattedTickers,
+    showFavorites,
+    favorites,
+    exchangeFilter,
+    searchQuery,
+    sortConfig,
+  ]);
 
   const handleFavoriteFilter = (showFavs: boolean) => {
     setShowFavorites(showFavs);
@@ -138,16 +155,16 @@ const Search = () => {
   const toggleFavorite = (ticker: TickerWithExchange) => {
     const tickerKey = `${ticker.exchange}-${ticker.symbol}`;
     const newFavorites = favorites.includes(tickerKey)
-      ? favorites.filter(key => key !== tickerKey)
+      ? favorites.filter((key) => key !== tickerKey)
       : [...favorites, tickerKey];
 
     setFavorites(newFavorites);
     // 로컬 스토리지 업데이트는 비동기로 처리하여 UI 반응성 유지
     setTimeout(() => {
       try {
-        localStorage.setItem('coin_favorites', JSON.stringify(newFavorites));
+        localStorage.setItem("coin_favorites", JSON.stringify(newFavorites));
       } catch (error) {
-        console.error('Failed to save favorites:', error);
+        console.error("Failed to save favorites:", error);
       }
     }, 0);
   };
@@ -161,10 +178,11 @@ const Search = () => {
       ...Object.keys(exchangeNameMap),
       ...Object.values(exchangeNameMap),
     ];
-    const foundKeyword = terms.find(term => exchangeKeywords.includes(term));
+    const foundKeyword = terms.find((term) => exchangeKeywords.includes(term));
 
     if (foundKeyword) {
-      const targetExchange = reverseExchangeNameMap[foundKeyword] || foundKeyword;
+      const targetExchange =
+        reverseExchangeNameMap[foundKeyword] || foundKeyword;
       // 현재 필터와 다를 경우에만 업데이트
       if (exchangeFilter !== targetExchange) {
         setExchangeFilter(targetExchange);
@@ -175,21 +193,24 @@ const Search = () => {
     }
   };
 
-
   const handleExchangeFilter = (exchange: string | null) => {
     setExchangeFilter(exchange);
   };
 
   const handleSort = (key: "baseVolume" | "last" | "symbol") => {
-    setSortConfig(prevConfig => ({
+    setSortConfig((prevConfig) => ({
       key,
       direction:
-        prevConfig.key === key && prevConfig.direction === "desc" ? "asc" : "desc"
+        prevConfig.key === key && prevConfig.direction === "desc"
+          ? "asc"
+          : "desc",
     }));
   };
 
   return (
-    <ScreenWrapper headerProps={{ title: "검색" }}> {/* title 직접 전달 */}
+    <ScreenWrapper headerProps={{ title: "검색" }}>
+      {/* title 직접 전달 */}
+      {/* 컨텐츠 영역을 div로 감싸고 하단 패딩 추가 */}
       <SearchFilter
         onSearch={handleSearch}
         onExchangeFilter={handleExchangeFilter}

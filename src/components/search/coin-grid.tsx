@@ -98,137 +98,146 @@ export const CoinGrid = ({
   });
 
   // 코인 카드 렌더링 함수
-  const renderCoinCard = useCallback((ticker: TickerWithExchange) => {
-    const tickerKey = `${ticker.exchange}-${ticker.symbol}`;
-    const isFavorite = favorites.includes(tickerKey);
+  const renderCoinCard = useCallback(
+    (ticker: TickerWithExchange) => {
+      const tickerKey = `${ticker.exchange}-${ticker.symbol}`;
+      const isFavorite = favorites.includes(tickerKey);
 
-    return (
-      <div
-        key={tickerKey}
-        className="p-1 sm:p-2 w-full"
-        style={{ flex: `0 0 calc(100% / ${columnCount})` }}
-      >
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors duration-150 h-full flex flex-col"
-          onClick={() => {
-            const symbol = encodeURIComponent(ticker.symbol);
-            navigate(
-              `/trade?exchange=${ticker.exchange}&symbol=${symbol}`,
-            );
-          }}
+      return (
+        <div
+          key={tickerKey}
+          className="p-1 sm:p-2 w-full"
+          style={{ flex: `0 0 calc(100% / ${columnCount})` }}
         >
-          <CardContent className="p-2 sm:p-3 flex flex-col h-full">
-            {/* 상단 정보: 거래소와 심볼 */}
-            <div className="flex flex-col mb-2">
-              <div className="flex justify-between items-center mb-1">
-                <div className="flex items-center">
-                  <Avatar className="w-5 h-5 h-lg:w-6 h-lg:h-6 mr-1">
-                    <AvatarImage
-                      src={exchangeIcons[ticker.exchange]?.src}
-                      alt={exchangeNames[ticker.exchange]} // 한글 이름 사용
-                    />
-                    <AvatarFallback>
-                      {exchangeIcons[ticker.exchange]?.fallback}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium text-xs h-lg:text-sm capitalize">
-                    {exchangeNames[ticker.exchange]} {/* 한글 이름 사용 */}
+          <Card
+            className="cursor-pointer hover:border-primary/50 transition-colors duration-150 h-full flex flex-col"
+            onClick={() => {
+              const symbol = encodeURIComponent(ticker.symbol);
+              navigate(`/trade?exchange=${ticker.exchange}&symbol=${symbol}`);
+            }}
+          >
+            <CardContent className="p-2 sm:p-3 flex flex-col h-full">
+              {/* 상단 정보: 거래소와 심볼 */}
+              <div className="flex flex-col mb-2">
+                <div className="flex justify-between items-center mb-1">
+                  <div className="flex items-center">
+                    <Avatar className="w-5 h-5 h-lg:w-6 h-lg:h-6 mr-1">
+                      <AvatarImage
+                        src={exchangeIcons[ticker.exchange]?.src}
+                        alt={exchangeNames[ticker.exchange]} // 한글 이름 사용
+                      />
+                      <AvatarFallback>
+                        {exchangeIcons[ticker.exchange]?.fallback}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-xs h-lg:text-sm capitalize">
+                      {exchangeNames[ticker.exchange]} {/* 한글 이름 사용 */}
+                    </span>
+                  </div>
+                  {onToggleFavorite && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 함
+                        onToggleFavorite(ticker);
+                      }}
+                      className="text-yellow-500 hover:text-yellow-300 flex-shrink-0 p-1 -m-1" // 클릭 영역 확보
+                      aria-label={
+                        isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+                      }
+                    >
+                      <Star
+                        fill={isFavorite ? "currentColor" : "none"}
+                        size={16}
+                        className="transition-all"
+                      />
+                    </button>
+                  )}
+                </div>
+                <div className="font-semibold text-sm h-lg:text-base break-words">
+                  {formatSymbol(ticker.symbol)}
+                </div>
+              </div>
+
+              {/* 중간 부분: 추가 정보 공간 */}
+              <div className="flex-grow"></div>
+
+              {/* 하단 정보: 거래량과 가격 */}
+              <div className="flex justify-between mt-2">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    거래량 {/* 한글 라벨 */}
+                  </span>
+                  <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
+                    {formatVolume(ticker.baseVolume)}
                   </span>
                 </div>
-                {onToggleFavorite && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 함
-                      onToggleFavorite(ticker);
-                    }}
-                    className="text-yellow-500 hover:text-yellow-300 flex-shrink-0 p-1 -m-1" // 클릭 영역 확보
-                    aria-label={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                  >
-                    <Star
-                      fill={isFavorite ? "currentColor" : "none"}
-                      size={16}
-                      className="transition-all"
-                    />
-                  </button>
-                )}
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-muted-foreground">
+                    가격 {/* 한글 라벨 */}
+                  </span>
+                  <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
+                    {ticker.last}
+                  </span>
+                </div>
               </div>
-              <div className="font-semibold text-sm h-lg:text-base break-words">
-                {formatSymbol(ticker.symbol)}
-              </div>
-            </div>
-
-            {/* 중간 부분: 추가 정보 공간 */}
-            <div className="flex-grow"></div>
-
-            {/* 하단 정보: 거래량과 가격 */}
-            <div className="flex justify-between mt-2">
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">
-                  거래량 {/* 한글 라벨 */}
-                </span>
-                <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
-                  {formatVolume(ticker.baseVolume)}
-                </span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-xs text-muted-foreground">
-                  가격 {/* 한글 라벨 */}
-                </span>
-                <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
-                  {ticker.last}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }, [navigate, formatSymbol, onToggleFavorite, favorites, columnCount]);
+            </CardContent>
+          </Card>
+        </div>
+      );
+    },
+    [navigate, formatSymbol, onToggleFavorite, favorites, columnCount],
+  );
 
   // 빈 공간 렌더링 함수
-  const renderEmptySpace = useCallback((index: number) => {
-    return (
-      <div
-        key={`empty-${index}`}
-        className="p-1 sm:p-2"
-        style={{ flex: `0 0 calc(100% / ${columnCount})` }}
-      />
-    );
-  }, [columnCount]);
+  const renderEmptySpace = useCallback(
+    (index: number) => {
+      return (
+        <div
+          key={`empty-${index}`}
+          className="p-1 sm:p-2"
+          style={{ flex: `0 0 calc(100% / ${columnCount})` }}
+        />
+      );
+    },
+    [columnCount],
+  );
 
   // 가상화된 행 렌더링 함수
-  const renderVirtualRow = useCallback((virtualRow: any) => {
-    const rowItems = gridItems[virtualRow.index];
+  const renderVirtualRow = useCallback(
+    (virtualRow: any) => {
+      const rowItems = gridItems[virtualRow.index];
 
-    return (
-      <div
-        key={`row-${virtualRow.index}`}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: `${cardHeight}px`,
-          transform: `translateY(${virtualRow.start}px)`,
-        }}
-        className="flex w-full"
-      >
-        {/* 코인 카드 렌더링 */}
-        {rowItems.map(renderCoinCard)}
+      return (
+        <div
+          key={`row-${virtualRow.index}`}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: `${cardHeight}px`,
+            transform: `translateY(${virtualRow.start}px)`,
+          }}
+          className="flex w-full"
+        >
+          {/* 코인 카드 렌더링 */}
+          {rowItems.map(renderCoinCard)}
 
-        {/* 한 행에 아이템이 columnCount보다 적은 경우 빈 공간 채우기 */}
-        {rowItems.length < columnCount &&
-          Array.from({ length: columnCount - rowItems.length }).map(
-            (_, i) => renderEmptySpace(i)
-          )}
-      </div>
-    );
-  }, [gridItems, cardHeight, renderCoinCard, renderEmptySpace, columnCount]);
+          {/* 한 행에 아이템이 columnCount보다 적은 경우 빈 공간 채우기 */}
+          {rowItems.length < columnCount &&
+            Array.from({ length: columnCount - rowItems.length }).map((_, i) =>
+              renderEmptySpace(i),
+            )}
+        </div>
+      );
+    },
+    [gridItems, cardHeight, renderCoinCard, renderEmptySpace, columnCount],
+  );
 
   return (
     <div
       ref={gridContainerRef}
-      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)]" // 높이 조정 필요 시 수정
+      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background h-[calc(100vh-10rem)] pb-10" // 높이 조정 필요 시 수정
     >
       {/* 가상화된 그리드 */}
       <div
@@ -238,15 +247,16 @@ export const CoinGrid = ({
           position: "relative",
         }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) =>
-          renderVirtualRow(virtualRow)
-        )}
+        {rowVirtualizer
+          .getVirtualItems()
+          .map((virtualRow) => renderVirtualRow(virtualRow))}
       </div>
 
       {/* 결과 없음 표시 */}
       {tickers.length === 0 && (
         <div className="flex items-center justify-center h-40">
-          <p className="text-muted-foreground">결과가 없습니다.</p> {/* 한글 메시지 */}
+          <p className="text-muted-foreground">결과가 없습니다.</p>{" "}
+          {/* 한글 메시지 */}
         </div>
       )}
     </div>
