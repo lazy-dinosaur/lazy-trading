@@ -38,8 +38,8 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
 
   return (
     <div
-      className="relative w-full border rounded-md overflow-hidden"
-      style={height ? { height: `${height}px` } : undefined}
+      className="relative w-full border rounded-md overflow-hidden h-[35vh]"
+      // style={height ? { height: `${height}px` } : undefined}
     >
       {/* 비용 및 이익 표시 오버레이 - 선택된 탭에 따라 표시 */}
 
