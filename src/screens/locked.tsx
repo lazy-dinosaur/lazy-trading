@@ -211,6 +211,12 @@ const Locked = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      {/* 앱 타이틀 */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-primary mb-2">LazyTrading</h1>
+        <p className="text-sm text-muted-foreground">by lazy-dinosaur</p>
+      </div>
+      
       <Card className="w-full max-w-md shadow-lg border-2">
         <CardContent className="p-6">
           <div className="flex justify-center mb-6">
