@@ -54,7 +54,10 @@ export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
     const { theme } = useSettings();
 
     // 테마에 따른 색상 결정
-    const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
     const currentTheme = isDark ? darkTheme : lightTheme;
 
     const chartApiRef = useRef<ChartApiRef>({
@@ -64,14 +67,14 @@ export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
         if (!this._api) {
           this._api = createChart(container, {
             ...rest,
-            layout: { 
-              ...layout, 
-              attributionLogo: false, 
+            layout: {
+              ...layout,
+              attributionLogo: false,
               fontSize: 10,
-              background: { 
-                color: currentTheme.background
+              background: {
+                color: currentTheme.background,
               },
-              textColor: currentTheme.text
+              textColor: currentTheme.text,
             },
             width: container.clientWidth,
             height: container.clientHeight,
@@ -86,6 +89,38 @@ export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
             timeScale: {
               borderVisible: false,
               borderColor: currentTheme.border,
+              timeVisible: true,
+              secondsVisible: false,
+              tickMarkFormatter: (time: number) => {
+                // 시간을 한국 시간대(UTC+9)로 표시
+                const date = new Date(time * 1000);
+                return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+              },
+            },
+            localization: {
+              // 모든 시간 표시 형식 통일
+              timeFormatter: (time: number) => {
+                const date = new Date(time * 1000);
+                const hours = date.getHours().toString().padStart(2, "0");
+                const minutes = date.getMinutes().toString().padStart(2, "0");
+                const month = (date.getMonth() + 1).toString().padStart(2, "0");
+                const day = date.getDate().toString().padStart(2, "0");
+
+                // 시간과 날짜를 모두 표시 (MM-DD HH:MM)
+                return `${month}-${day} ${hours}:${minutes}`;
+              },
+            },
+            crosshair: {
+              // 크로스헤어(마우스 커서) 설정 추가
+              horzLine: {
+                visible: true,
+                labelVisible: true,
+              },
+              vertLine: {
+                visible: true,
+                labelVisible: true,
+                style: 1, // 점선 스타일
+              },
             },
             grid: {
               vertLines: {
@@ -114,10 +149,10 @@ export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
       if (chartApiRef.current._api) {
         chartApiRef.current._api.applyOptions({
           layout: {
-            background: { 
-              color: currentTheme.background
+            background: {
+              color: currentTheme.background,
             },
-            textColor: currentTheme.text
+            textColor: currentTheme.text,
           },
           grid: {
             vertLines: {
@@ -132,6 +167,30 @@ export const ChartContainer = forwardRef<IChartApi, ChartContainerProps>(
           },
           timeScale: {
             borderColor: currentTheme.border,
+          },
+          localization: {
+            // 시간 포맷을 테마 변경 시에도 유지
+            timeFormatter: (time: number) => {
+              const date = new Date(time * 1000);
+              const hours = date.getHours().toString().padStart(2, "0");
+              const minutes = date.getMinutes().toString().padStart(2, "0");
+              const month = (date.getMonth() + 1).toString().padStart(2, "0");
+              const day = date.getDate().toString().padStart(2, "0");
+
+              // 시간과 날짜를 모두 표시 (MM-DD HH:MM)
+              return `${month}-${day} ${hours}:${minutes}`;
+            },
+          },
+          crosshair: {
+            // 크로스헤어 스타일도 테마에 맞게 업데이트
+            horzLine: {
+              color: currentTheme.text + "80", // 색상에 투명도 추가
+              labelBackgroundColor: currentTheme.background,
+            },
+            vertLine: {
+              color: currentTheme.text + "80", // 색상에 투명도 추가
+              labelBackgroundColor: currentTheme.background,
+            },
           },
         });
       }
