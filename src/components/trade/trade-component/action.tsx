@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useAnalytics } from "@/contexts/analytics/use";
 
 interface TradingActionProps {
   tradeDirection?: "long" | "short";
@@ -36,6 +37,7 @@ export const TradingAction = ({
   const account = !!(id && decryptedAccounts) && decryptedAccounts[id];
   const { config } = useTradingConfig();
   const tradeMutation = useTradeMutation();
+  const { trackEvent } = useAnalytics();
 
   // 설정 패널 열기/닫기 상태
   const [settingsOpen, setSettingsOpen] = useState(true);
@@ -67,8 +69,31 @@ export const TradingAction = ({
         info,
         config,
       });
+      
+      // 거래 성공 이벤트 추적
+      trackEvent({
+        action: 'trade_executed',
+        category: 'trading',
+        label: tradeDirection,
+        symbol: symbol,
+        exchange: exchange,
+        risk_percent: config.risk,
+        risk_ratio: config.riskRatio,
+        partial_close: config.partialClose,
+        close_ratio: config.closeRatio
+      });
     } catch (error) {
       console.error("Trade execution failed:", error);
+      
+      // 거래 실패 이벤트 추적
+      trackEvent({
+        action: 'trade_failed',
+        category: 'trading',
+        label: tradeDirection,
+        symbol: symbol,
+        exchange: exchange,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   };
 

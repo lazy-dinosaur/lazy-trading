@@ -492,7 +492,7 @@ const Dashboard = () => {
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => navigate("/account/add")}
+                  onClick={() => navigate("/account/add?exchange=bybit")}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   계정 추가

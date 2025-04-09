@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { cn } from "@/lib/utils";
+import { useAnalytics } from "@/contexts/analytics/use";
 
 export type TimeFrameType =
   | "1"
@@ -40,14 +41,29 @@ const TimeFrameButton = ({ value, label, isActive, onClick }: TimeFrameButtonPro
 export const TimeFrame = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const timeframe = searchParams.get("timeframe") as TimeFrameType || "1";
+  const { trackEvent } = useAnalytics();
 
   const setTimeframe = useCallback(
     (newTimeframe: TimeFrameType) => {
       const newParams = new URLSearchParams(searchParams);
+      const symbol = newParams.get("symbol");
+      const exchange = newParams.get("exchange");
+      const oldTimeframe = newParams.get("timeframe");
+      
+      // 애널리틱스 이벤트 트래킹 - 타임프레임 변경
+      trackEvent({
+        action: 'timeframe_changed',
+        category: 'chart',
+        label: newTimeframe,
+        previous_timeframe: oldTimeframe,
+        symbol: symbol,
+        exchange: exchange
+      });
+      
       newParams.set("timeframe", newTimeframe);
       setSearchParams(newParams);
     },
-    [searchParams, setSearchParams],
+    [searchParams, setSearchParams, trackEvent],
   );
 
   // 시간 프레임 옵션 정의
