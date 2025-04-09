@@ -328,385 +328,376 @@ const Dashboard = () => {
   return (
     <ScreenWrapper
       headerProps={{ title: "Dashboard" }}
-      className="flex flex-col h-full"
+      className="flex flex-col h-full overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
     >
-      <ScrollArea className="flex-1">
-        {/* pb-20: 스크롤 영역 하단 여백, lg:grid: 큰 화면에서 그리드 레이아웃, lg:grid-cols-2: 2열, lg:gap-5: 열 간격 */}
-        <div className="space-y-5 pb-20 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0">
-          {/* 총 자산과 차트를 포함할 첫 번째 열 */}
-          <div className="space-y-5 lg:col-span-1">
-            {/* 총 자산 카드 */}
-            <Card className="bg-primary/5">
-              <CardHeader className="pb-2">
-                <CardDescription>총 자산</CardDescription>
-                {/* 작은 화면에서는 text-2xl, 큰 화면에서는 text-3xl */}
-                <CardTitle className="text-2xl lg:text-3xl flex items-center">
-                  {!accountsBalance ? (
-                    <Skeleton className="h-10 w-32" />
+      {/* pb-20: 스크롤 영역 하단 여백, lg:grid: 큰 화면에서 그리드 레이아웃, lg:grid-cols-2: 2열, lg:gap-5: 열 간격 */}
+      <div className="space-y-5 pb-20 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0">
+        {/* 총 자산과 차트를 포함할 첫 번째 열 */}
+        <div className="space-y-5 lg:col-span-1">
+          {/* 총 자산 카드 */}
+          <Card className="bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardDescription>총 자산</CardDescription>
+              {/* 작은 화면에서는 text-2xl, 큰 화면에서는 text-3xl */}
+              <CardTitle className="text-2xl lg:text-3xl flex items-center">
+                {!accountsBalance ? (
+                  <Skeleton className="h-10 w-32" />
+                ) : (
+                  <>
+                    <DollarSign className="h-6 w-6 mr-1" />
+                    {formatUSDValue(totalBalance as number)}
+                  </>
+                )}
+              </CardTitle>
+              {/* 보정 수익률 표시 */}
+              {adjustedReturnData?.hasValidData ? (
+                <div
+                  className={`flex items-center text-sm mt-1 ${adjustedReturnData.adjustedReturnRate >= 0 ? "text-green-500" : "text-red-500"}`}
+                >
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span className="flex items-center">
+                    7일 보정 수익률:{" "}
+                    {adjustedReturnData.adjustedReturnRate >= 0 ? "+" : ""}
+                    {adjustedReturnData.adjustedReturnRate.toFixed(2)}%
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[280px]">
+                          <p className="font-medium mb-1">
+                            보정 수익률 = 기간수익금 / 투자자본금 평균
+                          </p>
+                          <ul className="text-xs space-y-1">
+                            <li>
+                              • 기간수익금: $
+                              {formatUSDValue(adjustedReturnData.periodReturn)}
+                            </li>
+                            <li>
+                              • 투자자본금: $
+                              {formatUSDValue(
+                                adjustedReturnData.averageCapital,
+                              )}
+                            </li>
+                            <li className="pt-1">
+                              • 초기자산: $
+                              {formatUSDValue(adjustedReturnData.initialAsset)}
+                            </li>
+                            <li>
+                              • 현재자산: $
+                              {formatUSDValue(adjustedReturnData.finalAsset)}
+                            </li>
+                            <li>
+                              • 입금액: $
+                              {formatUSDValue(adjustedReturnData.deposits)}
+                            </li>
+                            <li>
+                              • 출금액: $
+                              {formatUSDValue(adjustedReturnData.withdrawals)}
+                            </li>
+                            <li className="pt-1 text-muted-foreground">
+                              투자자본금 = (입금액 - 출금액) + 초기자산
+                            </li>
+                          </ul>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                  {isLoadingBalanceHistory || isLoadingAdjustedReturn ? (
+                    <>
+                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                      보정 수익률 계산 중...
+                    </>
                   ) : (
                     <>
-                      <DollarSign className="h-6 w-6 mr-1" />
-                      {formatUSDValue(totalBalance as number)}
-                    </>
-                  )}
-                </CardTitle>
-                {/* 보정 수익률 표시 */}
-                {adjustedReturnData?.hasValidData ? (
-                  <div
-                    className={`flex items-center text-sm mt-1 ${adjustedReturnData.adjustedReturnRate >= 0 ? "text-green-500" : "text-red-500"}`}
-                  >
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    <span className="flex items-center">
-                      7일 보정 수익률:{" "}
-                      {adjustedReturnData.adjustedReturnRate >= 0 ? "+" : ""}
-                      {adjustedReturnData.adjustedReturnRate.toFixed(2)}%
+                      <span>보정 수익률 계산 불가</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
                           </TooltipTrigger>
-                          <TooltipContent className="max-w-[280px]">
-                            <p className="font-medium mb-1">
-                              보정 수익률 = 기간수익금 / 투자자본금 평균
+                          <TooltipContent>
+                            <p>
+                              데이터가 부족하거나 계산 중 문제가 발생했습니다.
                             </p>
-                            <ul className="text-xs space-y-1">
-                              <li>
-                                • 기간수익금: $
-                                {formatUSDValue(
-                                  adjustedReturnData.periodReturn,
-                                )}
-                              </li>
-                              <li>
-                                • 투자자본금: $
-                                {formatUSDValue(
-                                  adjustedReturnData.averageCapital,
-                                )}
-                              </li>
-                              <li className="pt-1">
-                                • 초기자산: $
-                                {formatUSDValue(
-                                  adjustedReturnData.initialAsset,
-                                )}
-                              </li>
-                              <li>
-                                • 현재자산: $
-                                {formatUSDValue(adjustedReturnData.finalAsset)}
-                              </li>
-                              <li>
-                                • 입금액: $
-                                {formatUSDValue(adjustedReturnData.deposits)}
-                              </li>
-                              <li>
-                                • 출금액: $
-                                {formatUSDValue(adjustedReturnData.withdrawals)}
-                              </li>
-                              <li className="pt-1 text-muted-foreground">
-                                투자자본금 = (입금액 - 출금액) + 초기자산
-                              </li>
-                            </ul>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                    {isLoadingBalanceHistory || isLoadingAdjustedReturn ? (
-                      <>
-                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                        보정 수익률 계산 중...
-                      </>
-                    ) : (
-                      <>
-                        <span>보정 수익률 계산 불가</span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                데이터가 부족하거나 계산 중 문제가 발생했습니다.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* 기존 변동률도 함께 표시 (작게) */}
-                {recentStableCoinChangeRate !== null && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    단순 변동률: {recentStableCoinChangeRate >= 0 ? "+" : ""}
-                    {recentStableCoinChangeRate.toFixed(2)}%
-                  </div>
-                )}
-              </CardHeader>
-              <CardFooter className="pt-2 flex justify-end">
-                {!accountsBalance && (
-                  <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
-                )}
-              </CardFooter>
-            </Card>
-
-            {/* 스테이블 코인 잔고 변동 차트 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>주요 자산(USD) 변동</CardTitle>
-                <CardDescription className="flex flex-col">
-                  <span>지난 7일간 자산 및 보정 수익률 추이</span>
-                  {adjustedReturnData?.hasValidData && (
-                    <span className="text-xs mt-1">
-                      투자자본금: $
-                      {formatUSDValue(adjustedReturnData.averageCapital)}
-                    </span>
+                    </>
                   )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CapitalChangeChart
-                  data={dailyChartData}
-                  isLoading={
-                    isLoadingBalanceHistory ||
-                    isLoadingAccounts ||
-                    isLoadingAdjustedReturn
-                  }
-                  isError={isErrorBalanceHistory}
-                  height={250}
-                  adjustedReturn={adjustedReturnData}
-                />
-              </CardContent>
-            </Card>
-          </div>{" "}
-          {/* 첫 번째 열 끝 */}
-          {/* 계정 목록과 활성 포지션을 포함할 두 번째 열 */}
-          <div className="space-y-5 lg:col-span-1">
-            {/* 계정 요약 */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>계정 목록 ({accountCount})</CardTitle>
-                  <CardDescription>연결된 거래소 계정</CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/account/add?exchange=bybit")}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  계정 추가
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {!accountsBalance ? (
-                  Array(3)
-                    .fill(0)
-                    .map((_, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-2 hover:bg-secondary/20 rounded"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Skeleton className="h-5 w-5 rounded-full" />{" "}
-                          {/* 지갑 아이콘 */}
-                          <div>
-                            <Skeleton className="h-5 w-24 mb-1" />{" "}
-                            {/* 계정 이름 */}
-                            <Skeleton className="h-3 w-16" />{" "}
-                            {/* 거래소 이름 */}
-                          </div>
-                        </div>
-                        <Skeleton className="h-5 w-20" /> {/* 금액 */}
-                      </div>
-                    ))
-                ) : accountsData.length > 0 ? (
-                  accountsData.map((item: any) => (
+              )}
+
+              {/* 기존 변동률도 함께 표시 (작게) */}
+              {recentStableCoinChangeRate !== null && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  단순 변동률: {recentStableCoinChangeRate >= 0 ? "+" : ""}
+                  {recentStableCoinChangeRate.toFixed(2)}%
+                </div>
+              )}
+            </CardHeader>
+            <CardFooter className="pt-2 flex justify-end">
+              {!accountsBalance && (
+                <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+            </CardFooter>
+          </Card>
+
+          {/* 스테이블 코인 잔고 변동 차트 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>주요 자산(USD) 변동</CardTitle>
+              <CardDescription className="flex flex-col">
+                <span>지난 7일간 자산 및 보정 수익률 추이</span>
+                {adjustedReturnData?.hasValidData && (
+                  <span className="text-xs mt-1">
+                    투자자본금: $
+                    {formatUSDValue(adjustedReturnData.averageCapital)}
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CapitalChangeChart
+                data={dailyChartData}
+                isLoading={
+                  isLoadingBalanceHistory ||
+                  isLoadingAccounts ||
+                  isLoadingAdjustedReturn
+                }
+                isError={isErrorBalanceHistory}
+                height={250}
+                adjustedReturn={adjustedReturnData}
+              />
+            </CardContent>
+          </Card>
+        </div>{" "}
+        {/* 첫 번째 열 끝 */}
+        {/* 계정 목록과 활성 포지션을 포함할 두 번째 열 */}
+        <div className="space-y-5 lg:col-span-1">
+          {/* 계정 요약 */}
+          <Card>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>계정 목록 ({accountCount})</CardTitle>
+                <CardDescription>연결된 거래소 계정</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/account/add?exchange=bybit")}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                계정 추가
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {!accountsBalance ? (
+                Array(3)
+                  .fill(0)
+                  .map((_, i) => (
                     <div
-                      key={item.account.id}
-                      className="flex items-center justify-between p-2 hover:bg-secondary/20 rounded cursor-pointer"
-                      onClick={() =>
-                        navigate(`/account/detail/${item.account.id}`)
-                      }
+                      key={i}
+                      className="flex items-center justify-between p-2 hover:bg-secondary/20 rounded"
                     >
                       <div className="flex items-center gap-3">
-                        <Wallet className="h-5 w-5 text-primary" />
+                        <Skeleton className="h-5 w-5 rounded-full" />{" "}
+                        {/* 지갑 아이콘 */}
                         <div>
-                          <p className="font-medium">{item.account.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.account.exchange}
-                          </p>
+                          <Skeleton className="h-5 w-24 mb-1" />{" "}
+                          {/* 계정 이름 */}
+                          <Skeleton className="h-3 w-16" /> {/* 거래소 이름 */}
                         </div>
                       </div>
-                      <p className="font-medium">
-                        ${formatUSDValue(item.balance?.usd?.total || 0)}
-                      </p>
+                      <Skeleton className="h-5 w-20" /> {/* 금액 */}
                     </div>
                   ))
-                ) : (
-                  <div className="py-8 text-center text-muted-foreground">
-                    <CreditCard className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                    <p>등록된 계정이 없습니다</p>
-                    <Button
-                      className="mt-4"
-                      variant="outline"
-                      onClick={() => navigate("/account/add")}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      계정 추가하기
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-              {accountsData.length > 0 && (
-                <CardFooter>
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => navigate("/accounts")}
+              ) : accountsData.length > 0 ? (
+                accountsData.map((item: any) => (
+                  <div
+                    key={item.account.id}
+                    className="flex items-center justify-between p-2 hover:bg-secondary/20 rounded cursor-pointer"
+                    onClick={() =>
+                      navigate(`/account/detail/${item.account.id}`)
+                    }
                   >
-                    모든 계정 보기
+                    <div className="flex items-center gap-3">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">{item.account.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.account.exchange}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="font-medium">
+                      ${formatUSDValue(item.balance?.usd?.total || 0)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="py-8 text-center text-muted-foreground">
+                  <CreditCard className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                  <p>등록된 계정이 없습니다</p>
+                  <Button
+                    className="mt-4"
+                    variant="outline"
+                    onClick={() => navigate("/account/add")}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    계정 추가하기
                   </Button>
-                </CardFooter>
-              )}
-            </Card>
-
-            {/* 활성 포지션 목록 */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>활성 포지션</CardTitle>
-                  <CardDescription>현재 진입 중인 거래 포지션</CardDescription>
                 </div>
-                {isLoadingPositions && (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                )}
-              </CardHeader>
-              <CardContent>
-                {/* 작은 화면에서는 높이 200px, 큰 화면(lg)에서는 300px */}
-                <ScrollArea className="h-[200px] lg:h-[300px] pr-4">
-                  <div className="space-y-2">
-                    {isLoadingPositions ? (
-                      Array(3)
-                        .fill(0)
-                        .map((_, i) => (
-                          <div
-                            key={i}
-                            className="flex flex-col p-3 border rounded-lg mb-2"
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-2">
-                                <Skeleton className="h-5 w-5 rounded-full" />{" "}
-                                {/* 포지션 방향 아이콘 */}
-                                <Skeleton className="h-5 w-16" /> {/* 심볼 */}
-                                <Skeleton className="h-5 w-12 rounded-full" />{" "}
-                                {/* 배지 */}
-                              </div>
-                              <Skeleton className="h-5 w-24" /> {/* PnL */}
-                            </div>
-                            <div className="flex justify-between text-sm mt-2">
-                              <div>
-                                <Skeleton className="h-4 w-20 mb-1" />{" "}
-                                {/* 계약 수 */}
-                                <Skeleton className="h-4 w-28" />{" "}
-                                {/* 진입 가격 */}
-                              </div>
-                              <div className="text-right">
-                                <Skeleton className="h-4 w-28 mb-1" />{" "}
-                                {/* 표시 가격 */}
-                                <Skeleton className="h-4 w-32" />{" "}
-                                {/* 계정 정보 */}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                    ) : positions.length > 0 ? (
-                      positions.map((position) => (
+              )}
+            </CardContent>
+            {accountsData.length > 0 && (
+              <CardFooter>
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => navigate("/accounts")}
+                >
+                  모든 계정 보기
+                </Button>
+              </CardFooter>
+            )}
+          </Card>
+
+          {/* 활성 포지션 목록 */}
+          <Card>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>활성 포지션</CardTitle>
+                <CardDescription>현재 진입 중인 거래 포지션</CardDescription>
+              </div>
+              {isLoadingPositions && (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              )}
+            </CardHeader>
+            <CardContent>
+              {/* 작은 화면에서는 높이 200px, 큰 화면(lg)에서는 300px */}
+              <ScrollArea className="h-[200px] lg:h-[300px] pr-4">
+                <div className="space-y-2">
+                  {isLoadingPositions ? (
+                    Array(3)
+                      .fill(0)
+                      .map((_, i) => (
                         <div
-                          key={position.id}
-                          className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10 cursor-pointer"
-                          onClick={() =>
-                            navigate(
-                              `/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`,
-                              {
-                                state: { fromPosition: true },
-                              },
-                            )
-                          }
+                          key={i}
+                          className="flex flex-col p-3 border rounded-lg mb-2"
                         >
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              {position.side === "long" ? (
-                                <ArrowUpCircle className="h-5 w-5 text-green-500" />
-                              ) : (
-                                <ArrowDownCircle className="h-5 w-5 text-red-500" />
-                              )}
-                              <span className="font-medium">
-                                {position.symbol}
-                              </span>
-                              <Badge
-                                variant={
-                                  position.side === "long"
-                                    ? "outline"
-                                    : "secondary"
-                                }
-                              >
-                                {position.side === "long" ? "LONG" : "SHORT"}
-                              </Badge>
+                              <Skeleton className="h-5 w-5 rounded-full" />{" "}
+                              {/* 포지션 방향 아이콘 */}
+                              <Skeleton className="h-5 w-16" /> {/* 심볼 */}
+                              <Skeleton className="h-5 w-12 rounded-full" />{" "}
+                              {/* 배지 */}
                             </div>
-                            <div
-                              className={`font-medium ${position.pnl >= 0 ? "text-green-500" : "text-red-500"}`}
-                            >
-                              {position.pnl >= 0 ? "+" : ""}
-                              {formatUSDValue(position.pnl)} (
-                              {position.pnlPercentage.toFixed(2)}%)
-                            </div>
+                            <Skeleton className="h-5 w-24" /> {/* PnL */}
                           </div>
-                          <div className="flex justify-between text-sm text-muted-foreground">
+                          <div className="flex justify-between text-sm mt-2">
                             <div>
-                              <div>
-                                {position.size.toFixed(
-                                  position.size < 1 ? 4 : 2,
-                                )}{" "}
-                                계약
-                              </div>
-                              <div>
-                                진입: ${formatUSDValue(position.entryPrice)}
-                              </div>
+                              <Skeleton className="h-4 w-20 mb-1" />{" "}
+                              {/* 계약 수 */}
+                              <Skeleton className="h-4 w-28" />{" "}
+                              {/* 진입 가격 */}
                             </div>
                             <div className="text-right">
-                              <div>
-                                표시: ${formatUSDValue(position.markPrice)}
-                              </div>
-                              <div>
-                                {position.accountName} ({position.exchange})
-                              </div>
+                              <Skeleton className="h-4 w-28 mb-1" />{" "}
+                              {/* 표시 가격 */}
+                              <Skeleton className="h-4 w-32" />{" "}
+                              {/* 계정 정보 */}
                             </div>
                           </div>
                         </div>
                       ))
-                    ) : (
-                      <div className="py-8 text-center text-muted-foreground">
-                        <LineChart className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                        <p>활성화된 포지션이 없습니다</p>
-                        <Button
-                          className="mt-4"
-                          variant="outline"
-                          onClick={() => navigate("/search")}
-                        >
-                          <LineChart className="h-4 w-4 mr-2" />
-                          거래 검색하기
-                        </Button>
+                  ) : positions.length > 0 ? (
+                    positions.map((position) => (
+                      <div
+                        key={position.id}
+                        className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10 cursor-pointer"
+                        onClick={() =>
+                          navigate(
+                            `/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`,
+                            {
+                              state: { fromPosition: true },
+                            },
+                          )
+                        }
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            {position.side === "long" ? (
+                              <ArrowUpCircle className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <ArrowDownCircle className="h-5 w-5 text-red-500" />
+                            )}
+                            <span className="font-medium">
+                              {position.symbol}
+                            </span>
+                            <Badge
+                              variant={
+                                position.side === "long"
+                                  ? "outline"
+                                  : "secondary"
+                              }
+                            >
+                              {position.side === "long" ? "LONG" : "SHORT"}
+                            </Badge>
+                          </div>
+                          <div
+                            className={`font-medium ${position.pnl >= 0 ? "text-green-500" : "text-red-500"}`}
+                          >
+                            {position.pnl >= 0 ? "+" : ""}
+                            {formatUSDValue(position.pnl)} (
+                            {position.pnlPercentage.toFixed(2)}%)
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <div>
+                            <div>
+                              {position.size.toFixed(position.size < 1 ? 4 : 2)}{" "}
+                              계약
+                            </div>
+                            <div>
+                              진입: ${formatUSDValue(position.entryPrice)}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div>
+                              표시: ${formatUSDValue(position.markPrice)}
+                            </div>
+                            <div>
+                              {position.accountName} ({position.exchange})
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>{" "}
-          {/* 두 번째 열 끝 */}
-        </div>
-      </ScrollArea>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-muted-foreground">
+                      <LineChart className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>활성화된 포지션이 없습니다</p>
+                      <Button
+                        className="mt-4"
+                        variant="outline"
+                        onClick={() => navigate("/search")}
+                      >
+                        <LineChart className="h-4 w-4 mr-2" />
+                        거래 검색하기
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>{" "}
+        {/* 두 번째 열 끝 */}
+      </div>
     </ScreenWrapper>
   );
 };
