@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
+import { useAnalytics } from "@/contexts/analytics/use";
 
 const formSchema = z.object({
   pin: z.string().length(4, {
@@ -49,6 +50,7 @@ const Locked = () => {
   const [shake, setShake] = useState(false);
   const [validating, setValidating] = useState(false);
   const queryClient = useQueryClient();
+  const { trackEvent } = useAnalytics();
 
   const form = useForm<PinFormValues>({
     resolver: zodResolver(formSchema),
@@ -67,6 +69,14 @@ const Locked = () => {
   const resetAllData = async () => {
     const toastId = toast.loading("앱 데이터를 초기화 중입니다...");
     try {
+      // 애널리틱스 이벤트 트래킹
+      trackEvent({
+        action: 'reset_data',
+        category: 'security',
+        label: 'max_pin_attempts',
+        value: MAX_ATTEMPTS
+      });
+      
       // 로컬 스토리지 초기화
       await chrome.storage.local.clear();
       // React Query 캐시 초기화
@@ -109,6 +119,14 @@ const Locked = () => {
         setShake(true);
         setTimeout(() => setShake(false), 500);
 
+        // 애널리틱스 이벤트 트래킹 - 잘못된 PIN
+        trackEvent({
+          action: 'pin_validation',
+          category: 'security',
+          label: 'failed',
+          value: attempts + 1
+        });
+
         setAttempts((prev) => {
           const newAttempts = prev + 1;
 
@@ -141,6 +159,13 @@ const Locked = () => {
         toast.success("PIN 확인 성공! 환영합니다.", {
           icon: "🔓",
           duration: 2000,
+        });
+        
+        // 애널리틱스 이벤트 트래킹 - 성공한 PIN
+        trackEvent({
+          action: 'pin_validation',
+          category: 'security',
+          label: 'success'
         });
       }
     } catch (error) {

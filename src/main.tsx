@@ -9,10 +9,10 @@ const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <Providers>
-      <MemoryRouter>
+    <MemoryRouter>
+      <Providers>
         <AppRoutes />
-      </MemoryRouter>
-    </Providers>
+      </Providers>
+    </MemoryRouter>
   </QueryClientProvider>,
 );

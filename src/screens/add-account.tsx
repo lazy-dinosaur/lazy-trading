@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import toast from "react-hot-toast";
+import { useAnalytics } from "@/contexts/analytics/use";
 
 // 폼 유효성 검사 스키마
 const formSchema = z.object({
@@ -89,6 +90,7 @@ const AddAccount = () => {
   
   const navigate = useNavigate();
   const { cache, updateCache } = useCache();
+  const { trackEvent } = useAnalytics();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const exchangeParam = searchParams.get("exchange") as ExchangeType;
@@ -129,6 +131,14 @@ const AddAccount = () => {
         });
         
         if (res && res.success) {
+          // 애널리틱스 이벤트 트래킹 - 계정 추가 성공
+          trackEvent({
+            action: 'account_added',
+            category: 'account_management',
+            label: data.exchange,
+            name: data.name
+          });
+          
           // 성공 토스트
           toast.dismiss();
           toast.success(`${data.name} 계정이 성공적으로 추가되었습니다!`);
@@ -154,6 +164,14 @@ const AddAccount = () => {
           throw new Error("계정 추가에 실패했습니다.");
         }
       } else {
+        // 애널리틱스 이벤트 트래킹 - 계정 검증 실패
+        trackEvent({
+          action: 'account_validation',
+          category: 'account_management',
+          label: 'failed',
+          exchange: data.exchange
+        });
+        
         toast.dismiss(loadingToast);
         toast.error("API 키 검증에 실패했습니다.");
         setError("API 키 검증에 실패했습니다. 키가 올바른지 확인해주세요.");
