@@ -17,7 +17,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { usePin } from "@/contexts/pin/use";
-import { Lock, Unlock, X, RefreshCw, Shield, ShieldAlert } from "lucide-react";
+import { Lock, Unlock, X, RefreshCw, Shield, ShieldAlert, Github } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
@@ -209,12 +209,26 @@ const Locked = () => {
     }
   };
 
+  // GitHub 링크 열기
+  const openGithubLink = () => {
+    window.open("https://github.com/lazy-dinosaur", "_blank");
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* 앱 타이틀 */}
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold text-primary mb-2">LazyTrading</h1>
-        <p className="text-sm text-muted-foreground">by lazy-dinosaur</p>
+        <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+          <span>by</span>
+          <button 
+            onClick={openGithubLink}
+            className="flex items-center gap-1 hover:text-primary transition-colors"
+          >
+            lazy-dinosaur
+            <Github className="h-3 w-3" />
+          </button>
+        </div>
       </div>
       
       <Card className="w-full max-w-md shadow-lg border-2">
