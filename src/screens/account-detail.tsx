@@ -8,6 +8,8 @@ import { formatUSDValue } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useBalanceHistory, ChartData } from "@/hooks/use-balance-history";
 import CapitalChangeChart from "@/components/capital-change-chart";
+import { useTradeHistory } from "@/hooks/use-trade-history";
+import { TradeHistoryCard } from "@/components/trade-history-card";
 
 const AccountDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,9 @@ const AccountDetail = () => {
   const [activeAssets, setActiveAssets] = useState<string[]>([]);
   const { data: balanceHistory, isLoading: isLoadingHistory } =
     useBalanceHistory(id);
+  
+  const { data: tradeHistoryData, isLoading: isLoadingTradeHistory } = 
+    useTradeHistory(id, { limit: 100, period: '7d' });
 
   // 계정이 존재하지 않는 경우
   const account = id ? accounts?.[id] : null;
@@ -174,6 +179,13 @@ const AccountDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* 거래 히스토리 카드 추가 */}
+            <TradeHistoryCard 
+              trades={tradeHistoryData?.trades || []}
+              stats={tradeHistoryData?.stats || null}
+              isLoading={isLoadingTradeHistory}
+            />
 
             <div className="flex justify-between gap-4">
               <Button variant="outline" onClick={() => navigate("/accounts")}>
