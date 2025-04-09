@@ -412,36 +412,55 @@ export const calculateAllAccountsBalanceHistory = async (
   }
 };
 
-// useBalanceHistory 훅 개선
-export const useBalanceHistory = (accountId: string | undefined) => {
+// useBalanceHistory 훅 개선 - 기간 필터 추가
+export interface BalanceHistoryFilter {
+  period?: '7d' | '30d' | '90d' | 'all';
+}
+
+export const useBalanceHistory = (
+  accountId: string | undefined, 
+  filter?: BalanceHistoryFilter
+) => {
   const { decryptedAccounts } = useAccounts();
+  const period = filter?.period || '7d';
 
   return useQuery<BalanceHistory[], Error>({
-    queryKey: ["accountBalanceHistory", accountId],
+    queryKey: ["accountBalanceHistory", accountId, period],
     queryFn: async () => {
+      // 기간에 따른 일수 계산
+      let days = 7;
+      switch (period) {
+        case '7d': days = 7; break;
+        case '30d': days = 30; break;
+        case '90d': days = 90; break;
+        case 'all': days = 365; break; // 'all'의 경우 충분히 긴 기간으로 설정
+      }
+      
+      console.log(`[DEBUG] 잔고 내역 조회 시작 - 기간: ${period} (${days}일)`);
+      
       // 특별한 ID "all"이 주어진 경우 모든 계정의 합산 잔고 표시
       if (accountId === "all") {
         if (!decryptedAccounts || Object.keys(decryptedAccounts).length === 0) {
           console.log(`[DEBUG] 복호화된 계정 정보 없음, 더미 데이터 반환`);
-          return generateDummyBalanceHistory();
+          return generateDummyBalanceHistory(days);
         }
 
-        return calculateAllAccountsBalanceHistory(decryptedAccounts);
+        return calculateAllAccountsBalanceHistory(decryptedAccounts, days);
       }
 
       // 특정 계정 ID가 주어진 경우
       if (!accountId || !decryptedAccounts || !decryptedAccounts[accountId]) {
         console.log(`[DEBUG] 계정 정보 없음, 더미 데이터 반환`);
-        return generateDummyBalanceHistory();
+        return generateDummyBalanceHistory(days);
       }
 
       const account = decryptedAccounts[accountId];
       console.log(
-        `[DEBUG] ${account.exchange} ${account.name} 계정의 잔고 내역 조회 시작`,
+        `[DEBUG] ${account.exchange} ${account.name} 계정의 잔고 내역 조회 시작 (${days}일)`,
       );
 
       // 특정 계정의 잔고 변동 내역 계산
-      const result = await calculateAccountBalanceHistory(account);
+      const result = await calculateAccountBalanceHistory(account, days);
 
       console.log(
         `[DEBUG] ${account.exchange} ${account.name} 계정의 잔고 내역 조회 완료 - 데이터 포인트 수: ${result.length}`,

@@ -10,17 +10,23 @@ import { useBalanceHistory, ChartData } from "@/hooks/use-balance-history";
 import CapitalChangeChart from "@/components/capital-change-chart";
 import { useTradeHistory } from "@/hooks/use-trade-history";
 import { TradeHistoryCard } from "@/components/trade-history-card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AccountDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { accounts, accountsBalance, isLoading } = useAccounts();
   const [activeAssets, setActiveAssets] = useState<string[]>([]);
-  const { data: balanceHistory, isLoading: isLoadingHistory } =
-    useBalanceHistory(id);
+  // 기간 필터 상태 추가
+  const [periodFilter, setPeriodFilter] = useState<"7d" | "30d" | "90d" | "all">("7d");
   
+  // 선택된 기간 필터를 훅에 전달
+  const { data: balanceHistory, isLoading: isLoadingHistory } =
+    useBalanceHistory(id, { period: periodFilter });
+  
+  // 선택된 기간 필터를 훅에 전달
   const { data: tradeHistoryData, isLoading: isLoadingTradeHistory } = 
-    useTradeHistory(id, { limit: 100, period: '7d' });
+    useTradeHistory(id, { limit: 100, period: periodFilter });
 
   // 계정이 존재하지 않는 경우
   const account = id ? accounts?.[id] : null;
@@ -155,6 +161,24 @@ const AccountDetail = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* 기간 필터 컨트롤 추가 */}
+            <div className="flex justify-end">
+              <Select
+                value={periodFilter}
+                onValueChange={(value: "7d" | "30d" | "90d" | "all") => setPeriodFilter(value)}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="기간 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">최근 7일</SelectItem>
+                  <SelectItem value="30d">최근 30일</SelectItem>
+                  <SelectItem value="90d">최근 90일</SelectItem>
+                  <SelectItem value="all">전체 기간</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <Card>
               <CardHeader>
