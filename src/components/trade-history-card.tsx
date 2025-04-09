@@ -10,7 +10,6 @@ import {
 import { TradeHistoryItem, TradeHistoryStats } from "@/hooks/use-trade-history";
 import { formatUSDValue } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMemo } from "react";
 import {
@@ -189,74 +188,73 @@ export const TradeHistoryCard = ({
             )}
           </TabsContent>
 
-          <TabsContent value="history">
-            {/* 세로 스크롤을 위한 ScrollArea */}
-            <ScrollArea className="h-80">
-              {/* 가로 스크롤을 위한 DIV 컨테이너 */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[150px]">날짜</TableHead>
-                    <TableHead className="w-[120px]">심볼</TableHead>
-                    <TableHead className="w-[100px]">유형</TableHead>
-                    <TableHead className="w-[100px]">가격</TableHead>
-                    <TableHead className="w-[100px]">수량</TableHead>
-                    <TableHead className="w-[100px]">총액</TableHead>
-                    <TableHead className="w-[120px]">이익</TableHead>
-                    <TableHead className="w-[110px]">주문 ID</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedTrades.map((trade) => (
-                    <TableRow key={trade.id}>
-                      <TableCell>
-                        {new Date(trade.timestamp).toLocaleString()}
-                      </TableCell>
-                      <TableCell>{trade.symbol}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
+          <TabsContent
+            value="history"
+            className="h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
+          >
+            <Table className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px]">날짜</TableHead>
+                  <TableHead className="w-[120px]">심볼</TableHead>
+                  <TableHead className="w-[100px]">유형</TableHead>
+                  <TableHead className="w-[100px]">가격</TableHead>
+                  <TableHead className="w-[100px]">수량</TableHead>
+                  <TableHead className="w-[100px]">총액</TableHead>
+                  <TableHead className="w-[120px]">이익</TableHead>
+                  <TableHead className="w-[110px]">주문 ID</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedTrades.map((trade) => (
+                  <TableRow key={trade.id}>
+                    <TableCell>
+                      {new Date(trade.timestamp).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{trade.symbol}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Badge
+                          variant={
+                            trade.side === "buy" ? "default" : "destructive"
+                          }
+                        >
+                          {trade.side === "buy" ? "매수" : "매도"}
+                        </Badge>
+                        {trade.isClosingPosition && (
                           <Badge
-                            variant={
-                              trade.side === "buy" ? "default" : "destructive"
-                            }
+                            variant="secondary"
+                            className="whitespace-nowrap text-xs"
                           >
-                            {trade.side === "buy" ? "매수" : "매도"}
+                            포지션 종료
                           </Badge>
-                          {trade.isClosingPosition && (
-                            <Badge
-                              variant="secondary"
-                              className="whitespace-nowrap text-xs"
-                            >
-                              포지션 종료
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatUSDValue(trade.price)}</TableCell>
-                      <TableCell>{formatUSDValue(trade.amount)}</TableCell>
-                      <TableCell>{formatUSDValue(trade.cost)}</TableCell>
-                      <TableCell
-                        className={
-                          trade.profit && trade.profit > 0
-                            ? "text-green-500"
-                            : "text-red-500"
-                        }
-                      >
-                        {trade.profit ? formatUSDValue(trade.profit) : "-"}
-                        {trade.profitPercent
-                          ? ` (${trade.profitPercent > 0 ? "+" : ""}${trade.profitPercent.toFixed(2)}%)`
-                          : ""}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {trade.orderId
-                          ? `${trade.orderId.substring(0, 8)}...`
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatUSDValue(trade.price)}</TableCell>
+                    <TableCell>{formatUSDValue(trade.amount)}</TableCell>
+                    <TableCell>{formatUSDValue(trade.cost)}</TableCell>
+                    <TableCell
+                      className={
+                        trade.profit && trade.profit > 0
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {trade.profit ? formatUSDValue(trade.profit) : "-"}
+                      {trade.profitPercent
+                        ? ` (${trade.profitPercent > 0 ? "+" : ""}${trade.profitPercent.toFixed(2)}%)`
+                        : ""}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {trade.orderId
+                        ? `${trade.orderId.substring(0, 8)}...`
+                        : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </TabsContent>
 
           <TabsContent value="charts">

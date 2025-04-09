@@ -10,7 +10,13 @@ import { useBalanceHistory, ChartData } from "@/hooks/use-balance-history";
 import CapitalChangeChart from "@/components/capital-change-chart";
 import { useTradeHistory } from "@/hooks/use-trade-history";
 import { TradeHistoryCard } from "@/components/trade-history-card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AccountDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,14 +24,16 @@ const AccountDetail = () => {
   const { accounts, accountsBalance, isLoading } = useAccounts();
   const [activeAssets, setActiveAssets] = useState<string[]>([]);
   // 기간 필터 상태 추가
-  const [periodFilter, setPeriodFilter] = useState<"7d" | "30d" | "90d" | "all">("7d");
-  
+  const [periodFilter, setPeriodFilter] = useState<
+    "7d" | "30d" | "90d" | "all"
+  >("7d");
+
   // 선택된 기간 필터를 훅에 전달
   const { data: balanceHistory, isLoading: isLoadingHistory } =
     useBalanceHistory(id, { period: periodFilter });
-  
+
   // 선택된 기간 필터를 훅에 전달
-  const { data: tradeHistoryData, isLoading: isLoadingTradeHistory } = 
+  const { data: tradeHistoryData, isLoading: isLoadingTradeHistory } =
     useTradeHistory(id, { limit: 100, period: periodFilter });
 
   // 계정이 존재하지 않는 경우
@@ -77,15 +85,17 @@ const AccountDetail = () => {
     })) || [];
 
   return (
-    <ScreenWrapper headerProps={{ title: "계정 상세 정보" }}>
-      <ScrollArea className="flex-1 h-[calc(100vh-4rem)]">
-        <div className="flex flex-col space-y-6 p-4 pb-20">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <>
+    <ScreenWrapper
+      headerProps={{ title: "계정 상세 정보" }}
+      className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
+    >
+      <div className="flex flex-col space-y-6 p-4 pb-20">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <>
             <Card>
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
@@ -166,7 +176,9 @@ const AccountDetail = () => {
             <div className="flex justify-end">
               <Select
                 value={periodFilter}
-                onValueChange={(value: "7d" | "30d" | "90d" | "all") => setPeriodFilter(value)}
+                onValueChange={(value: "7d" | "30d" | "90d" | "all") =>
+                  setPeriodFilter(value)
+                }
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="기간 선택" />
@@ -205,7 +217,7 @@ const AccountDetail = () => {
             </Card>
 
             {/* 거래 히스토리 카드 추가 */}
-            <TradeHistoryCard 
+            <TradeHistoryCard
               trades={tradeHistoryData?.trades || []}
               stats={tradeHistoryData?.stats || null}
               isLoading={isLoadingTradeHistory}
@@ -222,8 +234,7 @@ const AccountDetail = () => {
             </div>
           </>
         )}
-        </div>
-      </ScrollArea>
+      </div>
     </ScreenWrapper>
   );
 };
