@@ -53,8 +53,8 @@ export const TradeHistoryCard = ({
           <CardTitle>거래 내역</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center items-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex items-center justify-center h-48">
+            <div className="w-8 h-8 border-b-2 rounded-full animate-spin border-primary"></div>
           </div>
         </CardContent>
       </Card>
@@ -68,7 +68,7 @@ export const TradeHistoryCard = ({
           <CardTitle>거래 내역</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-6">
+          <p className="py-6 text-center text-muted-foreground">
             거래 내역이 없습니다.
           </p>
         </CardContent>
@@ -83,7 +83,7 @@ export const TradeHistoryCard = ({
           <CardTitle>거래 내역</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-6">
+          <p className="py-6 text-center text-muted-foreground">
             선택한 기간에 거래 내역이 없습니다.
           </p>
         </CardContent>
@@ -112,7 +112,7 @@ export const TradeHistoryCard = ({
 
   // 차트 표시 여부 - 수익 정보가 있는 거래가 없으면 차트를 표시하지 않음
   const hasTradesWithProfit = sortedTrades.some(
-    (trade) => trade.profit !== undefined && trade.profit !== 0,
+    (trade) => trade.profit !== undefined && trade.profit !== 0
   );
 
   const COLORS = ["#10b981", "#ef4444"];
@@ -148,7 +148,11 @@ export const TradeHistoryCard = ({
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">총 수익</p>
                   <p
-                    className={`text-2xl font-medium ${activeStats.totalProfit >= 0 ? "text-green-500" : "text-red-500"}`}
+                    className={`text-2xl font-medium ${
+                      activeStats.totalProfit >= 0
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
                   >
                     {formatUSDValue(activeStats.totalProfit)} USD
                   </p>
@@ -156,7 +160,11 @@ export const TradeHistoryCard = ({
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">평균 수익</p>
                   <p
-                    className={`text-2xl font-medium ${activeStats.averageProfit >= 0 ? "text-green-500" : "text-red-500"}`}
+                    className={`text-2xl font-medium ${
+                      activeStats.averageProfit >= 0
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
                   >
                     {formatUSDValue(activeStats.averageProfit)} USD
                   </p>
@@ -179,7 +187,7 @@ export const TradeHistoryCard = ({
                 <p className="text-muted-foreground">
                   해당 기간에 수익 정보가 있는 거래 내역이 없습니다.
                 </p>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="mt-2 text-sm text-muted-foreground">
                   거래 내역이 있지만 수익 정보를 계산할 수 없는 경우,
                   <br />
                   다른 기간을 선택하거나 새로운 거래를 시도해 보세요.
@@ -190,8 +198,9 @@ export const TradeHistoryCard = ({
 
           <TabsContent
             value="history"
-            className="h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
+            className="overflow-y-auto h-80 scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
           >
+            {/* fetchClosedOrders + Ledger 기반 데이터 표시 테이블 */}
             <Table className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
               <TableHeader>
                 <TableRow>
@@ -200,12 +209,14 @@ export const TradeHistoryCard = ({
                   <TableHead className="w-[100px]">유형</TableHead>
                   <TableHead className="w-[100px]">가격</TableHead>
                   <TableHead className="w-[100px]">수량</TableHead>
-                  <TableHead className="w-[100px]">총액</TableHead>
-                  <TableHead className="w-[120px]">이익</TableHead>
+                  <TableHead className="w-[100px]">거래대금</TableHead>
+                  <TableHead className="w-[120px]">수수료</TableHead>
+                  <TableHead className="w-[120px]">실현손익(PnL)</TableHead>
                   <TableHead className="w-[110px]">주문 ID</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {/* sortedTrades는 이제 완료된 주문 결과(TradeHistoryItem) 목록 */}
                 {sortedTrades.map((trade) => (
                   <TableRow key={trade.id}>
                     <TableCell>
@@ -213,27 +224,28 @@ export const TradeHistoryCard = ({
                     </TableCell>
                     <TableCell>{trade.symbol}</TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <Badge
-                          variant={
-                            trade.side === "buy" ? "default" : "destructive"
-                          }
-                        >
-                          {trade.side === "buy" ? "매수" : "매도"}
-                        </Badge>
-                        {trade.isClosingPosition && (
-                          <Badge
-                            variant="secondary"
-                            className="whitespace-nowrap text-xs"
-                          >
-                            포지션 종료
-                          </Badge>
-                        )}
-                      </div>
+                      {/* 주문 유형 (매수/매도) */}
+                      <Badge
+                        variant={
+                          trade.side === "buy" ? "default" : "destructive"
+                        }
+                      >
+                        {trade.side === "buy" ? "매수" : "매도"}
+                      </Badge>
+                      {/* 필요시 주문 타입(limit/market)도 표시 가능 */}
+                      {/* <Badge variant="outline" className="ml-1">{trade.type}</Badge> */}
                     </TableCell>
                     <TableCell>{formatUSDValue(trade.price)}</TableCell>
                     <TableCell>{formatUSDValue(trade.amount)}</TableCell>
                     <TableCell>{formatUSDValue(trade.cost)}</TableCell>
+                    <TableCell>
+                      {/* 최종 계산된 수수료 */}
+                      {trade.fee
+                        ? `${formatUSDValue(trade.fee.cost)} ${
+                            trade.fee.currency
+                          }`
+                        : "-"}
+                    </TableCell>
                     <TableCell
                       className={
                         trade.profit && trade.profit > 0
@@ -241,10 +253,10 @@ export const TradeHistoryCard = ({
                           : "text-red-500"
                       }
                     >
+                      {/* 최종 계산된 PnL */}
                       {trade.profit ? formatUSDValue(trade.profit) : "-"}
-                      {trade.profitPercent
-                        ? ` (${trade.profitPercent > 0 ? "+" : ""}${trade.profitPercent.toFixed(2)}%)`
-                        : ""}
+                      {/* 수익률은 현재 계산 보류 */}
+                      {/* {trade.profitPercent ? ` (${trade.profitPercent > 0 ? '+' : ''}${trade.profitPercent.toFixed(2)}%)` : ''} */}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {trade.orderId
@@ -261,7 +273,7 @@ export const TradeHistoryCard = ({
             {hasTradesWithProfit ? (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium mb-2">승패 비율</h3>
+                  <h3 className="mb-2 text-lg font-medium">승패 비율</h3>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -293,7 +305,7 @@ export const TradeHistoryCard = ({
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium mb-2">최근 거래 수익</h3>
+                  <h3 className="mb-2 text-lg font-medium">최근 거래 수익</h3>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={recentTradesData}>
@@ -333,7 +345,7 @@ export const TradeHistoryCard = ({
                   해당 기간에 수익 정보가 있는 거래 내역이 없어 차트를 표시할 수
                   없습니다.
                 </p>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="mt-2 text-sm text-muted-foreground">
                   거래 내역이 있지만 수익 정보를 계산할 수 없는 경우,
                   <br />
                   다른 기간을 선택하거나 새로운 거래를 시도해 보세요.
