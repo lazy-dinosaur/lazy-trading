@@ -40,6 +40,7 @@ const AccountDetail = () => {
 	const account = id ? accounts?.[id] : null;
 	const balanceInfo = id ? accountsBalance?.[id] : null;
 	const balance = balanceInfo?.balance;
+	console.log(balanceInfo);
 
 	useEffect(() => {
 		if (balance && !isLoading) {

@@ -275,20 +275,21 @@ export const decrypteAllAccounts = async (
 async function handleBybitBalance(balance: Balances): Promise<USDBalance> {
   const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
 
-  if (balance.info?.result?.list?.[0]?.coin) {
-    const coins = balance.info.result.list[0].coin;
-    coins.forEach((coin: any) => {
-      if (coin.usdValue) {
-        const value = parseFloat(coin.usdValue);
-        usdBalance.total += value;
-        if (coin.equity) {
-          usdBalance.free += parseFloat(coin.equity);
-        }
-        if (coin.locked) {
-          usdBalance.used += parseFloat(coin.locked);
-        }
-      }
-    });
+  if (balance.info?.result?.list?.[0]) {
+    // API가 제공하는 USD 값을 직접 사용 (가장 정확한 방법)
+    const accountInfo = balance.info.result.list[0];
+    
+    if (accountInfo.totalEquity && accountInfo.totalAvailableBalance) {
+      usdBalance.total = parseFloat(accountInfo.totalEquity);
+      usdBalance.free = parseFloat(accountInfo.totalAvailableBalance);
+      usdBalance.used = usdBalance.total - usdBalance.free;
+      
+      return {
+        total: Math.round(usdBalance.total * 100) / 100,
+        free: Math.round(usdBalance.free * 100) / 100,
+        used: Math.round(usdBalance.used * 100) / 100,
+      };
+    }
   }
 
   return usdBalance;
