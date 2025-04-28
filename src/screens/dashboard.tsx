@@ -22,12 +22,16 @@ import {
   ArrowDownCircle,
   TrendingUp,
   Info,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CapitalChangeChart from "@/components/capital-change-chart";
+import { PositionCloseModal } from "@/components/position-close-modal";
+import { useState } from "react";
+import toast from "react-hot-toast";
 // 보정 수익률 계산 함수 추가 import
 import {
   useBalanceHistory,
@@ -90,12 +94,20 @@ interface CCXTPosition {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     accounts,
     decryptedAccounts,
     accountsBalance,
     isLoading: isLoadingAccounts,
   } = useAccounts();
+  
+  // 포지션 종료 관련 상태
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [isClosingPosition, setIsClosingPosition] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
+  const [isCloseSuccess, setIsCloseSuccess] = useState(false);
 
   // "all" 계정 ID를 사용하여 모든 계정의 합산 잔고 변동 내역 조회
   const {
@@ -114,6 +126,72 @@ const Dashboard = () => {
       value: item.value || item.balance || 0,
     })) || [];
 
+  // 포지션 종료 관련 함수
+  const handleClosePosition = async (position: Position) => {
+    setIsClosingPosition(true);
+    setCloseError(null);
+    
+    try {
+      // 계정 정보 가져오기
+      if (!decryptedAccounts) {
+        throw new Error("계정 정보를 찾을 수 없습니다.");
+      }
+      
+      const account = decryptedAccounts[position.accountId];
+      if (!account) {
+        throw new Error("계정 정보를 찾을 수 없습니다.");
+      }
+
+      const exchange = account.exchangeInstance.ccxt;
+      
+      // 포지션 종료 주문 생성
+      // CCXT를 사용하여 포지션을 종료하는 로직
+      await exchange.createOrder(
+        position.symbol,
+        'market',
+        position.side === 'long' ? 'sell' : 'buy',
+        position.size,
+        undefined,
+        {
+          reduceOnly: true,
+        }
+      );
+
+      // 성공 처리
+      setIsCloseSuccess(true);
+      toast.success(`${position.symbol} 포지션이 성공적으로 종료되었습니다.`);
+      
+      // 포지션 데이터 새로고침 - 문자열 배열이 아닌 올바른 query key 형식 사용
+      queryClient.invalidateQueries({queryKey: ["positions"]});
+    } catch (error) {
+      console.error("포지션 종료 중 오류 발생:", error);
+      setCloseError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.");
+      toast.error("포지션 종료 실패");
+    } finally {
+      setIsClosingPosition(false);
+    }
+  };
+
+  // 모달 제어 함수
+  const openCloseModal = (position: Position) => {
+    setSelectedPosition(position);
+    setIsCloseModalOpen(true);
+    setIsCloseSuccess(false);
+    setCloseError(null);
+  };
+
+  const closeModal = () => {
+    setIsCloseModalOpen(false);
+    
+    // 성공 후 모달이 닫히면 선택된 포지션 정보 초기화
+    if (isCloseSuccess) {
+      setTimeout(() => {
+        setSelectedPosition(null);
+        setIsCloseSuccess(false);
+      }, 300);
+    }
+  };
+  
   // 총 잔액 계산
   const totalBalance = Object.values(accountsBalance || {}).reduce(
     (sum, item: any) => sum + (item.balance?.usd?.total || 0),
@@ -618,18 +696,20 @@ const Dashboard = () => {
                     positions.map((position) => (
                       <div
                         key={position.id}
-                        className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10 cursor-pointer"
-                        onClick={() =>
-                          navigate(
-                            `/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`,
-                            {
-                              state: { fromPosition: true },
-                            },
-                          )
-                        }
+                        className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
+                          <div 
+                            className="flex items-center gap-2 cursor-pointer"
+                            onClick={() =>
+                              navigate(
+                                `/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`,
+                                {
+                                  state: { fromPosition: true },
+                                },
+                              )
+                            }
+                          >
                             {position.side === "long" ? (
                               <ArrowUpCircle className="h-5 w-5 text-green-500" />
                             ) : (
@@ -648,15 +728,38 @@ const Dashboard = () => {
                               {position.side === "long" ? "LONG" : "SHORT"}
                             </Badge>
                           </div>
-                          <div
-                            className={`font-medium ${position.pnl >= 0 ? "text-green-500" : "text-red-500"}`}
-                          >
-                            {position.pnl >= 0 ? "+" : ""}
-                            {formatUSDValue(position.pnl)} (
-                            {position.pnlPercentage.toFixed(2)}%)
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`font-medium ${position.pnl >= 0 ? "text-green-500" : "text-red-500"}`}
+                            >
+                              {position.pnl >= 0 ? "+" : ""}
+                              {formatUSDValue(position.pnl)} (
+                              {position.pnlPercentage.toFixed(2)}%)
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-destructive hover:text-destructive/80 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openCloseModal(position);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex justify-between text-sm text-muted-foreground">
+                        <div 
+                          className="flex justify-between text-sm text-muted-foreground cursor-pointer"
+                          onClick={() =>
+                            navigate(
+                              `/trade?symbol=${position.symbol}&id=${position.accountId}&exchange=${position.exchange}`,
+                              {
+                                state: { fromPosition: true },
+                              },
+                            )
+                          }
+                        >
                           <div>
                             <div>
                               {position.size.toFixed(position.size < 1 ? 4 : 2)}{" "}
@@ -698,6 +801,17 @@ const Dashboard = () => {
         </div>{" "}
         {/* 두 번째 열 끝 */}
       </div>
+      
+      {/* 포지션 종료 모달 */}
+      <PositionCloseModal
+        isOpen={isCloseModalOpen}
+        onClose={closeModal}
+        position={selectedPosition}
+        onConfirm={handleClosePosition}
+        isClosing={isClosingPosition}
+        closeError={closeError}
+        isSuccess={isCloseSuccess}
+      />
     </ScreenWrapper>
   );
 };
