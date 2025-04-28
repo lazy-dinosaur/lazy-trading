@@ -3,8 +3,10 @@ import { TradeInfo } from "./info";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useTrade } from "@/contexts/trade/use"; // useTrade 훅 임포트
+import { useTranslation } from "react-i18next";
 
 export const TradeComponent = () => {
+  const { t } = useTranslation();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
   const isExtraLargeScreen = useMediaQuery("(min-width: 1280px)");
@@ -32,13 +34,13 @@ export const TradeComponent = () => {
               value="long"
               className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
             >
-              롱 포지션
+              {t('trade.long_position')}
             </TabsTrigger>
             <TabsTrigger
               value="short"
               className="data-[state=active]:bg-red-500 data-[state=active]:text-white"
             >
-              숏 포지션
+              {t('trade.short_position')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="long" className="mt-1">
@@ -74,7 +76,7 @@ export const TradeComponent = () => {
               ${isLargeScreen ? "lg:text-base lg:py-1.5" : ""}
               ${isExtraLargeScreen ? "xl:py-2 xl:px-2" : ""}`}
           >
-            롱 포지션
+            {t('trade.long_position')}
           </TabsTrigger>
           <TabsTrigger
             value="short"
@@ -82,7 +84,7 @@ export const TradeComponent = () => {
               ${isLargeScreen ? "lg:text-base lg:py-1.5" : ""}
               ${isExtraLargeScreen ? "xl:py-2 xl:px-2" : ""}`}
           >
-            숏 포지션
+            {t('trade.short_position')}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="long" className="mt-1 h-[calc(100%-50px)]">

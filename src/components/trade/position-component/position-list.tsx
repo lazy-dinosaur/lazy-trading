@@ -18,8 +18,10 @@ import {
   Settings,
   X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const PositionsList = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const exchange = searchParams.get("exchange") as ExchangeType | null;
@@ -50,7 +52,7 @@ export const PositionsList = () => {
     queryKey: ["positions", exchange, accountId, symbol],
     queryFn: async () => {
       if (!selectedAccount || !selectedAccount.exchangeInstance) {
-        throw new Error("선택된 계정 또는 인스턴스를 찾을 수 없습니다."); // 한글 변경
+        throw new Error(t('trade.account_or_instance_not_found'));
       }
 
       let rawPositions: Position[];
@@ -75,7 +77,7 @@ export const PositionsList = () => {
     queryKey: ["openOrders", exchange, accountId],
     queryFn: async () => {
       if (!selectedAccount || !selectedAccount.exchangeInstance) {
-        throw new Error("선택된 계정 또는 인스턴스를 찾을 수 없습니다."); // 한글 변경
+        throw new Error(t('trade.account_or_instance_not_found'));
       }
       return await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders(
         symbol ?? undefined,
@@ -147,7 +149,7 @@ export const PositionsList = () => {
     size: number,
   ) => {
     if (!selectedAccount || !selectedAccount.exchangeInstance) {
-      toast.error("계정이 선택되지 않았거나 인스턴스를 사용할 수 없습니다."); // 한글 변경
+      toast.error(t('trade.account_not_selected_or_instance_unavailable'));
       return;
     }
 
@@ -192,7 +194,7 @@ export const PositionsList = () => {
       );
 
       toast.success(
-        `${symbol} 포지션이 성공적으로 종료되었습니다. 주문 ID: ${order.id}`, // 한글 변경
+        t('trade.position_closed_successfully', { symbol, orderId: order.id }),
       );
 
       // 포지션 및 잔액 쿼리 무효화하여 데이터 새로고침
@@ -201,8 +203,8 @@ export const PositionsList = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["accountsBalance"] });
     } catch (error: any) {
-      console.error("포지션 종료 실패:", error); // 한글 변경
-      toast.error(`포지션 종료 실패: ${error.message}`); // 한글 변경
+      console.error(t('trade.position_close_failed'), error);
+      toast.error(t('trade.position_close_failed_with_error', { error: error.message }));
       throw error; // 에러를 다시 던져서 버튼 로딩 상태 해제
     }
   };
@@ -233,7 +235,7 @@ export const PositionsList = () => {
     return (
       <div className="space-y-2">
         <div className="px-1 text-sm font-medium text-muted-foreground">
-          진입 중인 포지션 {/* 한글 변경 */}
+          {t('trade.active_positions')}
         </div>
         {/* 로딩 스켈레톤 */}
         {[...Array(3)].map((_, i) => (
@@ -257,7 +259,7 @@ export const PositionsList = () => {
   if (error) {
     return (
       <div className="py-8 text-center text-red-500">
-        포지션 로딩 오류: {error.message} {/* 한글 변경 */}
+        {t('trade.position_loading_error')}: {error.message}
       </div>
     );
   }
@@ -327,13 +329,13 @@ export const PositionsList = () => {
   return (
     <div className="space-y-2">
       <div className="px-1 text-sm font-medium text-muted-foreground">
-        진입 중인 포지션 ({positionItems?.length ?? 0}) {/* 한글 변경 */}
+        {t('trade.active_positions')} ({positionItems?.length ?? 0})
       </div>
       {positionItems && positionItems.length > 0 ? (
         positionItems.map((item) => <TradingItemCard key={item.id} {...item} />)
       ) : (
         <div className="py-8 text-center text-muted-foreground">
-          진입 중인 포지션 없음 {/* 한글 변경 */}
+          {t('trade.no_active_positions')}
         </div>
       )}
 
@@ -384,6 +386,7 @@ const TradingItemCard = ({
   stopLossPrice,
   takeProfitPrice,
 }: TradingItemCardProps) => {
+  const { t } = useTranslation();
   const [isClosing, setIsClosing] = useState(false); // 종료 로딩 상태 추가
   const isPositive = profit > 0;
   const directionIcon = isLong ? (
@@ -408,17 +411,17 @@ const TradingItemCard = ({
                 }`}
               >
                 {directionIcon}
-                {isLong ? "롱" : "숏"} {/* 한글 변경 */}
+                {isLong ? t('trade.long') : t('trade.short')}
               </div>
               <span className="text-xs px-2 py-0.5 rounded bg-accent/50">
                 {leverage}x
               </span>
             </div>
             <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-              <span>진입가: ${entryPrice}</span> {/* 한글 변경 */}
+              <span>{t('trade.entry_price')}: ${entryPrice}</span>
               <span>•</span>
               <span>
-                크기: {size} {symbol.replace("USDT", "")} {/* 한글 변경 */}
+                {t('trade.size')}: {size} {symbol.replace("USDT", "")}
               </span>
             </div>
           </div>
@@ -436,7 +439,7 @@ const TradingItemCard = ({
                 isPositive ? "bg-green-500/10" : "bg-red-500/10"
               }`}
             >
-              손익: {isPositive ? "+" : ""} {/* 한글 변경 */}
+              {t('trade.pnl')}: {isPositive ? "+" : ""}
               {profitPercentage.toFixed(2)}%
             </div>
           </div>
@@ -448,14 +451,14 @@ const TradingItemCard = ({
             {takeProfitPrice && (
               <div className="flex items-center gap-1">
                 <Target className="w-3 h-3 text-green-500" />
-                <span className="text-muted-foreground">타겟:</span>
+                <span className="text-muted-foreground">{t('trade.target')}:</span>
                 <span className="font-medium">${takeProfitPrice}</span>
               </div>
             )}
             {stopLossPrice && (
               <div className="flex items-center gap-1">
                 <Scissors className="w-3 h-3 text-red-500" />
-                <span className="text-muted-foreground">손절:</span>
+                <span className="text-muted-foreground">{t('trade.stoploss')}:</span>
                 <span className="font-medium">${stopLossPrice}</span>
               </div>
             )}
@@ -476,7 +479,7 @@ const TradingItemCard = ({
               }}
             >
               <Settings className="w-3 h-3 mr-1" />
-              타겟/손절 {/* 한글 변경 */}
+              {t('trade.target_stoploss')}
             </Button>
           )}
 
@@ -500,7 +503,7 @@ const TradingItemCard = ({
               disabled={isClosing}
             >
               <X className="w-3 h-3 mr-1" />
-              {isClosing ? "종료 중..." : "포지션 종료"} {/* 한글 변경 */}
+              {isClosing ? t('trade.closing') : t('trade.close_position')}
             </Button>
           )}
         </div>

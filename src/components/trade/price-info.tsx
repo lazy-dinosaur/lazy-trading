@@ -9,8 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown, BarChart4, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 export const PriceInfo = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const exchange = searchParams.get("exchange") as ExchangeType;
   const symbol = searchParams.get("symbol")!;
@@ -82,11 +84,11 @@ export const PriceInfo = () => {
 
             <div className="space-y-1">
               <div className="flex items-center justify-end gap-2">
-                <span className="text-xs text-muted-foreground">고가:</span>
+                <span className="text-xs text-muted-foreground">{t('trade.high')}:</span>
                 <Skeleton className="h-4 w-16" />
               </div>
               <div className="flex items-center justify-end gap-2">
-                <span className="text-xs text-muted-foreground">저가:</span>
+                <span className="text-xs text-muted-foreground">{t('trade.low')}:</span>
                 <Skeleton className="h-4 w-16" />
               </div>
             </div>
@@ -166,7 +168,7 @@ export const PriceInfo = () => {
               <div className="flex gap-2 items-center text-sm">
                 <BarChart4 className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="capitalize text-muted-foreground">
-                  거래량:
+                  {t('trade.volume')}:
                 </span>
                 <span className="font-medium">
                   {formatVolume(Number(data?.quoteVolume))}
@@ -175,21 +177,21 @@ export const PriceInfo = () => {
 
               <div className="flex gap-2 items-center text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                <span>업데이트: {lastUpdate}</span>
+                <span>{t('trade.updated')}: {lastUpdate}</span>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 bg-accent/10 p-2 rounded-md text-right">
             <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">고가 (24h)</span>
+              <span className="text-xs text-muted-foreground">{t('trade.high')} (24h)</span>
               <span className="text-sm font-semibold text-green-500">
                 {formatUSDValue(Number(data?.high))}
               </span>
             </div>
 
             <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">저가 (24h)</span>
+              <span className="text-xs text-muted-foreground">{t('trade.low')} (24h)</span>
               <span className="text-sm font-semibold text-red-500">
                 {formatUSDValue(Number(data?.low))}
               </span>
@@ -198,7 +200,7 @@ export const PriceInfo = () => {
             {exchange === "bybit" ? (
               <div className="flex flex-col col-span-2 mt-1">
                 <span className="text-xs text-muted-foreground">
-                  총 거래대금
+                  {t('trade.turnover')}
                 </span>
                 <span className="text-sm font-semibold">
                   {formatUSDValue(Number(data?.info.turnover24h))}
@@ -207,7 +209,7 @@ export const PriceInfo = () => {
             ) : (
               <div className="flex flex-col col-span-2 mt-1">
                 <span className="text-xs text-muted-foreground">
-                  VWAP (가중평균가)
+                  {t('trade.vwap')}
                 </span>
                 <span className="text-sm font-semibold">
                   {data?.vwap &&

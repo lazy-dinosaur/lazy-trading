@@ -6,22 +6,25 @@ import { CacheProvider } from "./cache";
 import { TradingConfigProvider } from "./settings";
 import { SettingsProvider } from "./settings";
 import { AnalyticsProvider } from "./analytics/context";
+import { LanguageProvider } from "./language/LanguageContext";
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <AnalyticsProvider>
-      <SettingsProvider>
-        <TradingConfigProvider>
-          <CCXTProvider>
-            <PinProvider>
-              <CacheProvider>
-                <AccountsProvider>{children}</AccountsProvider>
-              </CacheProvider>
-            </PinProvider>
-          </CCXTProvider>
-        </TradingConfigProvider>
-      </SettingsProvider>
-    </AnalyticsProvider>
+    <LanguageProvider>
+      <AnalyticsProvider>
+        <SettingsProvider>
+          <TradingConfigProvider>
+            <CCXTProvider>
+              <PinProvider>
+                <CacheProvider>
+                  <AccountsProvider>{children}</AccountsProvider>
+                </CacheProvider>
+              </PinProvider>
+            </CCXTProvider>
+          </TradingConfigProvider>
+        </SettingsProvider>
+      </AnalyticsProvider>
+    </LanguageProvider>
   );
 };
 export default Providers;

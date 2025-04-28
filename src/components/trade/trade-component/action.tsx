@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTradeMutation } from "@/hooks/use-trade-mutation";
 import { PositionInfo } from "@/lib/trade";
+import { useTranslation } from "react-i18next";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +28,7 @@ interface TradingActionProps {
 export const TradingAction = ({
   tradeDirection = "long",
 }: TradingActionProps) => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
   const exchange = searchParams.get("exchange") as ExchangeType;
@@ -83,7 +85,7 @@ export const TradingAction = ({
         close_ratio: config.closeRatio
       });
     } catch (error) {
-      console.error("Trade execution failed:", error);
+      console.error(t('trade.trade_execution_failed'), error);
       
       // 거래 실패 이벤트 추적
       trackEvent({
@@ -92,7 +94,7 @@ export const TradingAction = ({
         label: tradeDirection,
         symbol: symbol,
         exchange: exchange,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : t('trade.unknown_error')
       });
     }
   };
@@ -103,7 +105,7 @@ export const TradingAction = ({
       ? "bg-gradient-to-b from-green-500 to-green-600 hover:from-green-400 hover:to-green-500"
       : "bg-gradient-to-b from-red-500 to-red-600 hover:from-red-400 hover:to-red-500";
 
-  const directionText = tradeDirection === "long" ? "롱" : "숏";
+  // directionText는 사용되지 않으므로 제거
 
   // 거래 요약 정보
   const getTradeSummary = () => {
@@ -116,11 +118,11 @@ export const TradingAction = ({
       return (
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm">레버리지:</span>
+            <span className="text-sm">{t('trade.leverage')}:</span>
             <span className="text-sm font-medium">{info.leverage}x</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm">손절가:</span>
+            <span className="text-sm">{t('trade.stoploss')}:</span>
             <span
               className={`text-sm font-medium ${tradeDirection === "long" ? "text-red-500" : "text-green-500"}`}
             >
@@ -128,7 +130,7 @@ export const TradingAction = ({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm">목표가:</span>
+            <span className="text-sm">{t('trade.target_price')}:</span>
             <span
               className={`text-sm font-medium ${tradeDirection === "long" ? "text-green-500" : "text-red-500"}`}
             >
@@ -137,7 +139,7 @@ export const TradingAction = ({
           </div>
           <div className="mt-2 p-2 bg-yellow-100/20 border border-yellow-300/30 rounded-md text-yellow-600 text-xs">
             <AlertTriangle className="h-3 w-3 inline-block mr-1" />
-            자본이 부족합니다. 더 많은 자본이 필요합니다.
+            {t('trade.insufficient_capital')}
           </div>
         </div>
       );
@@ -148,12 +150,12 @@ export const TradingAction = ({
       return (
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm">레버리지:</span>
+            <span className="text-sm">{t('trade.leverage')}:</span>
             <span className="text-sm font-medium">{info.leverage}x</span>
           </div>
           <div className="mt-2 p-2 bg-red-100/20 border border-red-300/30 rounded-md text-red-600 text-xs">
             <AlertTriangle className="h-3 w-3 inline-block mr-1" />
-            계산 중 오류가 발생했습니다.
+            {t('trade.calculation_error')}
           </div>
         </div>
       );
@@ -163,7 +165,7 @@ export const TradingAction = ({
     if (!info.position) {
       return (
         <div className="text-sm text-center text-muted-foreground">
-          정보 없음
+          {t('trade.no_info')}
         </div>
       );
     }
@@ -172,11 +174,11 @@ export const TradingAction = ({
     return (
       <div className="space-y-2">
         <div className="flex justify-between">
-          <span className="text-sm">레버리지:</span>
+          <span className="text-sm">{t('trade.leverage')}:</span>
           <span className="text-sm font-medium">{info.leverage}x</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm">손절가:</span>
+          <span className="text-sm">{t('trade.stoploss')}:</span>
           <span
             className={`text-sm font-medium ${tradeDirection === "long" ? "text-red-500" : "text-green-500"}`}
           >
@@ -184,7 +186,7 @@ export const TradingAction = ({
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm">목표가:</span>
+          <span className="text-sm">{t('trade.target_price')}:</span>
           <span
             className={`text-sm font-medium ${tradeDirection === "long" ? "text-green-500" : "text-red-500"}`}
           >
@@ -203,20 +205,20 @@ export const TradingAction = ({
         onClick={() => setSettingsOpen(!settingsOpen)}
       >
         <div className="text-sm font-medium border-b pb-1 flex items-center gap-1">
-          <span>거래 설정</span>
+          <span>{t('trade.trade_settings')}</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
                 <Info className="h-3.5 w-3.5 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>손익비, 리스크 비율 등 거래 설정을 조정하세요</p>
+                <p>{t('trade.trade_settings')}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
         <span className="text-xs text-muted-foreground">
-          {settingsOpen ? "접기" : "펼치기"}
+          {settingsOpen ? t('trade.collapse') : t('trade.expand')}
         </span>
       </div>
 
@@ -246,11 +248,11 @@ export const TradingAction = ({
                 tradeDirection === "long" ? "text-green-600" : "text-red-600",
               )}
             >
-              {directionText} 거래 요약
+              {tradeDirection === "long" ? t('trade.long_trade_summary') : t('trade.short_trade_summary')}
             </div>
             {getTradeSummary() || (
               <div className="text-sm text-center text-muted-foreground">
-                정보 없음
+                {t('trade.no_info')}
               </div>
             )}
           </CardContent>
@@ -261,7 +263,7 @@ export const TradingAction = ({
       {!accountInfo && (
         <div className="w-full flex items-center gap-2 p-2 bg-yellow-100/20 border border-yellow-300/30 rounded-md mb-3 text-yellow-600">
           <AlertTriangle className="h-4 w-4 flex-none" />
-          <p className="text-sm">거래하기 전에 계정을 선택해주세요.</p>
+          <p className="text-sm">{t('trade.select_account_warning')}</p>
         </div>
       )}
 
@@ -280,7 +282,7 @@ export const TradingAction = ({
             !!tradeInfo?.[tradeDirection]?.error
           }
         >
-          {tradeMutation.isPending ? "처리중..." : `${directionText} 진입`}
+          {tradeMutation.isPending ? t('trade.processing') : (tradeDirection === "long" ? t('trade.long_entry') : t('trade.short_entry'))}
         </Button>
       </div>
     </div>
@@ -355,6 +357,7 @@ const SettingControl = ({
 };
 
 const CloseSetting = () => {
+  const { t } = useTranslation();
   const { config, updateConfig, isLoading } = useTradingConfig();
 
   return (
@@ -372,13 +375,13 @@ const CloseSetting = () => {
           htmlFor="partial-close"
           className="text-sm font-medium cursor-pointer"
         >
-          부분 청산
+          {t('trade.partial_close')}
         </Label>
       </div>
 
       {config?.partialClose && (
         <SettingControl
-          label="청산 비율"
+          label={t('trade.close_ratio')}
           value={config.closeRatio}
           unit="%"
           disabled={isLoading}
@@ -398,7 +401,7 @@ const CloseSetting = () => {
               : 50;
             updateConfig({ closeRatio });
           }}
-          tooltipText="목표가 도달 시 포지션을 부분적으로 청산할 비율"
+          tooltipText={t('trade.close_ratio_tooltip')}
         />
       )}
     </div>
@@ -406,11 +409,12 @@ const CloseSetting = () => {
 };
 
 const TradingSetting = () => {
+  const { t } = useTranslation();
   const { config, isLoading, updateConfig } = useTradingConfig();
 
   return (
     <SettingControl
-      label="손익비"
+      label={t('trade.risk_ratio')}
       value={config?.riskRatio ?? 1.5}
       unit=" : 1"
       disabled={isLoading}
@@ -430,17 +434,18 @@ const TradingSetting = () => {
           : 1.5;
         updateConfig({ riskRatio });
       }}
-      tooltipText="손절 거리 대비 목표가 거리의 비율입니다. 예: 2:1은 손절 거리의 2배를 목표가로 설정합니다."
+      tooltipText={t('trade.risk_ratio_tooltip')}
     />
   );
 };
 
 const RiskSetting = () => {
+  const { t } = useTranslation();
   const { config, updateConfig, isLoading } = useTradingConfig();
 
   return (
     <SettingControl
-      label="리스크 비율"
+      label={t('trade.risk_percentage')}
       value={config?.risk ?? 1.5}
       unit="%"
       disabled={isLoading}
@@ -460,7 +465,7 @@ const RiskSetting = () => {
           : 1.5;
         updateConfig({ risk });
       }}
-      tooltipText="한 번의 거래에서 감수할 수 있는 자본의 최대 손실 비율입니다."
+      tooltipText={t('trade.risk_percentage_tooltip')}
     />
   );
 };

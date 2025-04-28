@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LazyTrading",
+  "name": "__MSG_appName__",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -15,7 +15,8 @@
       "128": "icons/icon128.png"
     }
   },
-  "description": "Binance, Bybit, Bitget 거래소 연동으로 암호화폐 거래에서 안전한 매매 진입을 도와주는 크롬 확장 프로그램입니다.",
+  "description": "__MSG_appDesc__",
+  "default_locale": "ko",
   "version": "1.0.0",
   "side_panel": {
     "default_path": "index.html"

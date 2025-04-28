@@ -26,58 +26,61 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import toast from "react-hot-toast";
 import { useAnalytics } from "@/contexts/analytics/use";
+import { useTranslation } from "react-i18next";
 
-// 폼 유효성 검사 스키마
+// 폼 유효성 검사 스키마 (t 파라미터를 사용하지 않는 방식으로 수정)
 const formSchema = z.object({
   exchange: z.enum(["bybit", "binance", "bitget"] as const),
-  name: z.string().min(1, "계정 이름은 필수입니다."),
-  apiKey: z.string().min(1, "API 키는 필수입니다."),
-  secretKey: z.string().min(1, "Secret 키는 필수입니다."),
+  name: z.string().min(1),
+  apiKey: z.string().min(1),
+  secretKey: z.string().min(1),
 });
 
 type FormValue = z.infer<typeof formSchema>;
 
-// 거래소별 가이드 데이터
-const exchangeGuides = {
+// 거래소별 가이드 데이터 함수
+const getExchangeGuides = (t: any) => ({
   bybit: {
-    title: "Bybit API 키 설정 가이드",
+    title: t("account.bybit_api_guide"),
     url: "https://www.bybit.com/app/user/api-management",
     steps: [
-      "Bybit 계정에 로그인합니다.",
-      "우측 상단의 프로필 아이콘을 클릭한 후 'API Management'를 선택합니다.",
-      "'Create New Key'를 클릭합니다.",
-      "키 이름을 입력하고 읽기 및 거래 권한을 선택합니다.",
-      "보안 인증을 완료하고 키를 생성합니다.",
-      "API 키와 Secret 키를 저장하고 이 앱에 입력합니다."
+      t("account.bybit_step_1", "Bybit 계정에 로그인합니다."),
+      t("account.bybit_step_2", "우측 상단의 프로필 아이콘을 클릭한 후 'API Management'를 선택합니다."),
+      t("account.bybit_step_3", "'Create New Key'를 클릭합니다."),
+      t("account.bybit_step_4", "키 이름을 입력하고 읽기 및 거래 권한을 선택합니다."),
+      t("account.bybit_step_5", "보안 인증을 완료하고 키를 생성합니다."),
+      t("account.bybit_step_6", "API 키와 Secret 키를 저장하고 이 앱에 입력합니다.")
     ]
   },
   binance: {
-    title: "Binance API 키 설정 가이드",
+    title: t("account.binance_api_guide"),
     url: "https://www.binance.com/en/my/settings/api-management",
     steps: [
-      "Binance 계정에 로그인합니다.",
-      "'API Management'로 이동합니다.",
-      "'Create API'를 클릭합니다.", 
-      "보안 인증을 완료하고 API 이름을 입력합니다.",
-      "필요한 권한을 선택하고 API 키를 생성합니다.",
-      "API 키와 Secret 키를 저장하고 이 앱에 입력합니다."
+      t("account.binance_step_1", "Binance 계정에 로그인합니다."),
+      t("account.binance_step_2", "'API Management'로 이동합니다."),
+      t("account.binance_step_3", "'Create API'를 클릭합니다."),
+      t("account.binance_step_4", "보안 인증을 완료하고 API 이름을 입력합니다."),
+      t("account.binance_step_5", "필요한 권한을 선택하고 API 키를 생성합니다."),
+      t("account.binance_step_6", "API 키와 Secret 키를 저장하고 이 앱에 입력합니다.")
     ]
   },
   bitget: {
-    title: "Bitget API 키 설정 가이드",
+    title: t("account.bitget_api_guide"),
     url: "https://www.bitget.com/en/account/apiManagement",
     steps: [
-      "Bitget 계정에 로그인합니다.",
-      "'My Account' > 'API Management'로 이동합니다.",
-      "'Create API'를 클릭합니다.",
-      "API 이름과 권한을 설정합니다.",
-      "보안 인증을 완료하고 키를 생성합니다.",
-      "API 키와 Secret 키를 저장하고 이 앱에 입력합니다."
+      t("account.bitget_step_1", "Bitget 계정에 로그인합니다."),
+      t("account.bitget_step_2", "'My Account' > 'API Management'로 이동합니다."),
+      t("account.bitget_step_3", "'Create API'를 클릭합니다."),
+      t("account.bitget_step_4", "API 이름과 권한을 설정합니다."),
+      t("account.bitget_step_5", "보안 인증을 완료하고 키를 생성합니다."),
+      t("account.bitget_step_6", "API 키와 Secret 키를 저장하고 이 앱에 입력합니다.")
     ]
   }
-};
+});
 
 const AddAccount = () => {
+  const { t } = useTranslation();
+  
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -103,14 +106,17 @@ const AddAccount = () => {
   const currentExchange = cache?.data?.exchange as ExchangeType;
   
   // 현재 선택된 거래소
-  const selectedExchange = form.watch("exchange") || "bybit";
+  const selectedExchange = form.watch("exchange") as ExchangeType || "bybit";
+  
+  // 가이드 데이터 초기화
+  const exchangeGuides = getExchangeGuides(t);
 
   const onSubmit = async (data: FormValue) => {
     setValidCheck(true);
     setError(null);
     
     // 검증 시작 토스트
-    const loadingToast = toast.loading("API 키 유효성 검증 중...");
+    const loadingToast = toast.loading(t("account.validating_api_key"));
 
     try {
       const validCheck = await validateAccount({
@@ -121,7 +127,7 @@ const AddAccount = () => {
       
       if (validCheck) {
         toast.dismiss(loadingToast);
-        toast.loading("계정 추가 중...");
+        toast.loading(t("account.adding_account"));
         
         const res = await addNewAccount({
           exchange: data.exchange as ExchangeType,
@@ -141,7 +147,7 @@ const AddAccount = () => {
           
           // 성공 토스트
           toast.dismiss();
-          toast.success(`${data.name} 계정이 성공적으로 추가되었습니다!`);
+          toast.success(t("account.account_added_success", { name: data.name }));
           
           // 계정 추가 후 강제로 새로고침 실행
           await refreshAccounts();
@@ -161,7 +167,7 @@ const AddAccount = () => {
             navigate("/search");
           }
         } else {
-          throw new Error("계정 추가에 실패했습니다.");
+          throw new Error(t("account.adding_account_error"));
         }
       } else {
         // 애널리틱스 이벤트 트래킹 - 계정 검증 실패
@@ -173,14 +179,14 @@ const AddAccount = () => {
         });
         
         toast.dismiss(loadingToast);
-        toast.error("API 키 검증에 실패했습니다.");
-        setError("API 키 검증에 실패했습니다. 키가 올바른지 확인해주세요.");
+        toast.error(t("account.api_validation_failed"));
+        setError(t("account.check_api_key_valid"));
       }
     } catch (err) {
       console.error(err);
       toast.dismiss(loadingToast);
-      toast.error("계정 추가 중 오류가 발생했습니다.");
-      setError("계정 추가 중 오류가 발생했습니다. 입력 정보를 확인해주세요.");
+      toast.error(t("account.adding_account_error"));
+      setError(t("account.check_input_info"));
       form.setValue("apiKey", "");
       form.setValue("secretKey", "");
     } finally {
@@ -214,11 +220,11 @@ const AddAccount = () => {
   }, [isLoading, form, cache, exchangeParam, setSearchParams, updateCache]);
 
   useEffect(() => {
-    const subscription = form.watch((data) => {
-      if (cache && !isLoading) {
+    const subscription = form.watch((value) => {
+      if (cache && !isLoading && value) {
         // debounce를 통해 상태 업데이트 최적화
         const timeoutId = setTimeout(() => {
-          updateCache({ ...cache, data });
+          updateCache({ ...cache, data: value as any });
         }, 300);
         return () => clearTimeout(timeoutId);
       }
@@ -230,47 +236,47 @@ const AddAccount = () => {
   useEffect(() => {
     if (!isLoading && selectedExchange) {
       toast.dismiss();
-      toast.success(`${selectedExchange.toUpperCase()} 거래소가 선택되었습니다.`, {
+      toast.success(t("account.exchange_selected", { exchange: String(selectedExchange).toUpperCase() }), {
         duration: 1500,
         icon: '🔄',
       });
     }
-  }, [selectedExchange, isLoading]);
+  }, [selectedExchange, isLoading, t]);
 
   return (
-    <ScreenWrapper headerProps={{ title: "계정 추가" }}>
+    <ScreenWrapper headerProps={{ title: t("account.add_account") }}>
       <Tabs defaultValue="form" className="w-full">
         <TabsList className="w-full mb-4">
-          <TabsTrigger value="form" className="flex-1">계정 정보</TabsTrigger>
-          <TabsTrigger value="guide" className="flex-1">API 설정 가이드</TabsTrigger>
+          <TabsTrigger value="form" className="flex-1">{t("account.account_info")}</TabsTrigger>
+          <TabsTrigger value="guide" className="flex-1">{t("account.api_setting_guide")}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="form" className="space-y-4">
           <Card>
             <CardContent className="pt-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold">API 키 설정</h2>
+                <h2 className="text-xl font-semibold">{t("account.api_key_setting")}</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  API 키는 PIN 번호로 암호화됩니다
+                  {t("account.api_key_encrypted")}
                 </p>
               </div>
               
               {error && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>오류</AlertTitle>
+                  <AlertTitle>{t("common.error")}</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
               
-              <Form {...form}>
+              <Form {...form} >
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="exchange"
                     render={({ field }) => (
                       <FormItem>
-                        <Label htmlFor="exchange">거래소</Label>
+                        <Label htmlFor="exchange">{t("account.exchange")}</Label>
                         <Select
                           value={field.value}
                           onValueChange={(value) => {
@@ -285,7 +291,7 @@ const AddAccount = () => {
                         >
                           <FormControl>
                             <SelectTrigger id="exchange">
-                              <SelectValue placeholder="거래소 선택" />
+                              <SelectValue placeholder={t("account.select_exchange")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent position="popper">
@@ -304,15 +310,15 @@ const AddAccount = () => {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <Label htmlFor="name">계정 이름</Label>
+                        <Label htmlFor="name">{t("account.account_name")}</Label>
                         <FormControl>
                           <Input
                             {...field}
                             id="name"
-                            placeholder="계정을 구분할 이름 입력"
+                            placeholder={t("account.enter_account_name")}
                             onBlur={() => {
                               if (field.value) {
-                                toast(`'${field.value}' 이름으로 계정이 설정됩니다`, {
+                                toast(`'${field.value}' ${t("account.name_set_message", "이름으로 계정이 설정됩니다")}`, {
                                   icon: '📝',
                                   duration: 1500,
                                 });
@@ -321,7 +327,7 @@ const AddAccount = () => {
                           />
                         </FormControl>
                         <FormDescription>
-                          여러 계정을 구분할 수 있는 이름을 설정하세요
+                          {t("account.account_to_distinguish")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -334,14 +340,14 @@ const AddAccount = () => {
                     render={({ field }) => (
                       <FormItem>
                         <Label htmlFor="apiKey" className="flex items-center gap-1">
-                          API 키
+                          {t("account.api_key")}
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger>
                                 <Info className="h-4 w-4 text-muted-foreground" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                거래소에서 발급받은 API 키를 입력하세요
+                                {t("account.api_key_tooltip")}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -350,7 +356,7 @@ const AddAccount = () => {
                           <Input
                             {...field}
                             id="apiKey"
-                            placeholder="거래소에서 발급받은 API 키"
+                            placeholder={t("account.api_key_tooltip")}
                           />
                         </FormControl>
                         <FormMessage />
@@ -364,14 +370,14 @@ const AddAccount = () => {
                     render={({ field }) => (
                       <FormItem>
                         <Label htmlFor="secretKey" className="flex items-center gap-1">
-                          Secret 키
+                          {t("account.api_secret")}
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger>
                                 <Info className="h-4 w-4 text-muted-foreground" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                API 키와 함께 발급받은 Secret 키를 입력하세요
+                                {t("account.secret_key_tooltip")}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -381,7 +387,7 @@ const AddAccount = () => {
                             {...field}
                             id="secretKey"
                             type="password"
-                            placeholder="Secret 키 입력"
+                            placeholder={t("account.api_secret")}
                           />
                         </FormControl>
                         <FormMessage />
@@ -395,7 +401,7 @@ const AddAccount = () => {
                       disabled={validChecking}
                       variant="outline"
                       onClick={() => {
-                        toast.success("작업이 취소되었습니다", { 
+                        toast.success(t("account.operation_cancelled"), { 
                           icon: '✖️',
                           duration: 1500
                         });
@@ -403,7 +409,7 @@ const AddAccount = () => {
                       }}
                       type="button"
                     >
-                      취소
+                      {t("common.cancel")}
                     </Button>
                     <Button 
                       className="w-full md:w-40" 
@@ -413,9 +419,9 @@ const AddAccount = () => {
                       {validChecking ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          확인 중...
+                          {t("account.verifying")}
                         </>
-                      ) : "저장"}
+                      ) : t("common.save")}
                     </Button>
                   </div>
                 </form>
@@ -435,20 +441,20 @@ const AddAccount = () => {
                   rel="noopener noreferrer"
                   className="text-sm text-blue-500 flex items-center mt-1 hover:underline"
                   onClick={() => {
-                    toast.success("거래소 API 관리 페이지로 이동합니다", {
+                    toast.success(t("account.go_to_exchange_api"), {
                       icon: '🔗',
                       duration: 2000
                     });
                   }}
                 >
-                  거래소 API 관리 페이지로 이동
+                  {t("account.go_to_exchange_api")}
                   <ExternalLink className="ml-1 h-3 w-3" />
                 </a>
               </div>
               
               <Accordion type="single" collapsible defaultValue="steps">
                 <AccordionItem value="steps">
-                  <AccordionTrigger>API 키 설정 방법</AccordionTrigger>
+                  <AccordionTrigger>{t("account.api_key_setup_method")}</AccordionTrigger>
                   <AccordionContent>
                     <ol className="list-decimal pl-5 space-y-2">
                       {exchangeGuides[selectedExchange].steps.map((step, index) => (
@@ -459,31 +465,31 @@ const AddAccount = () => {
                 </AccordionItem>
                 
                 <AccordionItem value="permissions">
-                  <AccordionTrigger>필요한 API 권한</AccordionTrigger>
+                  <AccordionTrigger>{t("account.required_api_permissions")}</AccordionTrigger>
                   <AccordionContent>
-                    <p>이 앱은 다음과 같은 API 권한이 필요합니다:</p>
+                    <p>{t("account.api_permissions_needed", "이 앱은 다음과 같은 API 권한이 필요합니다:")}</p>
                     <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li>계정 정보 조회</li>
-                      <li>잔고 조회</li>
-                      <li>거래 (주문 생성 및 취소)</li>
+                      <li>{t("account.account_info_permission")}</li>
+                      <li>{t("account.balance_permission")}</li>
+                      <li>{t("account.trading_permission")}</li>
                     </ul>
                     <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-md">
                       <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                        보안을 위해 출금 권한은 꼭 필요한 경우에만 활성화하세요.
+                        {t("account.security_withdrawal_warning")}
                       </p>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
                 
                 <AccordionItem value="security">
-                  <AccordionTrigger>보안 팁</AccordionTrigger>
+                  <AccordionTrigger>{t("account.security_tips")}</AccordionTrigger>
                   <AccordionContent>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li>API 키는 다른 사람과 공유하지 마세요.</li>
-                      <li>필요한 권한만 부여하세요.</li>
-                      <li>IP 제한을 설정하여 보안을 강화하세요.</li>
-                      <li>주기적으로 API 키를 변경하는 것이 좋습니다.</li>
-                      <li>의심스러운 활동이 발견되면 즉시 API 키를 비활성화하세요.</li>
+                      <li>{t("account.security_tip_1", "API 키는 다른 사람과 공유하지 마세요.")}</li>
+                      <li>{t("account.security_tip_2", "필요한 권한만 부여하세요.")}</li>
+                      <li>{t("account.security_tip_3", "IP 제한을 설정하여 보안을 강화하세요.")}</li>
+                      <li>{t("account.security_tip_4", "주기적으로 API 키를 변경하는 것이 좋습니다.")}</li>
+                      <li>{t("account.security_tip_5", "의심스러운 활동이 발견되면 즉시 API 키를 비활성화하세요.")}</li>
                     </ul>
                   </AccordionContent>
                 </AccordionItem>

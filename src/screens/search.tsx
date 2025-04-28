@@ -3,6 +3,7 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import { useAllTickers } from "@/hooks/coin";
 import { TickerWithExchange } from "@/lib/ccxt";
 import { useCCXT } from "@/contexts/ccxt/use";
+import { useTranslation } from "react-i18next";
 import { SearchFilter } from "@/components/search/search-filter";
 import { CoinGrid } from "@/components/search/coin-grid";
 import { SkeletonGrid } from "@/components/search/skeleton-grid";
@@ -20,17 +21,23 @@ const getFavorites = (): string[] => {
   }
 };
 
-// 거래소 이름 한글 매핑 (검색용)
-const exchangeNameMap: Record<string, string> = {
-  bybit: "바이빗",
-  binance: "바이낸스",
-  bitget: "비트겟",
+// t 함수를 사용하는 거래소 이름 매핑 로직을 생성하는 함수
+const createExchangeNameMaps = (t: any) => {
+  const exchangeNameMap: Record<string, string> = {
+    bybit: t('search.bybit'),
+    binance: t('search.binance'),
+    bitget: t('search.bitget'),
+  };
+  
+  const reverseExchangeNameMap: Record<string, string> = Object.fromEntries(
+    Object.entries(exchangeNameMap).map(([key, value]) => [value, key]),
+  );
+  
+  return { exchangeNameMap, reverseExchangeNameMap };
 };
-const reverseExchangeNameMap: Record<string, string> = Object.fromEntries(
-  Object.entries(exchangeNameMap).map(([key, value]) => [value, key]),
-);
 
 const Search = () => {
+  const { t } = useTranslation();
   const { data: tickersData, isLoading } = useAllTickers();
   const [formattedTickers, setFormattedTickers] = useState<
     TickerWithExchange[]
@@ -47,6 +54,11 @@ const Search = () => {
     direction: "desc",
   });
   const ccxt = useCCXT();
+  
+  // 거래소 이름 매핑 생성
+  const { exchangeNameMap, reverseExchangeNameMap } = useMemo(() => 
+    createExchangeNameMaps(t), [t]
+  );
 
   useEffect(() => {
     if (!tickersData || isLoading || !ccxt) return;
@@ -208,7 +220,7 @@ const Search = () => {
   };
 
   return (
-    <ScreenWrapper headerProps={{ title: "검색" }}>
+    <ScreenWrapper headerProps={{ title: t('common.search') }}>
       {/* title 직접 전달 */}
       {/* 컨텐츠 영역을 div로 감싸고 하단 패딩 추가 */}
       <SearchFilter

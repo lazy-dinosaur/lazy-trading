@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && bun scripts/generate-manifests.ts && vite build",
+    "build:en": "tsc -b && cross-env VITE_APP_LANGUAGE=en vite build -c vite.config.en.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "watch": "tsc -b && vite build --watch",
-    "package": "cd dist && zip -r ../lazy-trading-chrome-extension-v1.0.0.zip * -x \"*.DS_Store\""
+    "package": "cd dist && zip -r ../lazy-trading-chrome-extension-ko-v1.0.0.zip * -x \"*.DS_Store\"",
+    "package:en": "cd dist_en && zip -r ../lazy-trading-chrome-extension-en-v1.0.0.zip * -x \"*.DS_Store\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -34,7 +36,10 @@
     "ccxt": "^4.4.58",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cross-env": "^7.0.3",
     "framer-motion": "^12.6.3",
+    "i18next": "^25.0.1",
+    "i18next-browser-languagedetector": "^8.0.5",
     "input-otp": "^1.4.2",
     "lightweight-charts": "^4.2.3",
     "lucide-react": "^0.469.0",
@@ -42,6 +47,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
     "react-hot-toast": "^2.4.1",
+    "react-i18next": "^15.5.1",
     "react-router": "^7.1.5",
     "tailwind-merge": "^2.6.0",
     "tailwind-scrollbar": "^3.1.0",

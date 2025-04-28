@@ -11,8 +11,10 @@ import { useTrade } from "@/contexts/trade/use";
 import { useSearchParams } from "react-router";
 import { Wallet, PlusCircle } from "lucide-react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export const AccountSelector = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { exchangeAccounts, accountsBalance, isAccountsLoading } = useTrade();
   const id = searchParams.get("id");
@@ -39,7 +41,7 @@ export const AccountSelector = () => {
   if (id && !selectedAccount) {
     return (
       <div className="flex items-center gap-2 bg-card border p-2 rounded-md min-w-36 h-9 text-sm text-red-500">
-        계정을 찾을 수 없음
+        {t('trade.account_not_found')}
       </div>
     );
   }
@@ -57,7 +59,7 @@ export const AccountSelector = () => {
         }}
       >
         <PlusCircle className="h-4 w-4" />
-        <span className="text-sm font-medium">Add Account</span>
+        <span className="text-sm font-medium">{t('trade.add_account')}</span>
       </Link>
     );
   }
@@ -75,7 +77,7 @@ export const AccountSelector = () => {
         <SelectTrigger className="min-w-36 h-9 bg-card/80 border rounded-md">
           <div className="flex items-center gap-2">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            <SelectValue placeholder="Select Account" />
+            <SelectValue placeholder={t('trade.select_account')} />
           </div>
         </SelectTrigger>
 
@@ -95,7 +97,7 @@ export const AccountSelector = () => {
                   </SelectItem>
 
                   <div className="flex justify-between text-xs text-muted-foreground px-8 pb-1">
-                    <span>Balance:</span>
+                    <span>{t('account.balance')}:</span>
                     <span className="font-semibold">
                       ${totalBalance?.toFixed(2) || "0.00"}
                     </span>
@@ -117,7 +119,7 @@ export const AccountSelector = () => {
               }}
             >
               <PlusCircle className="h-3 w-3" />
-              <span>Add New Account</span>
+              <span>{t('trade.add_new_account')}</span>
             </Link>
           </div>
         </SelectContent>
@@ -125,7 +127,7 @@ export const AccountSelector = () => {
       {/* 선택된 계정 정보가 있으면 잔액 표시 */}
       {selectedAccount && selectedBalance && (
         <div className="text-xs text-right text-muted-foreground mt-1">
-          Balance: ${selectedBalance.toFixed(2)}
+          {t('account.balance')}: ${selectedBalance.toFixed(2)}
         </div>
       )}
     </div>

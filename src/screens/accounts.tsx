@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { useAccounts } from "@/contexts/accounts/use";
 import { ScreenWrapper } from "@/components/screen-wrapper";
+import { useTranslation } from "react-i18next";
 import {
   Table,
   TableBody,
@@ -26,6 +27,7 @@ import { toast } from "react-hot-toast";
 import { deleteAccount } from "@/lib/accounts";
 
 const Accounts = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { accounts, accountsBalance, refreshAccounts, isLoading } =
     useAccounts();
@@ -43,14 +45,14 @@ const Accounts = () => {
     try {
       const success = await deleteAccount(accountToDelete);
       if (success) {
-        toast.success("계정이 삭제되었습니다.");
+        toast.success(t('account.account_deleted'));
         refreshAccounts();
       } else {
-        toast.error("계정 삭제에 실패했습니다.");
+        toast.error(t('common.error'));
       }
     } catch (error) {
       console.error("계정 삭제 중 오류 발생:", error);
-      toast.error("계정 삭제 중 오류가 발생했습니다.");
+      toast.error(t('common.error'));
     } finally {
       setDeleteDialogOpen(false);
       setAccountToDelete(null);
@@ -58,13 +60,13 @@ const Accounts = () => {
   };
 
   return (
-    <ScreenWrapper headerProps={{ title: "계정 관리" }}>
+    <ScreenWrapper headerProps={{ title: t('common.accounts') }}>
       <div className="flex flex-col space-y-4 p-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">내 계정 목록</h2>
+          <h2 className="text-xl font-bold">{t('dashboard.account_list')}</h2>
           <Button onClick={() => navigate("/account/add")}>
             <PlusIcon className="h-4 w-4 mr-2" />
-            계정 추가
+            {t('dashboard.add_account')}
           </Button>
         </div>
 
@@ -76,11 +78,11 @@ const Accounts = () => {
           <Card>
             <CardContent className="flex flex-col items-center justify-center p-6 text-center">
               <p className="mb-4 text-muted-foreground">
-                등록된 계정이 없습니다.
+                {t('dashboard.no_accounts')}
               </p>
               <Button onClick={() => navigate("/account/add")}>
                 <PlusIcon className="h-4 w-4 mr-2" />
-                계정 추가하기
+                {t('dashboard.add_account_button')}
               </Button>
             </CardContent>
           </Card>
@@ -89,11 +91,11 @@ const Accounts = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>이름</TableHead>
-                  <TableHead>거래소</TableHead>
-                  <TableHead className="text-right">잔액</TableHead>
-                  <TableHead className="text-right">생성일</TableHead>
-                  <TableHead className="text-right">관리</TableHead>
+                  <TableHead>{t('account.name')}</TableHead>
+                  <TableHead>{t('account.exchange')}</TableHead>
+                  <TableHead className="text-right">{t('account.balance')}</TableHead>
+                  <TableHead className="text-right">{t('common.created_date')}</TableHead>
+                  <TableHead className="text-right">{t('common.manage')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -155,9 +157,9 @@ const Accounts = () => {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>계정 삭제</DialogTitle>
+            <DialogTitle>{t('account.delete_account')}</DialogTitle>
             <DialogDescription>
-              이 계정을 정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+              {t('account.confirm_delete')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -165,10 +167,10 @@ const Accounts = () => {
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
             >
-              취소
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
-              삭제
+              {t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

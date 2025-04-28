@@ -2,8 +2,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TradeCard } from "@/components/ui/trade-card";
 import { useAccounts } from "@/contexts/accounts/use";
 import { useSearchParams } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export const AssetsList = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const accountId = searchParams.get("id");
   const { accountsBalance, isLoading: isAccountsLoading } = useAccounts();
@@ -30,7 +32,7 @@ export const AssetsList = () => {
     return (
       <div className="space-y-2">
         <div className="px-1 text-sm font-medium text-muted-foreground">
-          보유 자산 {/* 한글 변경 */}
+          {t('trade.owned_assets')}
         </div>
         {[...Array(4)].map((_, i) => (
           <TradeCard key={i} variant="compact">
@@ -47,13 +49,13 @@ export const AssetsList = () => {
   return (
     <div className="space-y-2">
       <div className="px-1 text-sm font-medium text-muted-foreground">
-        보유 자산 ({assetItems.length}) {/* 한글 변경 */}
+        {t('trade.owned_assets')} ({assetItems.length})
       </div>
       {assetItems.length > 0 ? (
         assetItems.map((item) => <AssetCard key={item.id} {...item} />)
       ) : (
         <div className="py-8 text-center text-muted-foreground">
-          보유 자산 없음 {/* 한글 변경 */}
+          {t('trade.no_owned_assets')}
         </div>
       )}
     </div>

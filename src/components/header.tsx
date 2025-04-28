@@ -3,6 +3,8 @@ import { SidebarTrigger } from "./ui/sidebar";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme/theme-toggle";
+import { LanguageSwitcher } from "./language-switcher";
+import { useTranslation } from "react-i18next";
 
 export type HeaderType = {
   backButton?: boolean;
@@ -15,16 +17,7 @@ export type HeaderType = {
   };
 };
 
-// 제목 한글 매핑
-const titleMap: Record<string, string> = {
-  dashboard: "대시보드",
-  // search: "검색", // Search 화면에서 직접 전달하므로 제거
-  accounts: "계정 관리",
-  "add-account": "계정 추가",
-  "edit-account": "계정 수정",
-  settings: "설정",
-  // 필요에 따라 다른 제목 추가
-};
+// titleMap은 더 이상 필요하지 않음 (i18n으로 대체)
 
 const Header = ({
   backButton = false,
@@ -33,6 +26,7 @@ const Header = ({
   ticker,
 }: HeaderType) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleBack = () => {
     if (ticker) {
@@ -42,8 +36,8 @@ const Header = ({
     }
   };
 
-  // title이 매핑에 있으면 한글 제목 사용, 없으면 원래 title 사용
-  const displayTitle = title ? titleMap[title.toLowerCase()] || title : "";
+  // i18n을 통해 제목 번역
+  const displayTitle = title ? t(`common.${title.toLowerCase()}`, title) : "";
   // ticker 심볼에서 숫자 제거 (예: 1000PEPE -> PEPE)
   const displaySymbol = ticker?.symbol?.replace(/^[0-9]+/, "");
 
@@ -77,6 +71,7 @@ const Header = ({
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <LanguageSwitcher />
         <ThemeToggle />
         {sidebarButton && (
           <SidebarTrigger className="w-3 h-3 mr-1 h-lg:w-5 h-lg:h-5 h-xl:w-7 h-xl:h-7" />

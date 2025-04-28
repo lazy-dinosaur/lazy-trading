@@ -12,31 +12,32 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 // Menu items.
-const items = [
+const getMenuItems = (t: any) => [
   {
-    title: "대시보드",
+    title: t('common.dashboard'),
     url: "/dashboard",
     icon: Home,
   },
   {
-    title: "검색",
+    title: t('common.search'),
     url: "/search",
     icon: Search,
   },
   {
-    title: "계정 관리",
-    url: "/Accounts",
+    title: t('common.accounts'),
+    url: "/accounts",
     icon: HandCoins,
   },
   // {
-  //   title: "Trade",
+  //   title: t('common.trade'),
   //   url: "/trade",
   //   icon: ChartCandlestick,
   // },
   // {
-  //   title: "Settings",
+  //   title: t('common.settings'),
   //   url: "#",
   //   icon: Settings,
   // },
@@ -45,11 +46,15 @@ const items = [
 export function AppSidebar() {
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
+  const { t } = useTranslation();
+  
+  const items = getMenuItems(t);
+  
   return (
     <Sidebar side="right">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>네비게이션</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('common.navigation', '네비게이션')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

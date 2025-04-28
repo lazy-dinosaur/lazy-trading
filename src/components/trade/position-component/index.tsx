@@ -4,10 +4,12 @@ import { useState } from "react";
 import { OrdersList } from "./order-list";
 import { AssetsList } from "./assets-list";
 import { PositionsList } from "./position-list";
+import { useTranslation } from "react-i18next";
 
 type TabType = "orders" | "positions" | "assets";
 
 export const PositionComponent = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>("positions");
 
   return (
@@ -19,21 +21,21 @@ export const PositionComponent = () => {
           onClick={() => setActiveTab("positions")}
           icon={<BarChart3 className="w-4 h-4 mr-1" />}
         >
-          포지션 {/* 한글 변경 */}
+          {t('trade.positions')}
         </TabButton>
         <TabButton
           isActive={activeTab === "orders"}
           onClick={() => setActiveTab("orders")}
           icon={<Layers className="w-4 h-4 mr-1" />}
         >
-          주문 {/* 한글 변경 */}
+          {t('trade.orders')}
         </TabButton>
         <TabButton
           isActive={activeTab === "assets"}
           onClick={() => setActiveTab("assets")}
           icon={<Wallet className="w-4 h-4 mr-1" />}
         >
-          자산 {/* 한글 변경 */}
+          {t('trade.assets')}
         </TabButton>
       </div>
 

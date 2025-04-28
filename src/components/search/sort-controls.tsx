@@ -1,5 +1,6 @@
 import { ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 
 interface SortControlsProps {
   sortConfig: {
@@ -17,19 +18,21 @@ export const SortControls = ({
   showFavorites,
   onFavoriteFilter
 }: SortControlsProps) => {
+  const { t } = useTranslation();
+  
   // 정렬 버튼 컴포넌트
   const SortButton = ({
-    label,
+    labelKey,
     sortKey
   }: {
-    label: string;
+    labelKey: string;
     sortKey: "baseVolume" | "last" | "symbol";
   }) => (
     <button
       onClick={() => onSort(sortKey)}
       className="flex items-center justify-center text-xs h-lg:text-sm"
     >
-      {label}
+      {t(labelKey)}
       {sortConfig.key === sortKey ? (
         sortConfig.direction === "asc" ? (
           <ArrowUp className="ml-1 w-3 h-3 h-lg:w-4 h-lg:h-4" />
@@ -50,15 +53,15 @@ export const SortControls = ({
         onValueChange={(value) => onFavoriteFilter(value === "favorites")}
       >
         <TabsList>
-          <TabsTrigger value="all">전체</TabsTrigger>
-          <TabsTrigger value="favorites">즐겨찾기</TabsTrigger>
+          <TabsTrigger value="all">{t('search.all')}</TabsTrigger>
+          <TabsTrigger value="favorites">{t('search.favorites')}</TabsTrigger>
         </TabsList>
       </Tabs>
 
       <div className="flex space-x-4">
-        <SortButton label="심볼" sortKey="symbol" /> {/* 한글 라벨 */}
-        <SortButton label="거래량" sortKey="baseVolume" /> {/* 한글 라벨 */}
-        <SortButton label="가격" sortKey="last" /> {/* 한글 라벨 */}
+        <SortButton labelKey="search.symbol" sortKey="symbol" />
+        <SortButton labelKey="search.volume" sortKey="baseVolume" />
+        <SortButton labelKey="search.price" sortKey="last" />
       </div>
     </div>
   );

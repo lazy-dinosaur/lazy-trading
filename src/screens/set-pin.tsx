@@ -17,6 +17,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,14 +41,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const formSchema = z.object({
-  pin: z
-    .string()
-    .min(4, "PIN은 4자리여야 합니다")
-    .max(4, "PIN은 4자리여야 합니다")
-    .regex(/^[0-9]+$/, "숫자만 입력 가능합니다"),
-});
-
 interface PinFormValues {
   pin: string;
 }
@@ -60,43 +53,8 @@ const numpadKeys = [
   ["clear", 0, "delete"],
 ];
 
-// PIN 보안 강도 평가 함수
-const getPinStrength = (pin: string): "weak" | "medium" | "strong" => {
-  if (!pin || pin.length < 4) return "weak";
-
-  // 연속된 숫자 체크 (1234, 4321, 1111 등)
-  const isSequential =
-    (parseInt(pin[0]) + 1 === parseInt(pin[1]) &&
-      parseInt(pin[1]) + 1 === parseInt(pin[2]) &&
-      parseInt(pin[2]) + 1 === parseInt(pin[3])) ||
-    (parseInt(pin[0]) - 1 === parseInt(pin[1]) &&
-      parseInt(pin[1]) - 1 === parseInt(pin[2]) &&
-      parseInt(pin[2]) - 1 === parseInt(pin[3]));
-
-  const isRepeated =
-    pin[0] === pin[1] && pin[1] === pin[2] && pin[2] === pin[3];
-  const hasPairs = pin[0] === pin[1] && pin[2] === pin[3];
-
-  if (isSequential || isRepeated) return "weak";
-  if (hasPairs) return "medium";
-  return "strong";
-};
-
-// 보안 강도 색상
-const strengthColors = {
-  weak: "bg-red-500",
-  medium: "bg-yellow-500",
-  strong: "bg-green-500",
-};
-
-// 보안 강도 텍스트
-const strengthText = {
-  weak: "취약",
-  medium: "보통",
-  strong: "강력",
-};
-
 const SetPin = () => {
+  const { t } = useTranslation();
   const [firstPin, setFirstPin] = useState<string>("");
   const [step, setStep] = useState<"create" | "confirm">("create");
   const [attempts, setAttempts] = useState<number>(0);
@@ -107,6 +65,51 @@ const SetPin = () => {
   );
   const { setPin } = usePin();
   const navigation = useNavigate();
+  
+  // 폼 스키마를 컴포넌트 내부로 이동하여 번역 함수(t) 사용
+  const formSchema = z.object({
+    pin: z
+      .string()
+      .min(4, t('auth.pin_must_be_4_digits', 'PIN은 4자리여야 합니다'))
+      .max(4, t('auth.pin_must_be_4_digits', 'PIN은 4자리여야 합니다'))
+      .regex(/^[0-9]+$/, t('auth.numbers_only', '숫자만 입력 가능합니다')),
+  });
+  
+  // PIN 보안 강도 평가 함수
+  const getPinStrength = (pin: string): "weak" | "medium" | "strong" => {
+    if (!pin || pin.length < 4) return "weak";
+  
+    // 연속된 숫자 체크 (1234, 4321, 1111 등)
+    const isSequential =
+      (parseInt(pin[0]) + 1 === parseInt(pin[1]) &&
+        parseInt(pin[1]) + 1 === parseInt(pin[2]) &&
+        parseInt(pin[2]) + 1 === parseInt(pin[3])) ||
+      (parseInt(pin[0]) - 1 === parseInt(pin[1]) &&
+        parseInt(pin[1]) - 1 === parseInt(pin[2]) &&
+        parseInt(pin[2]) - 1 === parseInt(pin[3]));
+  
+    const isRepeated =
+      pin[0] === pin[1] && pin[1] === pin[2] && pin[2] === pin[3];
+    const hasPairs = pin[0] === pin[1] && pin[2] === pin[3];
+  
+    if (isSequential || isRepeated) return "weak";
+    if (hasPairs) return "medium";
+    return "strong";
+  };
+  
+  // 보안 강도 색상
+  const strengthColors = {
+    weak: "bg-red-500",
+    medium: "bg-yellow-500",
+    strong: "bg-green-500",
+  };
+  
+  // 보안 강도 텍스트
+  const strengthText = {
+    weak: t('auth.strength_weak', '취약'),
+    medium: t('auth.strength_medium', '보통'),
+    strong: t('auth.strength_strong', '강력'),
+  };
 
   const form = useForm<PinFormValues>({
     resolver: zodResolver(formSchema),
@@ -133,7 +136,7 @@ const SetPin = () => {
       setFirstPin(data.pin);
       setStep("confirm");
       form.reset();
-      toast.success("PIN이 입력되었습니다. 확인을 위해 한번 더 입력해주세요.", {
+      toast.success(t('auth.pin_entered_confirm', 'PIN이 입력되었습니다. 확인을 위해 한번 더 입력해주세요.'), {
         icon: "🔐",
         duration: 2000,
       });
@@ -141,13 +144,13 @@ const SetPin = () => {
       // PIN 확인 단계
       if (data.pin === firstPin) {
         console.log("PIN confirmed:", data.pin);
-        toast.loading("PIN을 설정 중입니다...");
+        toast.loading(t('auth.setting_pin', 'PIN을 설정 중입니다...'));
 
         try {
           const res = await setPin(data.pin);
           if (res) {
             toast.dismiss();
-            toast.success("PIN이 성공적으로 설정되었습니다!", {
+            toast.success(t('auth.pin_set_successfully', 'PIN이 성공적으로 설정되었습니다!'), {
               icon: "✅",
               duration: 2000,
             });
@@ -155,7 +158,7 @@ const SetPin = () => {
           }
         } catch (error) {
           toast.dismiss();
-          toast.error("PIN 설정 중 오류가 발생했습니다");
+          toast.error(t('auth.error_setting_pin', 'PIN 설정 중 오류가 발생했습니다'));
           console.error("PIN 설정 오류:", error);
         }
       } else {
@@ -168,7 +171,7 @@ const SetPin = () => {
         if (newAttempts >= 5) {
           // 5번 실패시 처음으로 돌아가기
           toast.error(
-            "입력 시도 횟수 초과! PIN 설정을 처음부터 다시 시작합니다.",
+            t('auth.too_many_attempts', '입력 시도 횟수 초과! PIN 설정을 처음부터 다시 시작합니다.'),
           );
           setStep("create");
           setFirstPin("");
@@ -176,16 +179,16 @@ const SetPin = () => {
           form.reset();
           form.setError("pin", {
             type: "manual",
-            message: "시도 횟수를 초과했습니다. PIN을 다시 설정해주세요.",
+            message: t('auth.attempts_exceeded_reset', '시도 횟수를 초과했습니다. PIN을 다시 설정해주세요.'),
           });
         } else {
           form.reset();
           toast.error(
-            `PIN이 일치하지 않습니다. 남은 시도 횟수: ${5 - newAttempts}회`,
+            t('auth.pin_mismatch_attempts_remaining', 'PIN이 일치하지 않습니다. 남은 시도 횟수: {{count}}회', {count: 5 - newAttempts}),
           );
           form.setError("pin", {
             type: "manual",
-            message: `PIN이 일치하지 않습니다. 남은 시도 횟수: ${5 - newAttempts}회`,
+            message: t('auth.pin_mismatch_attempts_remaining', 'PIN이 일치하지 않습니다. 남은 시도 횟수: {{count}}회', {count: 5 - newAttempts}),
           });
         }
       }
@@ -257,12 +260,12 @@ const SetPin = () => {
               className="text-center mb-6"
             >
               <h1 className="text-2xl font-bold">
-                {step === "create" ? "PIN 코드 생성" : "PIN 코드 확인"}
+                {step === "create" ? t('auth.create_pin') : t('auth.confirm_pin')}
               </h1>
               <p className="text-muted-foreground mt-2">
                 {step === "create"
-                  ? "계정과 API 키를 보호하기 위한 4자리 PIN을 설정하세요"
-                  : `PIN을 다시 한번 입력하여 확인해주세요 (남은 시도: ${5 - attempts}회)`}
+                  ? t('auth.set_4_digit_pin', '계정과 API 키를 보호하기 위한 4자리 PIN을 설정하세요')
+                  : t('auth.enter_pin_again', 'PIN을 다시 한번 입력하여 확인해주세요 (남은 시도: {{count}}회)', {count: 5 - attempts})}
               </p>
             </motion.div>
           </AnimatePresence>
@@ -270,11 +273,9 @@ const SetPin = () => {
           {step === "create" && (
             <Alert className="mb-6 border-primary/20 bg-primary/5">
               <ShieldCheck className="h-4 w-4 text-primary" />
-              <AlertTitle>보안 안내</AlertTitle>
+              <AlertTitle>{t('auth.security_note', '보안 안내')}</AlertTitle>
               <AlertDescription className="text-xs">
-                PIN은 API 키를 안전하게 암호화하는 데 사용됩니다. PIN을
-                잊어버리면 모든 데이터가 초기화됩니다. 안전한 곳에 PIN을
-                기록해두세요.
+                {t('auth.pin_security_note', 'PIN은 API 키를 안전하게 암호화하는 데 사용됩니다. PIN을 잊어버리면 모든 데이터가 초기화됩니다. 안전한 곳에 PIN을 기록해두세요.')}
               </AlertDescription>
             </Alert>
           )}
@@ -361,7 +362,7 @@ const SetPin = () => {
                                 : "text-green-500"
                           }`}
                         >
-                          {`보안 강도: ${strengthText[pinStrength]}`}
+                          {t('auth.security_strength', '보안 강도: {{strength}}', {strength: strengthText[pinStrength]})}
                         </span>
 
                         <TooltipProvider>
@@ -378,10 +379,10 @@ const SetPin = () => {
                             <TooltipContent className="max-w-xs">
                               <p className="text-xs">
                                 {pinStrength === "weak"
-                                  ? "연속된 숫자(1234)나 반복된 숫자(1111)는 추측하기 쉽습니다."
+                                  ? t('auth.weak_pin_message', '연속된 숫자(1234)나 반복된 숫자(1111)는 추측하기 쉽습니다.')
                                   : pinStrength === "medium"
-                                    ? "더 안전한 PIN을 위해 무작위 숫자를 사용하세요."
-                                    : "좋은 PIN 입니다! 잊지 마세요."}
+                                    ? t('auth.medium_pin_message', '더 안전한 PIN을 위해 무작위 숫자를 사용하세요.')
+                                    : t('auth.strong_pin_message', '좋은 PIN 입니다! 잊지 마세요.')}
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -399,11 +400,11 @@ const SetPin = () => {
                       >
                         {showPin ? (
                           <span className="flex items-center gap-1">
-                            <Lock className="h-3 w-3" /> PIN 숨기기
+                            <Lock className="h-3 w-3" /> {t('auth.hide_pin', 'PIN 숨기기')}
                           </span>
                         ) : (
                           <span className="flex items-center gap-1">
-                            <Unlock className="h-3 w-3" /> PIN 표시하기
+                            <Unlock className="h-3 w-3" /> {t('auth.show_pin', 'PIN 표시하기')}
                           </span>
                         )}
                       </Button>
@@ -464,7 +465,7 @@ const SetPin = () => {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        toast("이전 단계로 돌아갑니다", {
+                        toast(t('auth.going_back', '이전 단계로 돌아갑니다'), {
                           icon: "⬅️",
                           duration: 1500,
                         });
@@ -476,7 +477,7 @@ const SetPin = () => {
                       className="flex items-center gap-2"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      이전 단계
+                      {t('auth.previous_step', '이전 단계')}
                     </Button>
                   </motion.div>
                 )}
@@ -492,7 +493,7 @@ const SetPin = () => {
                       onClick={form.handleSubmit(onSubmit)}
                       className="flex items-center gap-2"
                     >
-                      다음 단계
+                      {t('auth.next_step', '다음 단계')}
                       <CheckCircle className="h-4 w-4" />
                     </Button>
                   </motion.div>
@@ -522,9 +523,9 @@ const SetPin = () => {
       </div>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
-        PIN은 API 키를 안전하게 보호하는 데 사용됩니다.
+        {t('auth.pin_security_message', 'PIN은 API 키를 안전하게 보호하는 데 사용됩니다.')}
         <br />
-        PIN을 잊어버린 경우 모든 계정 데이터를 새로 설정해야 합니다.
+        {t('auth.pin_reset_message', 'PIN을 잊어버린 경우 모든 계정 데이터를 새로 설정해야 합니다.')}
       </p>
     </div>
   );

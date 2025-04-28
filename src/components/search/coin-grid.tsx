@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // 거래소 아이콘 정보
 const exchangeIcons: Record<string, { src: string; fallback: string }> = {
@@ -23,13 +24,6 @@ const exchangeIcons: Record<string, { src: string; fallback: string }> = {
   },
 };
 
-// 거래소 이름 한글 매핑
-const exchangeNames: Record<string, string> = {
-  bybit: "바이빗",
-  binance: "바이낸스",
-  bitget: "비트겟",
-};
-
 interface CoinGridProps {
   tickers: TickerWithExchange[];
   favorites?: string[];
@@ -41,6 +35,7 @@ export const CoinGrid = ({
   favorites = [],
   onToggleFavorite,
 }: CoinGridProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(3);
@@ -124,14 +119,14 @@ export const CoinGrid = ({
                     <Avatar className="w-5 h-5 h-lg:w-6 h-lg:h-6 mr-1">
                       <AvatarImage
                         src={exchangeIcons[ticker.exchange]?.src}
-                        alt={exchangeNames[ticker.exchange]} // 한글 이름 사용
+                        alt={t(`search.${ticker.exchange}`)}
                       />
                       <AvatarFallback>
                         {exchangeIcons[ticker.exchange]?.fallback}
                       </AvatarFallback>
                     </Avatar>
                     <span className="font-medium text-xs h-lg:text-sm capitalize">
-                      {exchangeNames[ticker.exchange]} {/* 한글 이름 사용 */}
+                      {t(`search.${ticker.exchange}`)}
                     </span>
                   </div>
                   {onToggleFavorite && (
@@ -142,7 +137,7 @@ export const CoinGrid = ({
                       }}
                       className="text-yellow-500 hover:text-yellow-300 flex-shrink-0 p-1 -m-1" // 클릭 영역 확보
                       aria-label={
-                        isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+                        isFavorite ? t('search.remove_from_favorites') : t('search.add_to_favorites')
                       }
                     >
                       <Star
@@ -165,7 +160,7 @@ export const CoinGrid = ({
               <div className="flex justify-between mt-2">
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground">
-                    거래량 {/* 한글 라벨 */}
+                    {t('search.volume')}
                   </span>
                   <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
                     {formatVolume(ticker.baseVolume)}
@@ -173,7 +168,7 @@ export const CoinGrid = ({
                 </div>
                 <div className="flex flex-col items-end">
                   <span className="text-xs text-muted-foreground">
-                    가격 {/* 한글 라벨 */}
+                    {t('search.price')}
                   </span>
                   <span className="font-medium text-xs h-lg:text-sm truncate max-w-[60px] sm:max-w-none">
                     {ticker.last}
@@ -185,7 +180,7 @@ export const CoinGrid = ({
         </div>
       );
     },
-    [navigate, formatSymbol, onToggleFavorite, favorites, columnCount],
+    [navigate, formatSymbol, onToggleFavorite, favorites, columnCount, t],
   );
 
   // 빈 공간 렌더링 함수
@@ -255,8 +250,7 @@ export const CoinGrid = ({
       {/* 결과 없음 표시 */}
       {tickers.length === 0 && (
         <div className="flex items-center justify-center h-40">
-          <p className="text-muted-foreground">결과가 없습니다.</p>{" "}
-          {/* 한글 메시지 */}
+          <p className="text-muted-foreground">{t('search.no_results')}</p>
         </div>
       )}
     </div>

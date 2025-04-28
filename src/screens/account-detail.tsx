@@ -17,8 +17,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 const AccountDetail = () => {
+	const { t } = useTranslation();
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
 	const { accounts, accountsBalance, isLoading } = useAccounts();
@@ -65,12 +67,12 @@ const AccountDetail = () => {
 
 	if (!isLoading && (!account || !id)) {
 		return (
-			<ScreenWrapper headerProps={{ title: "계정 상세 정보" }}>
+			<ScreenWrapper headerProps={{ title: t('account.account_detail') }}>
 				<ScrollArea className="flex-1 h-[calc(100vh-4rem)]">
 					<div className="flex flex-col items-center justify-center h-96 p-4">
-						<p className="text-lg mb-4">존재하지 않는 계정입니다.</p>
+						<p className="text-lg mb-4">{t('account.account_not_exist')}</p>
 						<Button onClick={() => navigate("/accounts")}>
-							계정 목록으로 돌아가기
+							{t('account.back_to_account_list')}
 						</Button>
 					</div>
 				</ScrollArea>
@@ -87,7 +89,7 @@ const AccountDetail = () => {
 
 	return (
 		<ScreenWrapper
-			headerProps={{ title: "계정 상세 정보" }}
+			headerProps={{ title: t('account.account_detail') }}
 			className="overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
 		>
 			<div className="flex flex-col space-y-6 p-4 pb-20">
@@ -109,14 +111,14 @@ const AccountDetail = () => {
 							<CardContent className="p-6">
 								<div className="grid grid-cols-2 gap-4 mb-6">
 									<div className="space-y-1">
-										<p className="text-sm text-muted-foreground">총 잔액</p>
+										<p className="text-sm text-muted-foreground">{t('account.total')}</p>
 										<p className="text-2xl font-medium">
 											{formatUSDValue(balance?.usd?.total || 0)} USD
 										</p>
 									</div>
 									<div className="space-y-1">
 										<p className="text-sm text-muted-foreground">
-											사용 가능 잔액
+											{t('account.available')}
 										</p>
 										<p className="text-2xl font-medium">
 											{formatUSDValue(balance?.usd?.free || 0)} USD
@@ -124,14 +126,14 @@ const AccountDetail = () => {
 									</div>
 									<div className="space-y-1">
 										<p className="text-sm text-muted-foreground">
-											사용 중인 잔액
+											{t('account.in_order')}
 										</p>
 										<p className="text-lg font-medium">
 											{formatUSDValue(balance?.usd?.used || 0)} USD
 										</p>
 									</div>
 									<div className="space-y-1">
-										<p className="text-sm text-muted-foreground">포지션 모드</p>
+										<p className="text-sm text-muted-foreground">{t('account.position_mode')}</p>
 										<p className="text-lg font-medium capitalize">
 											{account?.positionMode || "oneway"}
 										</p>
@@ -139,7 +141,7 @@ const AccountDetail = () => {
 								</div>
 
 								<div className="mt-6">
-									<h3 className="text-lg font-medium mb-2">보유 자산</h3>
+									<h3 className="text-lg font-medium mb-2">{t('account.assets')}</h3>
 									{activeAssets.length > 0 ? (
 										<div className="grid grid-cols-2 gap-4">
 											{activeAssets.map((asset) => (
@@ -166,7 +168,7 @@ const AccountDetail = () => {
 										</div>
 									) : (
 										<p className="text-muted-foreground">
-											자산 정보를 불러올 수 없습니다.
+											{t('account.no_asset_info')}
 										</p>
 									)}
 								</div>
@@ -182,20 +184,20 @@ const AccountDetail = () => {
 								}
 							>
 								<SelectTrigger className="w-[140px]">
-									<SelectValue placeholder="기간 선택" />
+									<SelectValue placeholder={t('account.select_period')} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="7d">최근 7일</SelectItem>
-									<SelectItem value="30d">최근 30일</SelectItem>
-									<SelectItem value="90d">최근 90일</SelectItem>
-									<SelectItem value="all">전체 기간</SelectItem>
+									<SelectItem value="7d">{t('account.last_7_days')}</SelectItem>
+									<SelectItem value="30d">{t('account.last_30_days')}</SelectItem>
+									<SelectItem value="90d">{t('account.last_90_days')}</SelectItem>
+									<SelectItem value="all">{t('account.all_time')}</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
 
 						<Card>
 							<CardHeader>
-								<CardTitle>잔액 변동 추이</CardTitle>
+								<CardTitle>{t('dashboard.capital_change_trend')}</CardTitle>
 							</CardHeader>
 							<CardContent>
 								{isLoadingHistory ? (
@@ -211,7 +213,7 @@ const AccountDetail = () => {
 									/>
 								) : (
 									<p className="text-center text-muted-foreground py-6">
-										잔액 변동 내역이 없습니다.
+										{t('dashboard.no_capital_change_data')}
 									</p>
 								)}
 							</CardContent>
@@ -226,12 +228,14 @@ const AccountDetail = () => {
 
 						<div className="flex justify-between gap-4">
 							<Button variant="outline" onClick={() => navigate("/accounts")}>
-								계정 목록으로 돌아가기
+								{t('account.back_to_account_list')}
 							</Button>
 							<Button onClick={() => navigate(`/account/edit/${id}`)}>
-								계정 편집하기
+								{t('account.edit_account')}
 							</Button>
-							<Button onClick={() => navigate(`/search`)}>트레이딩하기</Button>
+							<Button onClick={() => navigate(`/search`)}>
+								{t('account.go_trading')}
+							</Button>
 						</div>
 					</>
 				)}

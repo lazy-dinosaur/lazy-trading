@@ -8,6 +8,7 @@ import {
 import { ChartData, AdjustedReturnMetrics } from "@/hooks/use-balance-history";
 import { formatUSDValue } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -67,9 +68,10 @@ const CapitalChangeChart = ({
   height = 300,
   adjustedReturn,
 }: CapitalChangeChartProps) => {
+  const { t } = useTranslation();
   // 차트 데이터의 시작과 끝 날짜를 문자열로 반환
   const getDateRangeText = (): string => {
-    if (!data || data.length < 2) return "7일간 데이터";
+    if (!data || data.length < 2) return t('dashboard.seven_day_data', '7일간 데이터');
 
     const startDate = new Date(data[0].time);
     const endDate = new Date(data[data.length - 1].time);
@@ -146,7 +148,7 @@ const CapitalChangeChart = ({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl">자본 변동 추이</CardTitle>
+            <CardTitle className="text-xl">{t('dashboard.capital_change_trend', '자본 변동 추이')}</CardTitle>
             <CardDescription className="flex items-center">
               {getDateRangeText()}
               {weeklyChangeRate && (
@@ -160,14 +162,14 @@ const CapitalChangeChart = ({
             </CardDescription>
           </div>
           {isLoading && !isError && <RefreshCw className="h-4 w-4 animate-spin" />}
-          {isError && <span className="text-xs text-red-500">오류 발생</span>}
+          {isError && <span className="text-xs text-red-500">{t('common.error_occurred', '오류 발생')}</span>}
         </div>
       </CardHeader>
       <CardContent>
         {/* 에러 상태 처리 */}
         {isError ? (
           <div className="flex justify-center items-center h-[200px] text-muted-foreground text-red-500">
-            데이터를 불러오는데 실패했습니다.
+            {t('dashboard.failed_to_load_data', '데이터를 불러오는데 실패했습니다.')}
           </div>
         ) : /* 로딩 중이 아니고 데이터가 있을 때 차트 표시 */
         !isLoading && data && data.length > 0 ? (
@@ -221,7 +223,7 @@ const CapitalChangeChart = ({
                   stroke="#888"
                   strokeDasharray="3 3"
                   label={{
-                    value: `기준: $${formatUSDValue(weeklyBaselineValue)}`,
+                    value: `${t('dashboard.baseline', '기준')}: $${formatUSDValue(weeklyBaselineValue)}`,
                     position: "insideBottomRight",
                     fill: "#888",
                     fontSize: 12,
@@ -246,10 +248,10 @@ const CapitalChangeChart = ({
             {isLoading ? (
               <>
                 <RefreshCw className="h-5 w-5 animate-spin mr-2" />
-                데이터 로딩 중...
+                {t('common.loading', '데이터 로딩 중...')}
               </>
             ) : (
-              "표시할 자본 변동 데이터가 없습니다"
+              t('dashboard.no_capital_change_data', '표시할 자본 변동 데이터가 없습니다')
             )}
           </div>
         )}

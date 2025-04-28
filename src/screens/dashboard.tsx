@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { formatUSDValue } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import {
@@ -93,6 +94,7 @@ interface CCXTPosition {
 // ChartData 인터페이스는 hooks/use-balance-history에서 가져옴
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
@@ -159,14 +161,14 @@ const Dashboard = () => {
 
       // 성공 처리
       setIsCloseSuccess(true);
-      toast.success(`${position.symbol} 포지션이 성공적으로 종료되었습니다.`);
+      toast.success(t('trade.close_position_success', {symbol: position.symbol}));
       
       // 포지션 데이터 새로고침 - 문자열 배열이 아닌 올바른 query key 형식 사용
       queryClient.invalidateQueries({queryKey: ["positions"]});
     } catch (error) {
       console.error("포지션 종료 중 오류 발생:", error);
-      setCloseError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.");
-      toast.error("포지션 종료 실패");
+      setCloseError(error instanceof Error ? error.message : t('common.error'));
+      toast.error(t('trade.close_position_error'));
     } finally {
       setIsClosingPosition(false);
     }
@@ -415,7 +417,7 @@ const Dashboard = () => {
           {/* 총 자산 카드 */}
           <Card className="bg-primary/5">
             <CardHeader className="pb-2">
-              <CardDescription>총 자산</CardDescription>
+              <CardDescription>{t('dashboard.total_balance')}</CardDescription>
               {/* 작은 화면에서는 text-2xl, 큰 화면에서는 text-3xl */}
               <CardTitle className="text-2xl lg:text-3xl flex items-center">
                 {!accountsBalance ? (
@@ -434,7 +436,7 @@ const Dashboard = () => {
                 >
                   <TrendingUp className="h-4 w-4 mr-1" />
                   <span className="flex items-center">
-                    7일 보정 수익률:{" "}
+                    {t('dashboard.adjusted_return')}{" "}
                     {adjustedReturnData.adjustedReturnRate >= 0 ? "+" : ""}
                     {adjustedReturnData.adjustedReturnRate.toFixed(2)}%
                     <TooltipProvider>
@@ -444,37 +446,37 @@ const Dashboard = () => {
                         </TooltipTrigger>
                         <TooltipContent className="max-w-[280px]">
                           <p className="font-medium mb-1">
-                            보정 수익률 = 기간수익금 / 투자자본금 평균
+                            {t('dashboard.adjusted_return_formula')}
                           </p>
                           <ul className="text-xs space-y-1">
                             <li>
-                              • 기간수익금: $
+                              • {t('dashboard.period_profit')}{" "}
                               {formatUSDValue(adjustedReturnData.periodReturn)}
                             </li>
                             <li>
-                              • 투자자본금: $
+                              • {t('dashboard.investment_capital_full')}{" "}
                               {formatUSDValue(
                                 adjustedReturnData.averageCapital,
                               )}
                             </li>
                             <li className="pt-1">
-                              • 초기자산: $
+                              • {t('dashboard.initial_asset')}{" "}
                               {formatUSDValue(adjustedReturnData.initialAsset)}
                             </li>
                             <li>
-                              • 현재자산: $
+                              • {t('dashboard.current_asset')}{" "}
                               {formatUSDValue(adjustedReturnData.finalAsset)}
                             </li>
                             <li>
-                              • 입금액: $
+                              • {t('dashboard.deposits')}{" "}
                               {formatUSDValue(adjustedReturnData.deposits)}
                             </li>
                             <li>
-                              • 출금액: $
+                              • {t('dashboard.withdrawals')}{" "}
                               {formatUSDValue(adjustedReturnData.withdrawals)}
                             </li>
                             <li className="pt-1 text-muted-foreground">
-                              투자자본금 = (입금액 - 출금액) + 초기자산
+                              {t('dashboard.investment_formula')}
                             </li>
                           </ul>
                         </TooltipContent>
@@ -487,20 +489,18 @@ const Dashboard = () => {
                   {isLoadingBalanceHistory || isLoadingAdjustedReturn ? (
                     <>
                       <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                      보정 수익률 계산 중...
+                      {t('dashboard.adjusted_return_loading')}
                     </>
                   ) : (
                     <>
-                      <span>보정 수익률 계산 불가</span>
+                      <span>{t('dashboard.adjusted_return_unavailable')}</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>
-                              데이터가 부족하거나 계산 중 문제가 발생했습니다.
-                            </p>
+                            <p>{t('dashboard.error_occurred')}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -512,7 +512,7 @@ const Dashboard = () => {
               {/* 기존 변동률도 함께 표시 (작게) */}
               {recentStableCoinChangeRate !== null && (
                 <div className="text-xs text-muted-foreground mt-1">
-                  단순 변동률: {recentStableCoinChangeRate >= 0 ? "+" : ""}
+                  {t('dashboard.simple_change_rate')} {recentStableCoinChangeRate >= 0 ? "+" : ""}
                   {recentStableCoinChangeRate.toFixed(2)}%
                 </div>
               )}
@@ -527,12 +527,12 @@ const Dashboard = () => {
           {/* 스테이블 코인 잔고 변동 차트 */}
           <Card>
             <CardHeader>
-              <CardTitle>주요 자산(USD) 변동</CardTitle>
+              <CardTitle>{t('dashboard.asset_change')}</CardTitle>
               <CardDescription className="flex flex-col">
-                <span>지난 7일간 자산 및 보정 수익률 추이</span>
+                <span>{t('dashboard.asset_change_desc')}</span>
                 {adjustedReturnData?.hasValidData && (
                   <span className="text-xs mt-1">
-                    투자자본금: $
+                    {t('dashboard.investment_capital')}
                     {formatUSDValue(adjustedReturnData.averageCapital)}
                   </span>
                 )}
@@ -560,15 +560,15 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <div>
-                <CardTitle>계정 목록 ({accountCount})</CardTitle>
-                <CardDescription>연결된 거래소 계정</CardDescription>
+                <CardTitle>{t('dashboard.account_count', {count: accountCount})}</CardTitle>
+                <CardDescription>{t('dashboard.connected_exchange_accounts')}</CardDescription>
               </div>
               <Button
                 variant="outline"
                 onClick={() => navigate("/account/add?exchange=bybit")}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                계정 추가
+                {t('dashboard.add_account')}
               </Button>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -618,14 +618,14 @@ const Dashboard = () => {
               ) : (
                 <div className="py-8 text-center text-muted-foreground">
                   <CreditCard className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p>등록된 계정이 없습니다</p>
+                  <p>{t('dashboard.no_accounts')}</p>
                   <Button
                     className="mt-4"
                     variant="outline"
                     onClick={() => navigate("/account/add")}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    계정 추가하기
+                    {t('dashboard.add_account_button')}
                   </Button>
                 </div>
               )}
@@ -637,7 +637,7 @@ const Dashboard = () => {
                   className="w-full"
                   onClick={() => navigate("/accounts")}
                 >
-                  모든 계정 보기
+                  {t('dashboard.view_all_accounts')}
                 </Button>
               </CardFooter>
             )}
@@ -647,8 +647,8 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <div>
-                <CardTitle>활성 포지션</CardTitle>
-                <CardDescription>현재 진입 중인 거래 포지션</CardDescription>
+                <CardTitle>{t('dashboard.active_positions')}</CardTitle>
+                <CardDescription>{t('dashboard.active_positions_desc')}</CardDescription>
               </div>
               {isLoadingPositions && (
                 <RefreshCw className="h-4 w-4 animate-spin" />
@@ -763,15 +763,15 @@ const Dashboard = () => {
                           <div>
                             <div>
                               {position.size.toFixed(position.size < 1 ? 4 : 2)}{" "}
-                              계약
+                              {t('dashboard.contract')}
                             </div>
                             <div>
-                              진입: ${formatUSDValue(position.entryPrice)}
+                              {t('dashboard.entry')} {formatUSDValue(position.entryPrice)}
                             </div>
                           </div>
                           <div className="text-right">
                             <div>
-                              표시: ${formatUSDValue(position.markPrice)}
+                              {t('dashboard.mark')} {formatUSDValue(position.markPrice)}
                             </div>
                             <div>
                               {position.accountName} ({position.exchange})
@@ -783,14 +783,14 @@ const Dashboard = () => {
                   ) : (
                     <div className="py-8 text-center text-muted-foreground">
                       <LineChart className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                      <p>활성화된 포지션이 없습니다</p>
+                      <p>{t('dashboard.no_active_positions')}</p>
                       <Button
                         className="mt-4"
                         variant="outline"
                         onClick={() => navigate("/search")}
                       >
                         <LineChart className="h-4 w-4 mr-2" />
-                        거래 검색하기
+                        {t('dashboard.search_trades')}
                       </Button>
                     </div>
                   )}

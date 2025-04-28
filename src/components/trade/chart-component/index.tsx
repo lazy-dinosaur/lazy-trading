@@ -7,12 +7,14 @@ import { useChartData } from "@/contexts/chart-data/use";
 // import { getStopLossMarkers } from "@/lib/chart"; // 사용되지 않으므로 제거
 import { ExchangeType } from "@/lib/accounts";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ChartComponentProps {
   height?: number; // 차트 높이 설정을 위한 prop 추가
 }
 
 export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { data, handleScroll, chartformat, isLoading } = useChartData();
 
@@ -59,15 +61,15 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
           {isLoading ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">로딩 중...</span>
+              <span className="text-sm text-muted-foreground">{t('common.loading')}</span>
             </div>
           ) : (
             <div className="text-center p-4">
               <div className="text-lg font-medium mb-1">
-                차트 데이터가 없습니다
+                {t('chart.no_data')}
               </div>
               <div className="text-sm text-muted-foreground">
-                다른 시간대나 심볼을 선택해 보세요
+                {t('chart.try_different')}
               </div>
             </div>
           )}

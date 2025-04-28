@@ -18,21 +18,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { usePin } from "@/contexts/pin/use";
 import { Lock, Unlock, X, RefreshCw, Shield, ShieldAlert, Github } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
 import { useAnalytics } from "@/contexts/analytics/use";
 
-const formSchema = z.object({
-  pin: z.string().length(4, {
-    message: "PIN은 4자리 숫자여야 합니다",
-  }),
-});
-
-type PinFormValues = z.infer<typeof formSchema>;
-
 const MAX_ATTEMPTS = 5;
+
+// 폼 스키마는 컴포넌트 내부에서 정의됩니다
 
 // 숫자 키패드 구성
 const numpadKeys = [
@@ -43,6 +38,7 @@ const numpadKeys = [
 ];
 
 const Locked = () => {
+  const { t } = useTranslation();
   const { encryptedPin, validatePin } = usePin();
   const [attempts, setAttempts] = useState(0);
   const [showPin, setShowPin] = useState(false);
@@ -51,6 +47,16 @@ const Locked = () => {
   const [validating, setValidating] = useState(false);
   const queryClient = useQueryClient();
   const { trackEvent } = useAnalytics();
+
+  // 폼 스키마를 컴포넌트 내부로 이동하여 번역 함수(t) 사용
+  const formSchema = z.object({
+    pin: z.string().length(4, {
+      message: t('auth.pin_must_be_4_digits', 'PIN은 4자리 숫자여야 합니다'),
+    }),
+  });
+  
+  // 타입 정의
+  type PinFormValues = z.infer<typeof formSchema>;
 
   const form = useForm<PinFormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +73,7 @@ const Locked = () => {
   }, [attempts]);
 
   const resetAllData = async () => {
-    const toastId = toast.loading("앱 데이터를 초기화 중입니다...");
+    const toastId = toast.loading(t('auth.resetting_app_data', '앱 데이터를 초기화 중입니다...'));
     try {
       // 애널리틱스 이벤트 트래킹
       trackEvent({
@@ -83,7 +89,7 @@ const Locked = () => {
       queryClient.resetQueries();
 
       toast.dismiss(toastId);
-      toast.success("모든 데이터가 초기화되었습니다. 앱을 다시 시작합니다.", {
+      toast.success(t('auth.all_data_reset', '모든 데이터가 초기화되었습니다. 앱을 다시 시작합니다.'), {
         duration: 3000,
         icon: "🔄",
       });
@@ -94,7 +100,7 @@ const Locked = () => {
       }, 2000);
     } catch (error) {
       toast.dismiss(toastId);
-      toast.error("데이터 초기화 중 오류가 발생했습니다.");
+      toast.error(t('auth.error_resetting_data', '데이터 초기화 중 오류가 발생했습니다.'));
       console.error("데이터 초기화 오류:", error);
     }
   };
@@ -103,7 +109,7 @@ const Locked = () => {
     if (!encryptedPin) return;
 
     setValidating(true);
-    const loadingToast = toast.loading("PIN 확인 중...");
+    const loadingToast = toast.loading(t('auth.verifying_pin', 'PIN 확인 중...'));
 
     try {
       const result = await validatePin({
@@ -132,7 +138,7 @@ const Locked = () => {
 
           if (newAttempts >= MAX_ATTEMPTS) {
             toast.error(
-              "PIN 시도 횟수를 초과했습니다. 데이터를 초기화합니다.",
+              t('auth.pin_attempts_exceeded', 'PIN 시도 횟수를 초과했습니다. 데이터를 초기화합니다.'),
               {
                 duration: 4000,
                 icon: "⚠️",
@@ -142,7 +148,7 @@ const Locked = () => {
           } else {
             const remainingAttempts = MAX_ATTEMPTS - newAttempts;
             toast.error(
-              `PIN이 올바르지 않습니다. 남은 시도 횟수: ${remainingAttempts}회`,
+              t('auth.incorrect_pin_remaining_attempts', 'PIN이 올바르지 않습니다. 남은 시도 횟수: {{count}}회', {count: remainingAttempts}),
               {
                 icon: "❌",
                 duration: 3000,
@@ -156,7 +162,7 @@ const Locked = () => {
         form.reset();
       } else {
         // PIN 검증 성공
-        toast.success("PIN 확인 성공! 환영합니다.", {
+        toast.success(t('auth.pin_verification_success', 'PIN 확인 성공! 환영합니다.'), {
           icon: "🔓",
           duration: 2000,
         });
@@ -171,7 +177,7 @@ const Locked = () => {
     } catch (error) {
       toast.dismiss(loadingToast);
       setValidating(false);
-      toast.error("PIN 확인 중 오류가 발생했습니다.");
+      toast.error(t('auth.pin_verification_error', 'PIN 확인 중 오류가 발생했습니다.'));
 
       setAttempts((prev) => {
         const newAttempts = prev + 1;
@@ -261,13 +267,13 @@ const Locked = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-6"
             >
-              <h1 className="text-2xl font-bold">잠금 해제</h1>
+              <h1 className="text-2xl font-bold">{t('auth.unlock')}</h1>
               <p className="text-muted-foreground mt-2">
-                API 키 및 계정 정보 접근을 위해 PIN을 입력하세요
+                {t('auth.enter_pin_to_access')}
                 {attempts > 0 && (
                   <span className="text-destructive font-medium">
                     {" "}
-                    (남은 시도: {MAX_ATTEMPTS - attempts}회)
+                    {t('auth.remaining_attempts', '(남은 시도: {{count}}회)', {count: MAX_ATTEMPTS - attempts})}
                   </span>
                 )}
               </p>
@@ -277,11 +283,9 @@ const Locked = () => {
           {showWarning && (
             <Alert variant="destructive" className="mb-6">
               <ShieldAlert className="h-4 w-4" />
-              <AlertTitle>PIN 입력 주의</AlertTitle>
+              <AlertTitle>{t('auth.pin_entry_warning', 'PIN 입력 주의')}</AlertTitle>
               <AlertDescription className="text-xs">
-                PIN을 {MAX_ATTEMPTS}회 이상 잘못 입력하면 모든 데이터가
-                초기화됩니다. PIN이 기억나지 않으면 앱을 재설치하고 API 키를
-                다시 설정해야 합니다.
+                {t('auth.pin_reset_warning', 'PIN을 {{count}}회 이상 잘못 입력하면 모든 데이터가 초기화됩니다. PIN이 기억나지 않으면 앱을 재설치하고 API 키를 다시 설정해야 합니다.', {count: MAX_ATTEMPTS})}
               </AlertDescription>
             </Alert>
           )}
@@ -349,11 +353,11 @@ const Locked = () => {
                       >
                         {showPin ? (
                           <span className="flex items-center gap-1">
-                            <Lock className="h-3 w-3" /> PIN 숨기기
+                            <Lock className="h-3 w-3" /> {t('auth.hide_pin', 'PIN 숨기기')}
                           </span>
                         ) : (
                           <span className="flex items-center gap-1">
-                            <Unlock className="h-3 w-3" /> PIN 표시하기
+                            <Unlock className="h-3 w-3" /> {t('auth.show_pin', 'PIN 표시하기')}
                           </span>
                         )}
                       </Button>
@@ -413,7 +417,7 @@ const Locked = () => {
                     onClick={() => {
                       if (
                         window.confirm(
-                          "정말로 모든 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+                          t('auth.confirm_reset_data', '정말로 모든 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')
                         )
                       ) {
                         resetAllData();
@@ -423,7 +427,7 @@ const Locked = () => {
                     disabled={validating}
                   >
                     <Shield className="h-3 w-3" />
-                    데이터 초기화
+                    {t('auth.reset_data', '데이터 초기화')}
                   </Button>
                 </div>
               )}
@@ -433,7 +437,7 @@ const Locked = () => {
       </Card>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
-        PIN을 잊으셨다면 앱 데이터를 초기화해야 합니다.
+        {t('auth.forgot_pin_message')}
       </p>
     </div>
   );

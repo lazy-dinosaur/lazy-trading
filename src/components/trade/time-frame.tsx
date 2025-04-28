@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { cn } from "@/lib/utils";
 import { useAnalytics } from "@/contexts/analytics/use";
+import { useTranslation } from "react-i18next";
 
 export type TimeFrameType =
   | "1"
@@ -39,6 +40,7 @@ const TimeFrameButton = ({ value, label, isActive, onClick }: TimeFrameButtonPro
 };
 
 export const TimeFrame = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const timeframe = searchParams.get("timeframe") as TimeFrameType || "1";
   const { trackEvent } = useAnalytics();
@@ -68,20 +70,20 @@ export const TimeFrame = () => {
 
   // 시간 프레임 옵션 정의
   const timeframeOptions: { value: TimeFrameType; label: string }[] = [
-    { value: "1", label: "1m" },
-    { value: "5", label: "5m" },
-    { value: "15", label: "15m" },
-    { value: "30", label: "30m" },
-    { value: "60", label: "1h" },
-    { value: "240", label: "4h" },
-    { value: "D", label: "1D" },
-    { value: "W", label: "1W" },
-    { value: "M", label: "1M" },
+    { value: "1", label: t('timeframe.1m') },
+    { value: "5", label: t('timeframe.5m') },
+    { value: "15", label: t('timeframe.15m') },
+    { value: "30", label: t('timeframe.30m') },
+    { value: "60", label: t('timeframe.1h') },
+    { value: "240", label: t('timeframe.4h') },
+    { value: "D", label: t('timeframe.1d') },
+    { value: "W", label: t('timeframe.1w') },
+    { value: "M", label: t('timeframe.1M') },
   ];
 
   return (
     <div className="flex items-center">
-      <div className="mr-2 text-xs text-muted-foreground hidden md:block">Time:</div>
+      <div className="mr-2 text-xs text-muted-foreground hidden md:block">{t('trade.time')}:</div>
       <div className="flex flex-wrap gap-1 border bg-card/50 p-1 rounded-md">
         {timeframeOptions.map((option) => (
           <TimeFrameButton

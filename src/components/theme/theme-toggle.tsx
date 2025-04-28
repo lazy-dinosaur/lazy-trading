@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ThemeType } from "@/contexts/settings/type";
+import { useTranslation } from "react-i18next";
 
 interface ThemeToggleProps {
   className?: string;
@@ -16,20 +17,21 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme } = useSettings();
+  const { t } = useTranslation();
 
   const options: { label: string; value: ThemeType; icon: React.ReactNode }[] = [
     {
-      label: "라이트",
+      label: t('settings.light'),
       value: "light",
       icon: <Sun className="h-4 w-4" />,
     },
     {
-      label: "다크",
+      label: t('settings.dark'),
       value: "dark",
       icon: <Moon className="h-4 w-4" />,
     },
     {
-      label: "시스템",
+      label: t('settings.system'),
       value: "system",
       icon: <Monitor className="h-4 w-4" />,
     },
@@ -44,7 +46,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           variant="ghost"
           size="icon"
           className={cn("h-8 w-8", className)}
-          aria-label="테마 변경"
+          aria-label={t('settings.theme')}
         >
           {currentOption.icon}
         </Button>
