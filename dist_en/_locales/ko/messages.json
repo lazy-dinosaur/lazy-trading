@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "LazyTrading",
+    "description": "애플리케이션 이름"
+  },
+  "appDesc": {
+    "message": "Binance, Bybit, Bitget 거래소 연동으로 암호화폐 거래에서 안전한 매매 진입을 도와주는 크롬 확장 프로그램입니다.",
+    "description": "애플리케이션 설명"
+  }
+}

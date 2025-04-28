@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "LazyTrading",
+    "description": "Application name"
+  },
+  "appDesc": {
+    "message": "A Chrome extension that helps with safe trade entry in cryptocurrency trading by connecting to Binance, Bybit, and Bitget exchanges.",
+    "description": "Application description"
+  }
+}

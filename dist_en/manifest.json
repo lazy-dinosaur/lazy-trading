@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "LazyTrading",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "version": "1.0.0",
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://*.binance.vision/*",
+    "https://testnet.binance.vision/*",
+    "https://testnet.binancefuture.com/*",
+    "https://*.binancefuture.com/*",
+    "https://api.bitget.com/*",
+    "https://*.bitget.com/*",
+    "https://api.binance.com/*",
+    "https://*.binance.com/*",
+    "https://api.bybit.com/*",
+    "https://*.bybit.com/*",
+    "https://api-testnet.bybit.com/*",
+    "https://api.okx.com/*",
+    "https://*.okx.com/*",
+    "https://api.huobi.com/*",
+    "https://*.huobi.com/*",
+    "https://api.kucoin.com/*",
+    "https://*.kucoin.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.binance.com wss://*.binance.com https://*.bybit.com wss://*.bybit.com https://*.bitget.com wss://*.bitget.com https://*.okx.com https://*.huobi.com https://*.kucoin.com https://*.binance.vision https://testnet.binance.vision https://testnet.binancefuture.com https://*.binancefuture.com https://api-testnet.bybit.com"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "description": "A Chrome extension that helps with safe trade entry in cryptocurrency trading by connecting to Binance, Bybit, and Bitget exchanges."
+}
