@@ -39,36 +39,8 @@ export const ChartComponent = ({ height = 400 }: ChartComponentProps) => {
   return (
     <div
       className="relative w-full border rounded-md overflow-hidden h-[35vh]"
-      // style={height ? { height: `${height}px` } : undefined}
+    // style={height ? { height: `${height}px` } : undefined}
     >
-      {/* 비용 및 이익 표시 오버레이 - 선택된 탭에 따라 표시 */}
-
-      {/* {tradeInfo && data.length > 0 && ( */}
-      {/*   <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md border flex flex-col text-xs space-y-1.5"> */}
-      {/*     {tradeDirection === "long" && ( */}
-      {/*       <div className="flex items-center gap-1.5 text-green-500"> */}
-      {/*         <ArrowUpRight className="w-3.5 h-3.5" /> */}
-      {/*         <span className="font-medium">Long:</span> */}
-      {/*         <div className="flex gap-1"> */}
-      {/*           <span>TP: {tradeInfo.long.target.formatted}</span> */}
-      {/*           <span>|</span> */}
-      {/*           <span>SL: {tradeInfo.long.stoploss.formatted}</span> */}
-      {/*         </div> */}
-      {/*       </div> */}
-      {/*     )} */}
-      {/*     {tradeDirection === "short" && ( */}
-      {/*       <div className="flex items-center gap-1.5 text-red-500"> */}
-      {/*         <ArrowDownRight className="w-3.5 h-3.5" /> */}
-      {/*         <span className="font-medium">Short:</span> */}
-      {/*         <div className="flex gap-1"> */}
-      {/*           <span>TP: {tradeInfo.short.target.formatted}</span> */}
-      {/*           <span>|</span> */}
-      {/*           <span>SL: {tradeInfo.short.stoploss.formatted}</span> */}
-      {/*         </div> */}
-      {/*       </div> */}
-      {/*     )} */}
-      {/*   </div> */}
-      {/* )} */}
 
       {/* 차트 렌더링 */}
       {data.length > 0 ? (
