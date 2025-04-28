@@ -103,7 +103,7 @@ const Dashboard = () => {
     accountsBalance,
     isLoading: isLoadingAccounts,
   } = useAccounts();
-  
+
   // 포지션 종료 관련 상태
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -132,20 +132,20 @@ const Dashboard = () => {
   const handleClosePosition = async (position: Position) => {
     setIsClosingPosition(true);
     setCloseError(null);
-    
+
     try {
       // 계정 정보 가져오기
       if (!decryptedAccounts) {
         throw new Error("계정 정보를 찾을 수 없습니다.");
       }
-      
+
       const account = decryptedAccounts[position.accountId];
       if (!account) {
         throw new Error("계정 정보를 찾을 수 없습니다.");
       }
 
       const exchange = account.exchangeInstance.ccxt;
-      
+
       // 포지션 종료 주문 생성
       // CCXT를 사용하여 포지션을 종료하는 로직
       await exchange.createOrder(
@@ -161,10 +161,10 @@ const Dashboard = () => {
 
       // 성공 처리
       setIsCloseSuccess(true);
-      toast.success(t('trade.close_position_success', {symbol: position.symbol}));
-      
+      toast.success(t('trade.close_position_success', { symbol: position.symbol }));
+
       // 포지션 데이터 새로고침 - 문자열 배열이 아닌 올바른 query key 형식 사용
-      queryClient.invalidateQueries({queryKey: ["positions"]});
+      queryClient.invalidateQueries({ queryKey: ["positions"] });
     } catch (error) {
       console.error("포지션 종료 중 오류 발생:", error);
       setCloseError(error instanceof Error ? error.message : t('common.error'));
@@ -184,7 +184,7 @@ const Dashboard = () => {
 
   const closeModal = () => {
     setIsCloseModalOpen(false);
-    
+
     // 성공 후 모달이 닫히면 선택된 포지션 정보 초기화
     if (isCloseSuccess) {
       setTimeout(() => {
@@ -193,7 +193,7 @@ const Dashboard = () => {
       }, 300);
     }
   };
-  
+
   // 총 잔액 계산
   const totalBalance = Object.values(accountsBalance || {}).reduce(
     (sum, item: any) => sum + (item.balance?.usd?.total || 0),
@@ -552,7 +552,7 @@ const Dashboard = () => {
               />
             </CardContent>
           </Card>
-        </div>{" "}
+        </div>
         {/* 첫 번째 열 끝 */}
         {/* 계정 목록과 활성 포지션을 포함할 두 번째 열 */}
         <div className="space-y-5 lg:col-span-1">
@@ -560,7 +560,7 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <div>
-                <CardTitle>{t('dashboard.account_count', {count: accountCount})}</CardTitle>
+                <CardTitle>{t('dashboard.account_count', { count: accountCount })}</CardTitle>
                 <CardDescription>{t('dashboard.connected_exchange_accounts')}</CardDescription>
               </div>
               <Button
@@ -699,7 +699,7 @@ const Dashboard = () => {
                         className="flex flex-col p-3 border rounded-lg hover:bg-secondary/10"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <div 
+                          <div
                             className="flex items-center gap-2 cursor-pointer"
                             onClick={() =>
                               navigate(
@@ -749,7 +749,7 @@ const Dashboard = () => {
                             </Button>
                           </div>
                         </div>
-                        <div 
+                        <div
                           className="flex justify-between text-sm text-muted-foreground cursor-pointer"
                           onClick={() =>
                             navigate(
@@ -798,10 +798,10 @@ const Dashboard = () => {
               </ScrollArea>
             </CardContent>
           </Card>
-        </div>{" "}
+        </div>
         {/* 두 번째 열 끝 */}
       </div>
-      
+
       {/* 포지션 종료 모달 */}
       <PositionCloseModal
         isOpen={isCloseModalOpen}
