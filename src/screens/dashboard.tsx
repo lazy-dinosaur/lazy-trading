@@ -158,6 +158,7 @@ const Dashboard = () => {
           reduceOnly: true,
         }
       );
+      console.log("포지션 종료 주문 생성:", position.symbol, position.side);
 
       // 성공 처리
       setIsCloseSuccess(true);

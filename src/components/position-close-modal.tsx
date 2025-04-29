@@ -7,9 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 import { formatUSDValue } from "@/lib/utils";
 
 interface Position {
@@ -50,10 +49,6 @@ export function PositionCloseModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[360px] p-4 gap-2 w-[calc(100%-32px)]">
-        <DialogPrimitive.Close className="absolute right-2 top-2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-          <X className="h-3 w-3" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
         <DialogHeader className="pb-1">
           <DialogTitle className="text-base">포지션 종료 확인</DialogTitle>
           <DialogDescription className="text-xs">

@@ -70,7 +70,7 @@
   "dashboard": {
     "total_balance": "총 자산",
     "account_list": "계정 목록",
-    "account_count": "계정 목록 ({count})",
+    "account_count": "계정 목록 {{count}}",
     "connected_exchange_accounts": "연결된 거래소 계정",
     "add_account": "계정 추가",
     "view_all_accounts": "모든 계정 보기",

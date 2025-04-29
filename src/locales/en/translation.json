@@ -70,7 +70,7 @@
   "dashboard": {
     "total_balance": "Total Balance",
     "account_list": "Account List",
-    "account_count": "Account List ({count})",
+    "account_count": "Account List {{count}}",
     "connected_exchange_accounts": "Connected Exchange Accounts",
     "add_account": "Add Account",
     "view_all_accounts": "View All Accounts",
