@@ -17,6 +17,7 @@ import {
   Scissors,
   Settings,
   X,
+  Loader2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -155,35 +156,49 @@ export const PositionsList = () => {
 
     const closeSide = side === "long" ? "sell" : "buy";
 
-    // 거래소별 파라미터 설정
-    let params: any = {};
-    if (exchange === "binance") {
-      // 바이낸스 헷지 모드: positionSide 사용
-      params = { positionSide: side === "long" ? "LONG" : "SHORT" };
-    } else if (exchange === "bybit") {
-      // 바이빗: 계정의 포지션 모드에 따라 다른 파라미터 사용
-      const isHedgeMode = selectedAccount.positionMode === "hedge";
-
-      if (isHedgeMode) {
-        // 양방향 모드일 경우 positionIdx 사용
-        // long: 1, short: 2
-        params = {
-          reduceOnly: true,
-          positionIdx: side === "long" ? 1 : 2,
-        };
-      } else {
-        // 단방향 모드일 경우 positionIdx: 0 사용
-        params = {
-          reduceOnly: true,
-          positionIdx: 0,
-        };
-      }
-    } else {
-      // 기타 거래소: reduceOnly 사용 (기본값)
-      params = { reduceOnly: true };
-    }
-
     try {
+      // 추가: 비트겟 거래소 포지션 종료를 위한 파라미터 설정
+      let params: any = { reduceOnly: true };
+
+      // 비트겟 거래소인 경우 포지션 모드에 따라 oneWayMode와 hedged 설정
+      if (selectedAccount.exchange === 'bitget') {
+        // 계정의 포지션 모드 확인 (기본값: "oneway")
+        const positionMode = selectedAccount.positionMode || "oneway";
+
+        // 헷지 모드일 경우: oneWayMode: false, hedged: true
+        // 원웨이 모드일 경우: oneWayMode: true, hedged: false
+        params = {
+          reduceOnly: true,
+          hedged: positionMode === "hedge", // 헷지 모드면 true, 아니면 false
+          oneWayMode: positionMode !== "hedge" // 헷지 모드면 false, 아니면 true
+        };
+        console.log(`비트겟 포지션 종료 - 모드: ${positionMode}, 파라미터:`, params);
+      } else if (exchange === "binance") {
+        // 바이낸스 헷지 모드: positionSide 사용
+        params = { 
+          reduceOnly: true,
+          positionSide: side === "long" ? "LONG" : "SHORT" 
+        };
+      } else if (exchange === "bybit") {
+        // 바이빗: 계정의 포지션 모드에 따라 다른 파라미터 사용
+        const isHedgeMode = selectedAccount.positionMode === "hedge";
+
+        if (isHedgeMode) {
+          // 양방향 모드일 경우 positionIdx 사용
+          // long: 1, short: 2
+          params = {
+            reduceOnly: true,
+            positionIdx: side === "long" ? 1 : 2,
+          };
+        } else {
+          // 단방향 모드일 경우 positionIdx: 0 사용
+          params = {
+            reduceOnly: true,
+            positionIdx: 0,
+          };
+        }
+      }
+
       const order = await selectedAccount.exchangeInstance.ccxt.createOrder(
         symbol,
         "market", // 시장가
@@ -502,8 +517,17 @@ const TradingItemCard = ({
               }}
               disabled={isClosing}
             >
-              <X className="w-3 h-3 mr-1" />
-              {isClosing ? t('trade.closing') : t('trade.close_position')}
+              {isClosing ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  {t('trade.closing')}
+                </>
+              ) : (
+                <>
+                  <X className="w-3 h-3 mr-1" />
+                  {t('trade.close_position')}
+                </>
+              )}
             </Button>
           )}
         </div>

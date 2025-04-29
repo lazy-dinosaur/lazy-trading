@@ -146,18 +146,35 @@ const Dashboard = () => {
 
       const exchange = account.exchangeInstance.ccxt;
 
+      // 추가: 비트겟 거래소 포지션 종료를 위한 파라미터 설정
+      let params = { reduceOnly: true };
+
+      // 비트겟 거래소인 경우 포지션 모드에 따라 oneWayMode와 hedged 설정
+      if (account.exchange === 'bitget') {
+        // 계정의 포지션 모드 확인 (기본값: "oneway")
+        const positionMode = account.positionMode || "oneway";
+
+        // 헷지 모드일 경우: oneWayMode: false, hedged: true
+        // 원웨이 모드일 경우: oneWayMode: true, hedged: false
+        params = {
+          reduceOnly: true,
+          hedged: positionMode === "hedge", // 헷지 모드면 true, 아니면 false
+          oneWayMode: positionMode !== "hedge" // 헷지 모드면 false, 아니면 true
+        } as any; // 타입 단언 추가
+        console.log(`비트겟 포지션 종료 - 모드: ${positionMode}, 파라미터:`, params);
+      }
+
       // 포지션 종료 주문 생성
-      // CCXT를 사용하여 포지션을 종료하는 로직
       await exchange.createOrder(
         position.symbol,
         'market',
         position.side === 'long' ? 'sell' : 'buy',
         position.size,
         undefined,
-        {
-          reduceOnly: true,
-        }
+        params // 수정된 파라미터 사용
       );
+
+
       console.log("포지션 종료 주문 생성:", position.symbol, position.side);
 
       // 성공 처리
