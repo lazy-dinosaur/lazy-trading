@@ -12,6 +12,7 @@ myproject.yml
 node_modules
 dist
 dist-ssr
+dist_en
 *.local
 
 # Editor directories and files

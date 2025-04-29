@@ -16,6 +16,7 @@ import { usePositionTPSL } from "@/hooks/use-position-tp-sl";
 import { Exchange } from "ccxt";
 import { ArrowUpRight, ArrowDownRight, Target, Scissors } from "lucide-react";
 import toast from "react-hot-toast"; // toast 추가
+import { useTranslation } from "react-i18next"; // i18n 추가
 
 interface TPSLDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function PositionTPSLDialog({
   exchange,
   accountId,
 }: TPSLDialogProps) {
+  const { t } = useTranslation(); // i18n 훅 사용
   const [takeProfitPrice, setTakeProfitPrice] = useState<string>("");
   const [stopLossPrice, setStopLossPrice] = useState<string>("");
   const [takeProfitPercentage, setTakeProfitPercentage] = useState<string>("");
@@ -166,7 +168,7 @@ export function PositionTPSLDialog({
   // 타겟 / 손절 값 설정 함수
   const handleSubmit = async () => {
     if (!ccxtInstance || !exchange) {
-      toast.error("거래소 인스턴스나 계정 정보가 없습니다"); // 한글 변경
+      toast.error(t('trade.missing_exchange_or_account'));
       return;
     }
 
@@ -188,10 +190,10 @@ export function PositionTPSLDialog({
 
       // 성공 후 다이얼로그 닫기
       onOpenChange(false);
-      toast.success("타겟/손절 가격이 설정되었습니다."); // 한글 변경
+      toast.success(t('trade.position_tp_sl_set_success'));
     } catch (error) {
       console.error("TP/SL 설정 실패:", error);
-      toast.error("타겟/손절 설정에 실패했습니다."); // 한글 변경
+      toast.error(t('trade.position_tp_sl_set_failed'));
     }
   };
 
@@ -203,11 +205,13 @@ export function PositionTPSLDialog({
             <div className="flex items-center gap-2">
               {position.side === "long" ? (
                 <div className="flex items-center text-green-500">
-                  <ArrowUpRight className="w-5 h-5 mr-1" />롱 포지션
+                  <ArrowUpRight className="w-5 h-5 mr-1" />
+                  {t('position_tp_sl_dialog_long')}
                 </div>
               ) : (
                 <div className="flex items-center text-red-500">
-                  <ArrowDownRight className="w-5 h-5 mr-1" />숏 포지션
+                  <ArrowDownRight className="w-5 h-5 mr-1" />
+                  {t('position_tp_sl_dialog_short')}
                 </div>
               )}
               <span className="ml-2">{position.symbol}</span>
@@ -220,18 +224,18 @@ export function PositionTPSLDialog({
                 {position.currentTakeProfitPrice && (
                   <div className="inline-flex items-center mr-3 text-green-500">
                     <Target className="w-3 h-3 mr-1" />
-                    현재 타겟: ${position.currentTakeProfitPrice}
+                    {t('position_tp_sl_dialog_current_tp', { price: position.currentTakeProfitPrice })}
                   </div>
                 )}
                 {position.currentStopLossPrice && (
                   <div className="inline-flex items-center text-red-500">
                     <Scissors className="w-3 h-3 mr-1" />
-                    현재 손절: ${position.currentStopLossPrice}
+                    {t('position_tp_sl_dialog_current_sl', { price: position.currentStopLossPrice })}
                   </div>
                 )}
               </div>
             ) : (
-              <div>포지션의 타겟(익절) 및 손절 가격을 설정하세요.</div>
+              <div>{t('position_tp_sl_dialog_set_instruction')}</div>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -240,11 +244,11 @@ export function PositionTPSLDialog({
           {/* 진입가 및 현재가 정보 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs text-muted-foreground">진입가</Label>
+              <Label className="text-xs text-muted-foreground">{t('position_tp_sl_dialog_entry_price')}</Label>
               <div className="font-medium">{position.entryPrice}</div>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">현재가</Label>
+              <Label className="text-xs text-muted-foreground">{t('position_tp_sl_dialog_current_price')}</Label>
               <div className="font-medium">{position.markPrice}</div>
             </div>
           </div>
@@ -254,7 +258,7 @@ export function PositionTPSLDialog({
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-green-500" />
               <Label htmlFor="tp-price" className="font-medium">
-                타겟 가격 (익절)
+                {t('position_tp_sl_dialog_target_price')}
               </Label>
             </div>
 
@@ -265,21 +269,21 @@ export function PositionTPSLDialog({
                     htmlFor="tp-price"
                     className="text-xs text-muted-foreground"
                   >
-                    가격
+                    {t('position_tp_sl_dialog_price')}
                   </Label>
                   {position.currentTakeProfitPrice ? (
                     <span className="text-xs text-green-500">
-                      현재: ${position.currentTakeProfitPrice}
+                      {t('position_tp_sl_dialog_current', { price: position.currentTakeProfitPrice })}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      직접 입력
+                      {t('position_tp_sl_dialog_manual_input')}
                     </span>
                   )}
                 </div>
                 <Input
                   id="tp-price"
-                  placeholder="타겟 가격"
+                  placeholder={t('position_tp_sl_dialog_target_price_placeholder')}
                   value={takeProfitPrice}
                   onChange={handleTPPriceChange}
                   className="bg-background"
@@ -291,7 +295,7 @@ export function PositionTPSLDialog({
                     htmlFor="tp-percentage"
                     className="text-xs text-muted-foreground"
                   >
-                    퍼센트 (%)
+                    {t('position_tp_sl_dialog_percent')}
                   </Label>
                   {position.currentTakeProfitPrice ? (
                     <span className="text-xs text-green-500">
@@ -301,13 +305,13 @@ export function PositionTPSLDialog({
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      직접 입력
+                      {t('position_tp_sl_dialog_manual_input')}
                     </span>
                   )}
                 </div>
                 <Input
                   id="tp-percentage"
-                  placeholder="이익 %"
+                  placeholder={t('position_tp_sl_dialog_profit_percent_placeholder')}
                   value={takeProfitPercentage}
                   onChange={handleTPPercentageChange}
                   className="bg-background"
@@ -321,7 +325,7 @@ export function PositionTPSLDialog({
             <div className="flex items-center gap-2">
               <Scissors className="w-4 h-4 text-red-500" />
               <Label htmlFor="sl-price" className="font-medium">
-                손절 가격
+                {t('position_tp_sl_dialog_stoploss_price')}
               </Label>
             </div>
 
@@ -332,21 +336,21 @@ export function PositionTPSLDialog({
                     htmlFor="sl-price"
                     className="text-xs text-muted-foreground"
                   >
-                    가격
+                    {t('position_tp_sl_dialog_price')}
                   </Label>
                   {position.currentStopLossPrice ? (
                     <span className="text-xs text-red-500">
-                      현재: ${position.currentStopLossPrice}
+                      {t('position_tp_sl_dialog_current', { price: position.currentStopLossPrice })}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      직접 입력
+                      {t('position_tp_sl_dialog_manual_input')}
                     </span>
                   )}
                 </div>
                 <Input
                   id="sl-price"
-                  placeholder="손절 가격"
+                  placeholder={t('position_tp_sl_dialog_stoploss_price_placeholder')}
                   value={stopLossPrice}
                   onChange={handleSLPriceChange}
                   className="bg-background"
@@ -358,7 +362,7 @@ export function PositionTPSLDialog({
                     htmlFor="sl-percentage"
                     className="text-xs text-muted-foreground"
                   >
-                    퍼센트 (%)
+                    {t('position_tp_sl_dialog_percent')}
                   </Label>
                   {position.currentStopLossPrice ? (
                     <span className="text-xs text-red-500">
@@ -368,13 +372,13 @@ export function PositionTPSLDialog({
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      직접 입력
+                      {t('position_tp_sl_dialog_manual_input')}
                     </span>
                   )}
                 </div>
                 <Input
                   id="sl-percentage"
-                  placeholder="손실 %"
+                  placeholder={t('position_tp_sl_dialog_loss_percent_placeholder')}
                   value={stopLossPercentage}
                   onChange={handleSLPercentageChange}
                   className="bg-background"
@@ -387,7 +391,7 @@ export function PositionTPSLDialog({
         <DialogFooter className="flex space-x-2 sm:justify-end">
           <DialogClose asChild>
             <Button type="button" variant="secondary">
-              취소
+              {t('common.cancel')}
             </Button>
           </DialogClose>
           <Button
@@ -400,7 +404,7 @@ export function PositionTPSLDialog({
                 : "bg-red-600 hover:bg-red-700"
             }
           >
-            {tpslMutation.isPending ? "설정 중..." : "설정 완료"}
+            {tpslMutation.isPending ? t('position_tp_sl_dialog_setting') : t('position_tp_sl_dialog_set_complete')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -29,7 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import CapitalChangeChart from "@/components/capital-change-chart";
+// import CapitalChangeChart from "@/components/capital-change-chart";
 import { PositionCloseModal } from "@/components/position-close-modal";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -101,7 +101,7 @@ const Dashboard = () => {
     accounts,
     decryptedAccounts,
     accountsBalance,
-    isLoading: isLoadingAccounts,
+    // isLoading: isLoadingAccounts,
   } = useAccounts();
 
   // 포지션 종료 관련 상태
@@ -525,33 +525,33 @@ const Dashboard = () => {
           </Card>
 
           {/* 스테이블 코인 잔고 변동 차트 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('dashboard.asset_change')}</CardTitle>
-              <CardDescription className="flex flex-col">
-                <span>{t('dashboard.asset_change_desc')}</span>
-                {adjustedReturnData?.hasValidData && (
-                  <span className="text-xs mt-1">
-                    {t('dashboard.investment_capital')}
-                    {formatUSDValue(adjustedReturnData.averageCapital)}
-                  </span>
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CapitalChangeChart
-                data={dailyChartData}
-                isLoading={
-                  isLoadingBalanceHistory ||
-                  isLoadingAccounts ||
-                  isLoadingAdjustedReturn
-                }
-                isError={isErrorBalanceHistory}
-                height={250}
-                adjustedReturn={adjustedReturnData}
-              />
-            </CardContent>
-          </Card>
+          {/*   <Card> */}
+          {/*     <CardHeader> */}
+          {/*       <CardTitle>{t('dashboard.asset_change')}</CardTitle> */}
+          {/*       <CardDescription className="flex flex-col"> */}
+          {/*         <span>{t('dashboard.asset_change_desc')}</span> */}
+          {/*         {adjustedReturnData?.hasValidData && ( */}
+          {/*           <span className="text-xs mt-1"> */}
+          {/*             {t('dashboard.investment_capital')} */}
+          {/*             {formatUSDValue(adjustedReturnData.averageCapital)} */}
+          {/*           </span> */}
+          {/*         )} */}
+          {/*       </CardDescription> */}
+          {/*     </CardHeader> */}
+          {/*     <CardContent> */}
+          {/*       <CapitalChangeChart */}
+          {/*         data={dailyChartData} */}
+          {/*         isLoading={ */}
+          {/*           isLoadingBalanceHistory || */}
+          {/*           isLoadingAccounts || */}
+          {/*           isLoadingAdjustedReturn */}
+          {/*         } */}
+          {/*         isError={isErrorBalanceHistory} */}
+          {/*         height={250} */}
+          {/*         adjustedReturn={adjustedReturnData} */}
+          {/*       /> */}
+          {/*     </CardContent> */}
+          {/*   </Card> */}
         </div>
         {/* 첫 번째 열 끝 */}
         {/* 계정 목록과 활성 포지션을 포함할 두 번째 열 */}

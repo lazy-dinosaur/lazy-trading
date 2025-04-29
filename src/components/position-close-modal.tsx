@@ -82,9 +82,8 @@ export function PositionCloseModal({
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground">PnL</p>
                   <p
-                    className={`font-semibold ${
-                      position.pnl >= 0 ? "text-green-500" : "text-red-500"
-                    }`}
+                    className={`font-semibold ${position.pnl >= 0 ? "text-green-500" : "text-red-500"
+                      }`}
                   >
                     {position.pnl >= 0 ? "+" : ""}
                     {formatUSDValue(position.pnl)}

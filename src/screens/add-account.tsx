@@ -80,7 +80,7 @@ const getExchangeGuides = (t: any) => ({
 
 const AddAccount = () => {
   const { t } = useTranslation();
-  
+
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -90,7 +90,7 @@ const AddAccount = () => {
       secretKey: "",
     }
   });
-  
+
   const navigate = useNavigate();
   const { cache, updateCache } = useCache();
   const { trackEvent } = useAnalytics();
@@ -104,17 +104,17 @@ const AddAccount = () => {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const currentExchange = cache?.data?.exchange as ExchangeType;
-  
+
   // 현재 선택된 거래소
   const selectedExchange = form.watch("exchange") as ExchangeType || "bybit";
-  
+
   // 가이드 데이터 초기화
   const exchangeGuides = getExchangeGuides(t);
 
   const onSubmit = async (data: FormValue) => {
     setValidCheck(true);
     setError(null);
-    
+
     // 검증 시작 토스트
     const loadingToast = toast.loading(t("account.validating_api_key"));
 
@@ -124,18 +124,18 @@ const AddAccount = () => {
         apikey: data.apiKey,
         secret: data.secretKey,
       });
-      
+
       if (validCheck) {
         toast.dismiss(loadingToast);
         toast.loading(t("account.adding_account"));
-        
+
         const res = await addNewAccount({
           exchange: data.exchange as ExchangeType,
           name: data.name,
           apiKey: data.apiKey,
           secretKey: data.secretKey,
         });
-        
+
         if (res && res.success) {
           // 애널리틱스 이벤트 트래킹 - 계정 추가 성공
           trackEvent({
@@ -144,14 +144,16 @@ const AddAccount = () => {
             label: data.exchange,
             name: data.name
           });
-          
+
           // 성공 토스트
           toast.dismiss();
-          toast.success(t("account.account_added_success", { name: data.name }));
-          
+          // 계정 이름이 제대로 표시되도록 변수를 명시적으로 전달
+          const accountName = data.name;
+          toast.success(t("account.account_added_success", { name: accountName }));
+
           // 계정 추가 후 강제로 새로고침 실행
           await refreshAccounts();
-          
+
           // 이전 화면이 trade 화면이었다면, 새 계정 ID로 거기로 리다이렉트
           const returnTo = sessionStorage.getItem('returnToTradeScreen');
           if (returnTo) {
@@ -177,7 +179,7 @@ const AddAccount = () => {
           label: 'failed',
           exchange: data.exchange
         });
-        
+
         toast.dismiss(loadingToast);
         toast.error(t("account.api_validation_failed"));
         setError(t("account.check_api_key_valid"));
@@ -236,7 +238,9 @@ const AddAccount = () => {
   useEffect(() => {
     if (!isLoading && selectedExchange) {
       toast.dismiss();
-      toast.success(t("account.exchange_selected", { exchange: String(selectedExchange).toUpperCase() }), {
+      // 변수를 먼저 대문자로 변환하여 거래소 이름이 제대로 표시되도록 함
+      const exchangeName = String(selectedExchange).toUpperCase();
+      toast.success(t("account.exchange_selected", { exchange: exchangeName }), {
         duration: 1500,
         icon: '🔄',
       });
@@ -250,7 +254,7 @@ const AddAccount = () => {
           <TabsTrigger value="form" className="flex-1">{t("account.account_info")}</TabsTrigger>
           <TabsTrigger value="guide" className="flex-1">{t("account.api_setting_guide")}</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="form" className="space-y-4">
           <Card>
             <CardContent className="pt-6">
@@ -260,7 +264,7 @@ const AddAccount = () => {
                   {t("account.api_key_encrypted")}
                 </p>
               </div>
-              
+
               {error && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -268,7 +272,7 @@ const AddAccount = () => {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
+
               <Form {...form} >
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
@@ -304,7 +308,7 @@ const AddAccount = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="name"
@@ -333,7 +337,7 @@ const AddAccount = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="apiKey"
@@ -363,7 +367,7 @@ const AddAccount = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="secretKey"
@@ -394,14 +398,14 @@ const AddAccount = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="flex justify-center pt-4 w-full gap-4">
                     <Button
                       className="w-full md:w-40"
                       disabled={validChecking}
                       variant="outline"
                       onClick={() => {
-                        toast.success(t("account.operation_cancelled"), { 
+                        toast.success(t("account.operation_cancelled"), {
                           icon: '✖️',
                           duration: 1500
                         });
@@ -411,9 +415,9 @@ const AddAccount = () => {
                     >
                       {t("common.cancel")}
                     </Button>
-                    <Button 
-                      className="w-full md:w-40" 
-                      disabled={validChecking} 
+                    <Button
+                      className="w-full md:w-40"
+                      disabled={validChecking}
                       type="submit"
                     >
                       {validChecking ? (
@@ -429,15 +433,15 @@ const AddAccount = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="guide">
           <Card>
             <CardContent className="pt-6">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold">{exchangeGuides[selectedExchange].title}</h2>
-                <a 
-                  href={exchangeGuides[selectedExchange].url} 
-                  target="_blank" 
+                <a
+                  href={exchangeGuides[selectedExchange].url}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-blue-500 flex items-center mt-1 hover:underline"
                   onClick={() => {
@@ -451,7 +455,7 @@ const AddAccount = () => {
                   <ExternalLink className="ml-1 h-3 w-3" />
                 </a>
               </div>
-              
+
               <Accordion type="single" collapsible defaultValue="steps">
                 <AccordionItem value="steps">
                   <AccordionTrigger>{t("account.api_key_setup_method")}</AccordionTrigger>
@@ -463,7 +467,7 @@ const AddAccount = () => {
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
-                
+
                 <AccordionItem value="permissions">
                   <AccordionTrigger>{t("account.required_api_permissions")}</AccordionTrigger>
                   <AccordionContent>
@@ -480,7 +484,7 @@ const AddAccount = () => {
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-                
+
                 <AccordionItem value="security">
                   <AccordionTrigger>{t("account.security_tips")}</AccordionTrigger>
                   <AccordionContent>
