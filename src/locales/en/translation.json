@@ -206,6 +206,7 @@
     "position_closed": "Position closed",
     "close_position_confirm": "Are you sure you want to close this position?",
     "close_position_success": "{{symbol}} position closed successfully.",
+    "position_closed_successfully": "Position closed successfully.",
     "close_position_error": "Failed to close position",
     "long_position": "Long Position",
     "short_position": "Short Position",

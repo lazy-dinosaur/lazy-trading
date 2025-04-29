@@ -59,15 +59,22 @@ async function executeTrade({
       console.warn("Failed to set margin mode:", error);
     }
 
+    // 계정의 포지션 모드 설정 가져오기
+    const positionMode = info.account?.positionMode || "oneway";
+    const isHedgeMode = positionMode === "hedge";
+    
+    console.log(`[Debug] Account position mode: ${positionMode} for ${exchange}`);
+
     // Set exchange-specific configurations
     if (exchange === "binance") {
       try {
-        // Enable hedge mode (포지션 모드)
+        // 계정 설정에 따라 헷지모드 또는 원웨이모드 설정
         await (ccxtInstance as binance).fapiPrivatePostPositionSideDual({
-          dualSidePosition: "true",
+          dualSidePosition: isHedgeMode ? "true" : "false",
         });
+        console.log(`[Binance] Set position mode to ${isHedgeMode ? "hedge" : "one-way"} mode`);
       } catch (error) {
-        console.warn("Failed to set hedge mode:", error);
+        console.warn("Failed to set position mode:", error);
       }
 
       try {
@@ -80,9 +87,11 @@ async function executeTrade({
       }
     } else {
       try {
-        await ccxtInstance.setPositionMode(true, symbol);
+        // 계정 설정에 따라 헷지모드 또는 원웨이모드 설정
+        await ccxtInstance.setPositionMode(isHedgeMode, symbol);
+        console.log(`[${exchange}] Set position mode to ${isHedgeMode ? "hedge" : "one-way"} for ${symbol}`);
       } catch (error) {
-        console.warn("Failed to set position mode:", error);
+        console.warn(`Failed to set position mode for ${symbol}:`, error);
       }
     }
 
@@ -91,40 +100,67 @@ async function executeTrade({
 
     let result;
     if (exchange === "binance") {
-      result = await Promise.all([
-        ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
-          marginMode: "cross",
-          positionSide: tradeType.toUpperCase(),
-          hedged: true,
-        }),
-        ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
-          marginMode: "cross",
-          reduceOnly: true,
-          positionSide: tradeType.toUpperCase(),
-          stopLossPrice: info.stoploss.price,
-          hedged: true,
-        }),
-        ccxtInstance.createOrder(
-          symbol,
-          "limit",
-          oppside,
-          config.partialClose ? amount * (config.closeRatio / 100) : amount,
-          info.target.price,
-          {
+      // 바이낸스 주문 실행 - 계정 설정에 따라 다른 파라미터 사용
+      if (isHedgeMode) {
+        // 헷지모드 주문
+        result = await Promise.all([
+          ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
+            marginMode: "cross",
+            positionSide: tradeType.toUpperCase(),
+            hedged: true,
+          }),
+          ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
             marginMode: "cross",
             reduceOnly: true,
             positionSide: tradeType.toUpperCase(),
-            takeProfitPrice: info.target.price,
+            stopLossPrice: info.stoploss.price,
             hedged: true,
-          },
-        ),
-      ]);
+          }),
+          ccxtInstance.createOrder(
+            symbol,
+            "limit",
+            oppside,
+            config.partialClose ? amount * (config.closeRatio / 100) : amount,
+            info.target.price,
+            {
+              marginMode: "cross",
+              reduceOnly: true,
+              positionSide: tradeType.toUpperCase(),
+              takeProfitPrice: info.target.price,
+              hedged: true,
+            },
+          ),
+        ]);
+        console.log(`[Binance] Created hedge mode ${tradeType} orders for ${symbol}`);
+      } else {
+        // 원웨이모드 주문
+        result = await Promise.all([
+          ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
+            marginMode: "cross",
+          }),
+          ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
+            marginMode: "cross",
+            reduceOnly: true,
+            stopLossPrice: info.stoploss.price,
+          }),
+          ccxtInstance.createOrder(
+            symbol,
+            "limit",
+            oppside,
+            config.partialClose ? amount * (config.closeRatio / 100) : amount,
+            info.target.price,
+            {
+              marginMode: "cross",
+              reduceOnly: true,
+              takeProfitPrice: info.target.price,
+            },
+          ),
+        ]);
+        console.log(`[Binance] Created one-way mode ${tradeType} orders for ${symbol}`);
+      }
     } else if (exchange === "bybit") {
       // 마켓 타입 확인 (USDT 마켓인지 인버스 마켓인지)
       const isUSDTMarket = symbol.includes("USDT");
-
-      // 계정의 포지션 모드 확인
-      const isHedgeMode = info.account?.positionMode === "hedge";
 
       let positionIdx = 0; // 기본값: 단방향 모드
 
@@ -133,11 +169,11 @@ async function executeTrade({
         // 헷지 모드에서는 long=1, short=2 (USDT 마켓에서만 적용)
         positionIdx = tradeType === "long" ? 1 : 2;
         console.log(
-          `[Debug] Using hedge mode with positionIdx: ${positionIdx} for ${tradeType} position on USDT market`,
+          `[Bybit] Using hedge mode with positionIdx: ${positionIdx} for ${tradeType} position on USDT market`,
         );
       } else {
         console.log(
-          `[Debug] Using one-way mode with positionIdx: 0 ${!isUSDTMarket ? "(inverse market)" : ""}`,
+          `[Bybit] Using one-way mode with positionIdx: 0 ${!isUSDTMarket ? "(inverse market)" : ""}`,
         );
       }
 
@@ -146,7 +182,7 @@ async function executeTrade({
         try {
           await ccxtInstance.setPositionMode(isHedgeMode, symbol);
           console.log(
-            `[Debug] Successfully set position mode to ${isHedgeMode ? "hedge" : "one-way"} for ${symbol}`,
+            `[Bybit] Successfully set position mode to ${isHedgeMode ? "hedge" : "one-way"} for ${symbol}`,
           );
         } catch (error) {
           console.warn(
@@ -156,7 +192,7 @@ async function executeTrade({
         }
       } else {
         console.log(
-          `[Debug] Skipping position mode setting for inverse market ${symbol}`,
+          `[Bybit] Skipping position mode setting for inverse market ${symbol}`,
         );
       }
 
@@ -203,7 +239,7 @@ async function executeTrade({
             stopLoss: {
               triggerPrice: info.stoploss.price,
             },
-            hedged: true,
+            hedged: isHedgeMode, // 계정 설정에 따라 hedged 옵션 설정
           },
         ),
         ccxtInstance.createOrder(
@@ -217,10 +253,11 @@ async function executeTrade({
           {
             holdSide: tradeType,
             reduceOnly: true,
-            hedged: true,
+            hedged: isHedgeMode, // 계정 설정에 따라 hedged 옵션 설정
           },
         ),
       ]);
+      console.log(`[Bitget] Using ${isHedgeMode ? "hedge" : "one-way"} mode for ${tradeType} position on ${symbol}`);
     } else {
       throw new Error(`지원하지 않는 거래소입니다: ${exchange}`);
     }

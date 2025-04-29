@@ -207,6 +207,7 @@
     "position_closed": "포지션이 종료되었습니다",
     "close_position_confirm": "이 포지션을 종료하시겠습니까?",
     "close_position_success": "{{symbol}} 포지션이 성공적으로 종료되었습니다.",
+    "position_closed_successfully": "포지션이 성공적으로 종료되었습니다.",
     "close_position_error": "포지션 종료 실패",
     "long_position": "롱 포지션",
     "short_position": "숏 포지션",

@@ -174,7 +174,6 @@ const Dashboard = () => {
         params // 수정된 파라미터 사용
       );
 
-
       console.log("포지션 종료 주문 생성:", position.symbol, position.side);
 
       // 성공 처리
