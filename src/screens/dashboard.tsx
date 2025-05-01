@@ -169,7 +169,7 @@ const Dashboard = () => {
         position.symbol,
         'market',
         position.side === 'long' ? 'sell' : 'buy',
-        position.size,
+        position.size / 100,
         undefined,
         params // 수정된 파라미터 사용
       );

@@ -129,11 +129,15 @@ const AddAccount = () => {
         toast.dismiss(loadingToast);
         toast.loading(t("account.adding_account"));
 
+        // 비트겟 계정의 경우 항상 원웨이 모드(oneway)로 설정
+        const positionMode = data.exchange === "bitget" ? "oneway" : undefined;
+
         const res = await addNewAccount({
           exchange: data.exchange as ExchangeType,
           name: data.name,
           apiKey: data.apiKey,
           secretKey: data.secretKey,
+          positionMode, // 비트겟의 경우 oneway로 설정, 다른 경우 undefined
         });
 
         if (res && res.success) {

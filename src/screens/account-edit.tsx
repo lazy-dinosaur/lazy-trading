@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AlertTriangle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -71,17 +72,24 @@ const AccountEdit = () => {
     setIsSaving(true);
     
     try {
+      // 비트겟 계정의 경우 positionMode 강제로 "oneway"로 설정
+      const positionMode = account.exchange === "bitget" ? "oneway" : data.positionMode;
+      
       // 계정 정보 업데이트
       const updatedAccount = {
         ...account,
         name: data.name,
-        positionMode: data.positionMode,
+        positionMode,
       };
       
       const success = await setAccount(updatedAccount);
       
       if (success) {
-        toast.success("계정 정보가 업데이트되었습니다.");
+        if (account.exchange === "bitget" && data.positionMode === "hedge") {
+          toast.success("계정 정보가 업데이트되었습니다. 비트겟 계정은 원웨이 모드로 자동 설정됩니다.");
+        } else {
+          toast.success("계정 정보가 업데이트되었습니다.");
+        }
         await refreshAccounts();
         navigate("/accounts");
       } else {
@@ -159,6 +167,7 @@ const AccountEdit = () => {
                             value={field.value}
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            disabled={account?.exchange === "bitget"} // 비트겟 계정은 비활성화
                           >
                             <SelectTrigger id="positionMode">
                               <SelectValue placeholder="포지션 모드 선택" />
@@ -168,6 +177,12 @@ const AccountEdit = () => {
                               <SelectItem value="hedge">Hedge Mode</SelectItem>
                             </SelectContent>
                           </Select>
+                          {account?.exchange === "bitget" && (
+                            <div className="text-xs text-amber-500 mt-1">
+                              <AlertTriangle className="h-3.5 w-3.5 inline-block mr-1" />
+                              비트겟은 현재 원웨이 모드만 지원됩니다. 헷지 모드에서는 포지션 종료가 정상적으로 동작하지 않을 수 있습니다. 향후 업데이트에서 지원 예정입니다.
+                            </div>
+                          )}
                         </FormItem>
                       )}
                     />

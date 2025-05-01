@@ -228,6 +228,23 @@ async function executeTrade({
         ),
       ]);
     } else if (exchange === "bitget") {
+      // 비트겟은 원웨이 모드만 지원하도록 설정
+      const isBitgetHedgeMode = false; // 항상 원웨이 모드 사용
+      
+      // 헷지 모드로 설정된 경우 경고 메시지 표시
+      if (isHedgeMode) {
+        console.warn("[Bitget] Hedge mode is not supported, using one-way mode instead");
+        toast("비트겟은 현재 원웨이 모드만 지원합니다. 원웨이 모드로 주문이 진행됩니다.", {
+          duration: 5000,
+          icon: "⚠️",
+          style: {
+            borderRadius: "10px",
+            background: "#fcd34d",
+            color: "#92400e",
+          },
+        });
+      }
+      
       result = await Promise.all([
         ccxtInstance.createOrder(
           symbol,
@@ -239,7 +256,7 @@ async function executeTrade({
             stopLoss: {
               triggerPrice: info.stoploss.price,
             },
-            hedged: isHedgeMode, // 계정 설정에 따라 hedged 옵션 설정
+            hedged: isBitgetHedgeMode, // 항상 false(원웨이 모드)로 설정
           },
         ),
         ccxtInstance.createOrder(
@@ -253,11 +270,11 @@ async function executeTrade({
           {
             holdSide: tradeType,
             reduceOnly: true,
-            hedged: isHedgeMode, // 계정 설정에 따라 hedged 옵션 설정
+            hedged: isBitgetHedgeMode, // 항상 false(원웨이 모드)로 설정
           },
         ),
       ]);
-      console.log(`[Bitget] Using ${isHedgeMode ? "hedge" : "one-way"} mode for ${tradeType} position on ${symbol}`);
+      console.log(`[Bitget] Using one-way mode for ${tradeType} position on ${symbol}`);
     } else {
       throw new Error(`지원하지 않는 거래소입니다: ${exchange}`);
     }

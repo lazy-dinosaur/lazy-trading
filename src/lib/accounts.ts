@@ -24,6 +24,7 @@ export interface RawAccountInput
   extends Omit<Account, "apiKey" | "secretKey" | "id" | "createdAt"> {
   apiKey: string;
   secretKey: string;
+  positionMode?: "oneway" | "hedge"; // positionMode 필드 추가
 }
 
 export interface Account {
