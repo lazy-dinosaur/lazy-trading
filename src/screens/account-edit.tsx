@@ -72,8 +72,19 @@ const AccountEdit = () => {
     setIsSaving(true);
     
     try {
-      // 비트겟 계정의 경우 positionMode 강제로 "oneway"로 설정
-      const positionMode = account.exchange === "bitget" ? "oneway" : data.positionMode;
+      // 거래소별 포지션 모드 처리
+      let positionMode: "oneway" | "hedge" | undefined;
+      let positionModeMessage = "";
+      
+      // 비트겟과 바이낸스는 현재 원웨이 모드만 지원
+      if (account.exchange === "bitget" || account.exchange === "binance") {
+        positionMode = "oneway";
+        if (data.positionMode === "hedge") {
+          positionModeMessage = `${account.exchange === "bitget" ? "비트겟" : "바이낸스"} 계정은 원웨이 모드로 자동 설정됩니다.`;
+        }
+      } else {
+        positionMode = data.positionMode;
+      }
       
       // 계정 정보 업데이트
       const updatedAccount = {
@@ -85,8 +96,8 @@ const AccountEdit = () => {
       const success = await setAccount(updatedAccount);
       
       if (success) {
-        if (account.exchange === "bitget" && data.positionMode === "hedge") {
-          toast.success("계정 정보가 업데이트되었습니다. 비트겟 계정은 원웨이 모드로 자동 설정됩니다.");
+        if (positionModeMessage) {
+          toast.success(`계정 정보가 업데이트되었습니다. ${positionModeMessage}`);
         } else {
           toast.success("계정 정보가 업데이트되었습니다.");
         }
@@ -181,6 +192,12 @@ const AccountEdit = () => {
                             <div className="text-xs text-amber-500 mt-1">
                               <AlertTriangle className="h-3.5 w-3.5 inline-block mr-1" />
                               비트겟은 현재 원웨이 모드만 지원됩니다. 헷지 모드에서는 포지션 종료가 정상적으로 동작하지 않을 수 있습니다. 향후 업데이트에서 지원 예정입니다.
+                            </div>
+                          )}
+                          {account?.exchange === "binance" && (
+                            <div className="text-xs text-amber-500 mt-1">
+                              <AlertTriangle className="h-3.5 w-3.5 inline-block mr-1" />
+                              바이낸스는 현재 원웨이 모드만 지원됩니다. 헷지 모드에서는 포지션 종료가 정상적으로 동작하지 않을 수 있습니다. 향후 업데이트에서 지원 예정입니다.
                             </div>
                           )}
                         </FormItem>

@@ -155,6 +155,7 @@ export const PositionsList = () => {
     }
 
     const closeSide = side === "long" ? "sell" : "buy";
+    let positionSize = size
 
     try {
       // 추가: 비트겟 거래소 포지션 종료를 위한 파라미터 설정
@@ -164,6 +165,8 @@ export const PositionsList = () => {
       if (selectedAccount.exchange === 'bitget') {
         // 계정의 포지션 모드 확인 (기본값: "oneway")
         const positionMode = selectedAccount.positionMode || "oneway";
+
+        positionSize = positionSize / 100
 
         // 헷지 모드일 경우: oneWayMode: false, hedged: true
         // 원웨이 모드일 경우: oneWayMode: true, hedged: false
@@ -175,9 +178,9 @@ export const PositionsList = () => {
         console.log(`비트겟 포지션 종료 - 모드: ${positionMode}, 파라미터:`, params);
       } else if (exchange === "binance") {
         // 바이낸스 헷지 모드: positionSide 사용
-        params = { 
-          reduceOnly: true,
-          positionSide: side === "long" ? "LONG" : "SHORT" 
+        params = {
+          // reduceOnly: true,
+          // positionSide: side === "long" ? "LONG" : "SHORT"
         };
       } else if (exchange === "bybit") {
         // 바이빗: 계정의 포지션 모드에 따라 다른 파라미터 사용
@@ -203,7 +206,7 @@ export const PositionsList = () => {
         symbol,
         "market", // 시장가
         closeSide, // 반대 방향
-        size, // 포지션 전체 크기
+        positionSize, // 포지션 전체 크기
         undefined, // 시장가 주문 시 가격은 undefined
         params, // 동적으로 생성된 파라미터 전달
       );
@@ -419,11 +422,10 @@ const TradingItemCard = ({
             <div className="flex items-center gap-2">
               <span className="text-base font-semibold">{symbol}</span>
               <div
-                className={`px-2 py-0.5 rounded text-xs font-medium inline-flex items-center gap-1 ${
-                  isLong
-                    ? "bg-green-500/10 text-green-500"
-                    : "bg-red-500/10 text-red-500"
-                }`}
+                className={`px-2 py-0.5 rounded text-xs font-medium inline-flex items-center gap-1 ${isLong
+                  ? "bg-green-500/10 text-green-500"
+                  : "bg-red-500/10 text-red-500"
+                  }`}
               >
                 {directionIcon}
                 {isLong ? t('trade.long') : t('trade.short')}
@@ -442,17 +444,15 @@ const TradingItemCard = ({
           </div>
           <div className="flex flex-col items-end gap-1">
             <div
-              className={`text-base font-semibold ${
-                isPositive ? TRADING_COLORS.POSITIVE : TRADING_COLORS.NEGATIVE
-              }`}
+              className={`text-base font-semibold ${isPositive ? TRADING_COLORS.POSITIVE : TRADING_COLORS.NEGATIVE
+                }`}
             >
               {isPositive ? "+" : ""}
               {profit.toFixed(2)} USD
             </div>
             <div
-              className={`text-xs px-2 py-0.5 rounded-full ${
-                isPositive ? "bg-green-500/10" : "bg-red-500/10"
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full ${isPositive ? "bg-green-500/10" : "bg-red-500/10"
+                }`}
             >
               {t('trade.pnl')}: {isPositive ? "+" : ""}
               {profitPercentage.toFixed(2)}%

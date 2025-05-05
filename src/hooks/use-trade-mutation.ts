@@ -68,11 +68,27 @@ async function executeTrade({
     // Set exchange-specific configurations
     if (exchange === "binance") {
       try {
-        // 계정 설정에 따라 헷지모드 또는 원웨이모드 설정
+        // 바이낸스는 현재 원웨이 모드만 지원
+        
+        // 헷지 모드로 설정된 계정이 있는 경우 경고 메시지 표시
+        if (isHedgeMode) {
+          console.warn("[Binance] Hedge mode is not supported, using one-way mode instead");
+          toast("바이낸스는 현재 원웨이 모드만 지원합니다. 원웨이 모드로 주문이 진행됩니다.", {
+            duration: 5000,
+            icon: "⚠️",
+            style: {
+              borderRadius: "10px",
+              background: "#fcd34d",
+              color: "#92400e",
+            },
+          });
+        }
+        
+        // 항상 원웨이 모드로 설정
         await (ccxtInstance as binance).fapiPrivatePostPositionSideDual({
-          dualSidePosition: isHedgeMode ? "true" : "false",
+          dualSidePosition: "false", // 항상 false(원웨이 모드)로 설정
         });
-        console.log(`[Binance] Set position mode to ${isHedgeMode ? "hedge" : "one-way"} mode`);
+        console.log(`[Binance] Set position mode to one-way mode`);
       } catch (error) {
         console.warn("Failed to set position mode:", error);
       }
@@ -100,64 +116,31 @@ async function executeTrade({
 
     let result;
     if (exchange === "binance") {
-      // 바이낸스 주문 실행 - 계정 설정에 따라 다른 파라미터 사용
-      if (isHedgeMode) {
-        // 헷지모드 주문
-        result = await Promise.all([
-          ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
-            marginMode: "cross",
-            positionSide: tradeType.toUpperCase(),
-            hedged: true,
-          }),
-          ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
-            marginMode: "cross",
-            reduceOnly: true,
-            positionSide: tradeType.toUpperCase(),
-            stopLossPrice: info.stoploss.price,
-            hedged: true,
-          }),
-          ccxtInstance.createOrder(
-            symbol,
-            "limit",
-            oppside,
-            config.partialClose ? amount * (config.closeRatio / 100) : amount,
-            info.target.price,
-            {
-              marginMode: "cross",
-              reduceOnly: true,
-              positionSide: tradeType.toUpperCase(),
-              takeProfitPrice: info.target.price,
-              hedged: true,
-            },
-          ),
-        ]);
-        console.log(`[Binance] Created hedge mode ${tradeType} orders for ${symbol}`);
-      } else {
-        // 원웨이모드 주문
-        result = await Promise.all([
-          ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
-            marginMode: "cross",
-          }),
-          ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
+      // 바이낸스 주문 실행 - 항상 원웨이모드 사용
+      // 원웨이모드 주문
+      result = await Promise.all([
+        ccxtInstance.createOrder(symbol, "market", side, amount, undefined, {
+          marginMode: "cross",
+        }),
+        ccxtInstance.createOrder(symbol, "market", oppside, amount, undefined, {
+          marginMode: "cross",
+          reduceOnly: true,
+          stopLossPrice: info.stoploss.price,
+        }),
+        ccxtInstance.createOrder(
+          symbol,
+          "limit",
+          oppside,
+          config.partialClose ? amount * (config.closeRatio / 100) : amount,
+          info.target.price,
+          {
             marginMode: "cross",
             reduceOnly: true,
-            stopLossPrice: info.stoploss.price,
-          }),
-          ccxtInstance.createOrder(
-            symbol,
-            "limit",
-            oppside,
-            config.partialClose ? amount * (config.closeRatio / 100) : amount,
-            info.target.price,
-            {
-              marginMode: "cross",
-              reduceOnly: true,
-              takeProfitPrice: info.target.price,
-            },
-          ),
-        ]);
-        console.log(`[Binance] Created one-way mode ${tradeType} orders for ${symbol}`);
-      }
+            takeProfitPrice: info.target.price,
+          },
+        ),
+      ]);
+      console.log(`[Binance] Created one-way mode ${tradeType} orders for ${symbol}`);
     } else if (exchange === "bybit") {
       // 마켓 타입 확인 (USDT 마켓인지 인버스 마켓인지)
       const isUSDTMarket = symbol.includes("USDT");

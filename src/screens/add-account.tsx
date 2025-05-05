@@ -129,8 +129,14 @@ const AddAccount = () => {
         toast.dismiss(loadingToast);
         toast.loading(t("account.adding_account"));
 
-        // 비트겟 계정의 경우 항상 원웨이 모드(oneway)로 설정
-        const positionMode = data.exchange === "bitget" ? "oneway" : undefined;
+        // 거래소별 기본 포지션 모드 설정
+        // 비트겟과 바이낸스는 현재 원웨이 모드만 지원
+        let positionMode: "oneway" | "hedge" | undefined;
+        if (data.exchange === "bitget" || data.exchange === "binance") {
+          positionMode = "oneway"; // 비트겟과 바이낸스는 항상 원웨이 모드
+        } else {
+          positionMode = undefined; // 다른 거래소는 기본값 적용
+        }
 
         const res = await addNewAccount({
           exchange: data.exchange as ExchangeType,

@@ -145,43 +145,70 @@ const Dashboard = () => {
       }
 
       const exchange = account.exchangeInstance.ccxt;
+      const closeSide = position.side === "long" ? "sell" : "buy";
+      let positionSize = position.size;
 
-      // 추가: 비트겟 거래소 포지션 종료를 위한 파라미터 설정
-      let params = { reduceOnly: true };
+      // 포지션 종료를 위한 파라미터 설정
+      let params: any = { reduceOnly: true };
 
       // 비트겟 거래소인 경우 포지션 모드에 따라 oneWayMode와 hedged 설정
       if (account.exchange === 'bitget') {
         // 계정의 포지션 모드 확인 (기본값: "oneway")
         const positionMode = account.positionMode || "oneway";
 
-        // 헷지 모드일 경우: oneWayMode: false, hedged: true
-        // 원웨이 모드일 경우: oneWayMode: true, hedged: false
+        positionSize = positionSize / 100;
+
         params = {
           reduceOnly: true,
           hedged: positionMode === "hedge", // 헷지 모드면 true, 아니면 false
           oneWayMode: positionMode !== "hedge" // 헷지 모드면 false, 아니면 true
-        } as any; // 타입 단언 추가
+        };
         console.log(`비트겟 포지션 종료 - 모드: ${positionMode}, 파라미터:`, params);
+      } else if (account.exchange === "binance") {
+        // Binance hedge mode: use positionSide
+        params = {
+          // reduceOnly: true,
+          // positionSide: position.side === "long" ? "LONG" : "SHORT"
+        };
+      } else if (account.exchange === "bybit") {
+        // Bybit: 계정의 포지션 모드에 따라 다른 파라미터 사용
+        const isHedgeMode = account.positionMode === "hedge";
+
+        if (isHedgeMode) {
+          // 헷지 모드에서는 positionIdx 사용
+          // long: 1, short: 2
+          params = {
+            reduceOnly: true,
+            positionIdx: position.side === "long" ? 1 : 2,
+          };
+        } else {
+          // 원웨이 모드에서는 positionIdx: 0 사용
+          params = {
+            reduceOnly: true,
+            positionIdx: 0,
+          };
+        }
       }
 
       // 포지션 종료 주문 생성
-      await exchange.createOrder(
+      const order = await exchange.createOrder(
         position.symbol,
-        'market',
-        position.side === 'long' ? 'sell' : 'buy',
-        position.size / 100,
+        "market",
+        closeSide,
+        positionSize,
         undefined,
-        params // 수정된 파라미터 사용
+        params
       );
 
       console.log("포지션 종료 주문 생성:", position.symbol, position.side);
 
       // 성공 처리
       setIsCloseSuccess(true);
-      toast.success(t('trade.close_position_success', { symbol: position.symbol }));
+      toast.success(t('trade.close_position_success', { symbol: position.symbol, orderId: order.id }));
 
-      // 포지션 데이터 새로고침 - 문자열 배열이 아닌 올바른 query key 형식 사용
-      queryClient.invalidateQueries({ queryKey: ["positions"] });
+      // 포지션 데이터와 계정 잔액 새로고침
+      queryClient.invalidateQueries({ queryKey: ["positions", account.exchange, position.accountId] });
+      queryClient.invalidateQueries({ queryKey: ["accountsBalance"] });
     } catch (error) {
       console.error("포지션 종료 중 오류 발생:", error);
       setCloseError(error instanceof Error ? error.message : t('common.error'));
