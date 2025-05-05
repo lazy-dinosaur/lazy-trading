@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react"; // useMemo 추가
+import { useLocation } from "react-router";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import { useAllTickers } from "@/hooks/coin";
 import { TickerWithExchange } from "@/lib/ccxt";
@@ -54,11 +55,22 @@ const Search = () => {
     direction: "desc",
   });
   const ccxt = useCCXT();
+  const location = useLocation();
   
   // 거래소 이름 매핑 생성
   const { exchangeNameMap, reverseExchangeNameMap } = useMemo(() => 
     createExchangeNameMaps(t), [t]
   );
+  
+  // URL에서 거래소 파라미터 가져오기
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const exchangeParam = params.get('exchange');
+    
+    if (exchangeParam && ['bybit', 'binance', 'bitget'].includes(exchangeParam)) {
+      setExchangeFilter(exchangeParam);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (!tickersData || isLoading || !ccxt) return;

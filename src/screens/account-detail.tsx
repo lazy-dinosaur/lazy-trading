@@ -233,7 +233,7 @@ const AccountDetail = () => {
               <Button onClick={() => navigate(`/account/edit/${id}`)}>
                 {t('account.edit_account')}
               </Button>
-              <Button onClick={() => navigate(`/search`)}>
+              <Button onClick={() => navigate(`/search?exchange=${account?.exchange}`)}>
                 {t('account.go_trading')}
               </Button>
             </div>
