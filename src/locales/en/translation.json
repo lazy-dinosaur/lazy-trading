@@ -178,7 +178,9 @@
     "api_key_tooltip": "Enter the API key issued by the exchange",
     "secret_key_tooltip": "Enter the Secret key issued with your API key",
     "name_set_message": "Your account will be set with this name",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "binance_ip_warning": "Binance only allows access from registered IP addresses. Please check your current IP address and add it to your API settings.",
+    "binance_ip_restriction_explanation": "Binance API can only be accessed from restricted IP addresses. You need to add the IP address of every device running this app to your API settings."
   },
   "trade": {
     "symbol": "Symbol",

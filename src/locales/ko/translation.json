@@ -178,7 +178,9 @@
     "binance_oneway_auto_set": "바이낸스 계정은 원웨이 모드로 자동 설정됩니다",
     "update_account_error": "계정 정보 업데이트에 실패했습니다",
     "update_error_occurred": "계정 업데이트 중 오류가 발생했습니다",
-    "saving": "저장 중..."
+    "saving": "저장 중...",
+    "binance_ip_warning": "Binance는 등록된 IP 주소만 접근이 가능합니다. 현재 사용 중인 IP 주소를 확인하여 API 설정 시 추가해주세요.",
+    "binance_ip_restriction_explanation": "Binance API는 제한된 IP 주소에서만 접근할 수 있습니다. 이 앱이 실행되는 모든 기기의 IP 주소를 API 설정에 추가해야 합니다."
   },
   "trade": {
     "symbol": "심볼",

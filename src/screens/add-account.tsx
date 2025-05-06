@@ -504,7 +504,21 @@ const AddAccount = () => {
                       <li>{t("account.security_tip_3", "IP 제한을 설정하여 보안을 강화하세요.")}</li>
                       <li>{t("account.security_tip_4", "주기적으로 API 키를 변경하는 것이 좋습니다.")}</li>
                       <li>{t("account.security_tip_5", "의심스러운 활동이 발견되면 즉시 API 키를 비활성화하세요.")}</li>
+                      {selectedExchange === "binance" && (
+                        <li className="text-yellow-600 dark:text-yellow-400 font-medium">
+                          {t("account.binance_ip_warning")}
+                        </li>
+                      )}
                     </ul>
+                    
+                    {selectedExchange === "binance" && (
+                      <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-md">
+                        <p className="text-yellow-800 dark:text-yellow-200 text-sm flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                          {t("account.binance_ip_restriction_explanation")}
+                        </p>
+                      </div>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
