@@ -63,14 +63,17 @@ export const TradingAction = ({
     if (!info.position) return;
 
     try {
-      await tradeMutation.mutateAsync({
+      // 타입 에러 수정: tradeMutation.mutateAsync로 전달되는 객체는 TradeParams 타입
+      const tradeParams = {
         ccxtInstance,
         symbol,
         tradeType: tradeDirection,
         exchange,
         info,
         config,
-      });
+      };
+      
+      await tradeMutation.mutateAsync(tradeParams);
       
       // 거래 성공 이벤트 추적
       trackEvent({
@@ -85,7 +88,7 @@ export const TradingAction = ({
         close_ratio: config.closeRatio
       });
     } catch (error) {
-      console.error(t('trade.trade_execution_failed'), error);
+      console.error(t('toast.trade_execution_failed'), error);
       
       // 거래 실패 이벤트 추적
       trackEvent({

@@ -364,5 +364,15 @@
   "chart": {
     "no_data": "차트 데이터가 없습니다",
     "try_different": "다른 시간대나 심볼을 선택해 보세요"
+  },
+  "toast": {
+    "position_creating": "{{type}} 포지션 생성 중...",
+    "position_created_success": "{{symbol}} {{type}} 포지션 생성 성공!",
+    "order_execution_failed": "주문 실행 실패: {{error}}",
+    "unknown_error": "알 수 없는 오류",
+    "binance_oneway_mode_warning": "바이낸스는 현재 원웨이 모드만 지원합니다. 원웨이 모드로 주문이 진행됩니다.",
+    "bitget_oneway_mode_warning": "비트겟은 현재 원웨이 모드만 지원합니다. 원웨이 모드로 주문이 진행됩니다.",
+    "unsupported_exchange": "지원하지 않는 거래소입니다: {{exchange}}",
+    "trade_execution_failed": "거래 실행 실패"
   }
 }

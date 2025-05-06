@@ -3,6 +3,7 @@ import { PositionInfo } from "@/lib/trade";
 import { useMutation } from "@tanstack/react-query";
 import { binance, bitget, bybit } from "ccxt";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface TradeParams {
   ccxtInstance: binance | bitget | bybit;
@@ -25,12 +26,12 @@ async function executeTrade({
   exchange,
   info,
   config,
-}: TradeParams) {
+}: TradeParams, t: (key: string, options?: any) => string) {
   if (!info.position) throw new Error("Position info is required");
 
   // 토스트 알림 ID 생성 (진행 중 상태 표시용)
   const toastId = toast.loading(
-    `${tradeType === "long" ? "롱" : "숏"} 포지션 생성 중...`,
+    t('toast.position_creating', { type: t(tradeType === "long" ? 'trade.long' : 'trade.short') }),
     {
       position: "bottom-center",
       style: {
@@ -73,7 +74,7 @@ async function executeTrade({
         // 헷지 모드로 설정된 계정이 있는 경우 경고 메시지 표시
         if (isHedgeMode) {
           console.warn("[Binance] Hedge mode is not supported, using one-way mode instead");
-          toast("바이낸스는 현재 원웨이 모드만 지원합니다. 원웨이 모드로 주문이 진행됩니다.", {
+          toast(t('toast.binance_oneway_mode_warning'), {
             duration: 5000,
             icon: "⚠️",
             style: {
@@ -217,7 +218,7 @@ async function executeTrade({
       // 헷지 모드로 설정된 경우 경고 메시지 표시
       if (isHedgeMode) {
         console.warn("[Bitget] Hedge mode is not supported, using one-way mode instead");
-        toast("비트겟은 현재 원웨이 모드만 지원합니다. 원웨이 모드로 주문이 진행됩니다.", {
+        toast(t('toast.bitget_oneway_mode_warning'), {
           duration: 5000,
           icon: "⚠️",
           style: {
@@ -259,12 +260,15 @@ async function executeTrade({
       ]);
       console.log(`[Bitget] Using one-way mode for ${tradeType} position on ${symbol}`);
     } else {
-      throw new Error(`지원하지 않는 거래소입니다: ${exchange}`);
+      throw new Error(t('toast.unsupported_exchange', { exchange }));
     }
 
     // 성공 메시지 표시
     toast.success(
-      `${symbol} ${tradeType === "long" ? "롱" : "숏"} 포지션 생성 성공!`,
+      t('toast.position_created_success', { 
+        symbol, 
+        type: t(tradeType === "long" ? 'trade.long' : 'trade.short') 
+      }),
       {
         id: toastId,
         icon: "✅",
@@ -282,9 +286,9 @@ async function executeTrade({
 
     // 오류 메시지 표시
     toast.error(
-      `주문 실행 실패: ${
-        error instanceof Error ? error.message : "알 수 없는 오류"
-      }`,
+      t('toast.order_execution_failed', {
+        error: error instanceof Error ? error.message : t('toast.unknown_error')
+      }),
       {
         id: toastId,
         icon: "❌",
@@ -302,9 +306,13 @@ async function executeTrade({
 }
 
 export function useTradeMutation() {
+  const { t } = useTranslation();
+  
   return useMutation({
-    mutationFn: executeTrade,
-    onMutate: (variables) => {
+    mutationFn: async (variables: TradeParams) => {
+      return executeTrade(variables, t);
+    },
+    onMutate: (variables: TradeParams) => {
       // 로딩 시작 시 콜백
       console.log(
         `Starting ${variables.tradeType} position creation for ${variables.symbol}`,

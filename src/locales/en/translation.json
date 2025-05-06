@@ -364,5 +364,15 @@
   "chart": {
     "no_data": "No chart data available",
     "try_different": "Try selecting a different timeframe or symbol"
+  },
+  "toast": {
+    "position_creating": "Creating {{type}} position...",
+    "position_created_success": "{{symbol}} {{type}} position created successfully!",
+    "order_execution_failed": "Order execution failed: {{error}}",
+    "unknown_error": "Unknown error",
+    "binance_oneway_mode_warning": "Binance currently only supports One-Way mode. Proceeding with One-Way mode order.",
+    "bitget_oneway_mode_warning": "Bitget currently only supports One-Way mode. Proceeding with One-Way mode order.",
+    "unsupported_exchange": "Unsupported exchange: {{exchange}}",
+    "trade_execution_failed": "Trade execution failed"
   }
 }
