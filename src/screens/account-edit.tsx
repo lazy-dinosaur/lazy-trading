@@ -20,6 +20,7 @@ import { toast } from "react-hot-toast";
 import { setAccount } from "@/lib/accounts";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatUSDValue } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 type FormValue = {
   name: string;
@@ -27,6 +28,7 @@ type FormValue = {
 };
 
 const AccountEdit = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { accounts, accountsBalance, refreshAccounts, isLoading } = useAccounts();
@@ -55,11 +57,13 @@ const AccountEdit = () => {
   // 계정이 존재하지 않는 경우
   if (!isLoading && (!account || !id)) {
     return (
-      <ScreenWrapper headerProps={{ title: "계정 편집" }}>
+      <ScreenWrapper headerProps={{ title: t("account.edit_account") }}>
         <ScrollArea className="flex-1 h-[calc(100vh-4rem)]">
           <div className="flex flex-col items-center justify-center h-96 p-4">
-            <p className="text-lg mb-4">존재하지 않는 계정입니다.</p>
-            <Button onClick={() => navigate("/accounts")}>계정 목록으로 돌아가기</Button>
+            <p className="text-lg mb-4">{t("account.account_not_exist")}</p>
+            <Button onClick={() => navigate("/accounts")}>
+              {t("account.back_to_account_list")}
+            </Button>
           </div>
         </ScrollArea>
       </ScreenWrapper>
@@ -80,7 +84,9 @@ const AccountEdit = () => {
       if (account.exchange === "bitget" || account.exchange === "binance") {
         positionMode = "oneway";
         if (data.positionMode === "hedge") {
-          positionModeMessage = `${account.exchange === "bitget" ? "비트겟" : "바이낸스"} 계정은 원웨이 모드로 자동 설정됩니다.`;
+          positionModeMessage = account.exchange === "bitget" 
+            ? t("account.bitget_oneway_auto_set") 
+            : t("account.binance_oneway_auto_set");
         }
       } else {
         positionMode = data.positionMode;
@@ -97,25 +103,25 @@ const AccountEdit = () => {
       
       if (success) {
         if (positionModeMessage) {
-          toast.success(`계정 정보가 업데이트되었습니다. ${positionModeMessage}`);
+          toast.success(`${t("account.account_saved")}. ${positionModeMessage}`);
         } else {
-          toast.success("계정 정보가 업데이트되었습니다.");
+          toast.success(t("account.account_saved"));
         }
         await refreshAccounts();
         navigate("/accounts");
       } else {
-        toast.error("계정 정보 업데이트에 실패했습니다.");
+        toast.error(t("account.update_account_error"));
       }
     } catch (error) {
       console.error("계정 업데이트 중 오류 발생:", error);
-      toast.error("계정 업데이트 중 오류가 발생했습니다.");
+      toast.error(t("account.update_error_occurred"));
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <ScreenWrapper headerProps={{ title: "계정 편집" }}>
+    <ScreenWrapper headerProps={{ title: t("account.edit_account") }}>
       <ScrollArea className="flex-1 h-[calc(100vh-4rem)]">
         <div className="flex flex-col space-y-6 p-4 pb-20">
           {isLoading ? (
@@ -128,17 +134,17 @@ const AccountEdit = () => {
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">거래소</p>
+                    <p className="text-sm text-muted-foreground">{t("account.exchange")}</p>
                     <p className="text-lg font-medium capitalize">{account?.exchange}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">잔액</p>
+                    <p className="text-sm text-muted-foreground">{t("account.balance")}</p>
                     <p className="text-lg font-medium">
                       {formatUSDValue(balanceInfo?.balance?.usd?.total || 0)} USD
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">생성일</p>
+                    <p className="text-sm text-muted-foreground">{t("common.created_date")}</p>
                     <p className="text-lg font-medium">
                       {new Date(account?.createdAt || 0).toLocaleDateString()}
                     </p>
@@ -156,11 +162,11 @@ const AccountEdit = () => {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <Label htmlFor="name">계정 이름</Label>
+                          <Label htmlFor="name">{t("account.account_name")}</Label>
                           <Input
                             {...field}
                             id="name"
-                            placeholder="계정 이름"
+                            placeholder={t("account.account_name_placeholder")}
                           />
                         </FormItem>
                       )}
@@ -173,31 +179,31 @@ const AccountEdit = () => {
                       name="positionMode"
                       render={({ field }) => (
                         <FormItem>
-                          <Label htmlFor="positionMode">포지션 모드</Label>
+                          <Label htmlFor="positionMode">{t("account.position_mode")}</Label>
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}
                             defaultValue={field.value}
-                            disabled={account?.exchange === "bitget"} // 비트겟 계정은 비활성화
+                            disabled={account?.exchange === "bitget" || account?.exchange === "binance"} // 비트겟과 바이낸스 계정은 비활성화
                           >
                             <SelectTrigger id="positionMode">
-                              <SelectValue placeholder="포지션 모드 선택" />
+                              <SelectValue placeholder={t("account.select_position_mode")} />
                             </SelectTrigger>
                             <SelectContent position="popper">
-                              <SelectItem value="oneway">One-Way Mode</SelectItem>
-                              <SelectItem value="hedge">Hedge Mode</SelectItem>
+                              <SelectItem value="oneway">{t("account.position_mode_oneway")}</SelectItem>
+                              <SelectItem value="hedge">{t("account.position_mode_hedge")}</SelectItem>
                             </SelectContent>
                           </Select>
                           {account?.exchange === "bitget" && (
                             <div className="text-xs text-amber-500 mt-1">
                               <AlertTriangle className="h-3.5 w-3.5 inline-block mr-1" />
-                              비트겟은 현재 원웨이 모드만 지원됩니다. 헷지 모드에서는 포지션 종료가 정상적으로 동작하지 않을 수 있습니다. 향후 업데이트에서 지원 예정입니다.
+                              {t("account.bitget_oneway_warning")}
                             </div>
                           )}
                           {account?.exchange === "binance" && (
                             <div className="text-xs text-amber-500 mt-1">
                               <AlertTriangle className="h-3.5 w-3.5 inline-block mr-1" />
-                              바이낸스는 현재 원웨이 모드만 지원됩니다. 헷지 모드에서는 포지션 종료가 정상적으로 동작하지 않을 수 있습니다. 향후 업데이트에서 지원 예정입니다.
+                              {t("account.binance_oneway_warning")}
                             </div>
                           )}
                         </FormItem>
@@ -214,14 +220,14 @@ const AccountEdit = () => {
                     type="button"
                     disabled={isSaving}
                   >
-                    취소
+                    {t("common.cancel")}
                   </Button>
                   <Button 
                     className="w-52" 
                     type="submit"
                     disabled={isSaving}
                   >
-                    {isSaving ? "저장 중..." : "저장"}
+                    {isSaving ? t("common.saving") : t("common.save")}
                   </Button>
                 </div>
               </form>

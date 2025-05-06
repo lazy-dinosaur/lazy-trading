@@ -22,7 +22,8 @@
     "error_occurred": "An error occurred",
     "warning": "Warning",
     "created_date": "Created Date",
-    "manage": "Manage"
+    "manage": "Manage",
+    "saving": "Saving..."
   },
   "auth": {
     "enter_pin": "Enter PIN",
@@ -130,6 +131,15 @@
     "account_not_exist": "This account does not exist.",
     "back_to_account_list": "Back to Account List",
     "position_mode": "Position Mode",
+    "position_mode_oneway": "One-Way Mode",
+    "position_mode_hedge": "Hedge Mode",
+    "select_position_mode": "Select Position Mode",
+    "bitget_oneway_warning": "Bitget currently only supports One-Way mode. Position closing may not work properly in Hedge mode. Support for Hedge mode will be added in a future update.",
+    "binance_oneway_warning": "Binance currently only supports One-Way mode. Position closing may not work properly in Hedge mode. Support for Hedge mode will be added in a future update.",
+    "bitget_oneway_auto_set": "Bitget accounts are automatically set to One-Way mode",
+    "binance_oneway_auto_set": "Binance accounts are automatically set to One-Way mode",
+    "update_account_error": "Failed to update account",
+    "update_error_occurred": "An error occurred while updating account",
     "assets": "Assets",
     "no_asset_info": "Unable to load asset information.",
     "select_period": "Select Period",
@@ -166,7 +176,9 @@
     "operation_cancelled": "Operation cancelled",
     "verifying": "Verifying...",
     "api_key_tooltip": "Enter the API key issued by the exchange",
-    "secret_key_tooltip": "Enter the Secret key issued with your API key"
+    "secret_key_tooltip": "Enter the Secret key issued with your API key",
+    "name_set_message": "Your account will be set with this name",
+    "saving": "Saving..."
   },
   "trade": {
     "symbol": "Symbol",
