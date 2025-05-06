@@ -111,16 +111,18 @@ const generateDefaultManifest = () => {
   // 이미 존재하는 manifest.json 파일을 복사
   try {
     const existingManifest = JSON.parse(fs.readFileSync(path.join(outputDir, 'manifest.json'), 'utf8'));
-    // default_locale 필드 추가
+    // name 필드와 description 필드를 고정값으로 변경, default_locale 필드 추가
     const updatedManifest = { 
       ...existingManifest,
+      name: "LazyTrading",
+      description: "Binance, Bybit, Bitget 거래소 연동으로 암호화폐 거래에서 안전한 매매 진입을 도와주는 크롬 확장 프로그램입니다.",
       default_locale: "ko"
     };
     fs.writeFileSync(
       path.join(outputDir, 'manifest.json'),
       JSON.stringify(updatedManifest, null, 2)
     );
-    console.log('Default manifest updated with default_locale.');
+    console.log('Default manifest updated with fixed name, description and default_locale.');
   } catch (error) {
     console.error('Error updating manifest:', error);
   }

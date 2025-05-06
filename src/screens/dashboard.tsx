@@ -21,8 +21,6 @@ import {
   Wallet,
   ArrowUpCircle,
   ArrowDownCircle,
-  TrendingUp,
-  Info,
   X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,19 +31,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PositionCloseModal } from "@/components/position-close-modal";
 import { useState } from "react";
 import toast from "react-hot-toast";
-// 보정 수익률 계산 함수 추가 import
-import {
-  useBalanceHistory,
-  ChartData as BalanceChartData,
-  calculateAdjustedReturn,
-  AdjustedReturnMetrics,
-} from "@/hooks/use-balance-history";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+// 보정 수익률 및 변동률 관련 코드 제거
 
 // 포지션 타입 정의
 interface Position {
@@ -111,22 +97,7 @@ const Dashboard = () => {
   const [closeError, setCloseError] = useState<string | null>(null);
   const [isCloseSuccess, setIsCloseSuccess] = useState(false);
 
-  // "all" 계정 ID를 사용하여 모든 계정의 합산 잔고 변동 내역 조회
-  const {
-    data: balanceHistory = [],
-    isLoading: isLoadingBalanceHistory,
-    error: balanceHistoryError,
-  } = useBalanceHistory("all");
-
-  const isErrorBalanceHistory = !!balanceHistoryError;
-
-  // 차트 데이터 변환 (balance 필드 사용, 없으면 total 필드 사용)
-  // 차트 데이터 변환
-  const dailyChartData: BalanceChartData[] =
-    balanceHistory?.map((item) => ({
-      time: item.time || item.date || "",
-      value: item.value || item.balance || 0,
-    })) || [];
+  // 변동 내역 추적 코드 제거됨
 
   // 포지션 종료 관련 함수
   const handleClosePosition = async (position: Position) => {
@@ -389,65 +360,9 @@ const Dashboard = () => {
     staleTime: Infinity, // 30초 동안 데이터를 신선한 것으로 간주
   });
 
-  // 보정 수익률 계산
-  const { data: adjustedReturnData, isLoading: isLoadingAdjustedReturn } =
-    useQuery<AdjustedReturnMetrics>({
-      queryKey: ["adjustedReturn", balanceHistory, decryptedAccounts],
-      queryFn: async () => {
-        // 데이터 로딩 중이거나 에러 발생 시, 또는 데이터 포인트가 부족하면 계산 불가
-        if (
-          isLoadingBalanceHistory ||
-          isErrorBalanceHistory ||
-          !balanceHistory ||
-          balanceHistory.length < 2 ||
-          !decryptedAccounts ||
-          Object.keys(decryptedAccounts).length === 0
-        ) {
-          return {
-            initialAsset: 0,
-            finalAsset: 0,
-            deposits: 0,
-            withdrawals: 0,
-            averageCapital: 0,
-            periodReturn: 0,
-            adjustedReturnRate: 0,
-            hasValidData: false,
-          };
-        }
+  // 보정 수익률 계산 코드 제거됨
 
-        return calculateAdjustedReturn(decryptedAccounts, balanceHistory);
-      },
-      enabled:
-        !isLoadingBalanceHistory &&
-        !isErrorBalanceHistory &&
-        !!balanceHistory &&
-        balanceHistory.length >= 2 &&
-        !!decryptedAccounts &&
-        Object.keys(decryptedAccounts).length > 0,
-    });
-
-  // 일반 변동률 계산 (기존 코드 활용)
-  const calculateRecentStableCoinChangeRate = () => {
-    if (
-      isLoadingBalanceHistory ||
-      isErrorBalanceHistory ||
-      !dailyChartData ||
-      dailyChartData.length < 2
-    ) {
-      return null;
-    }
-
-    const oldestBalance = dailyChartData[0]?.value;
-    const newestBalance = dailyChartData[dailyChartData.length - 1]?.value;
-
-    if (!oldestBalance || oldestBalance === 0) return null;
-    if (!newestBalance) return null;
-
-    const changeRate = ((newestBalance - oldestBalance) / oldestBalance) * 100;
-    return changeRate;
-  };
-
-  const recentStableCoinChangeRate = calculateRecentStableCoinChangeRate();
+  // 변동률 계산 코드 제거됨
 
   return (
     <ScreenWrapper
@@ -473,93 +388,35 @@ const Dashboard = () => {
                   </>
                 )}
               </CardTitle>
-              {/* 보정 수익률 표시 */}
-              {adjustedReturnData?.hasValidData ? (
-                <div
-                  className={`flex items-center text-sm mt-1 ${adjustedReturnData.adjustedReturnRate >= 0 ? "text-green-500" : "text-red-500"}`}
-                >
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  <span className="flex items-center">
-                    {t('dashboard.adjusted_return')}{" "}
-                    {adjustedReturnData.adjustedReturnRate >= 0 ? "+" : ""}
-                    {adjustedReturnData.adjustedReturnRate.toFixed(2)}%
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-[280px]">
-                          <p className="font-medium mb-1">
-                            {t('dashboard.adjusted_return_formula')}
-                          </p>
-                          <ul className="text-xs space-y-1">
-                            <li>
-                              • {t('dashboard.period_profit')}{" "}
-                              {formatUSDValue(adjustedReturnData.periodReturn)}
-                            </li>
-                            <li>
-                              • {t('dashboard.investment_capital_full')}{" "}
-                              {formatUSDValue(
-                                adjustedReturnData.averageCapital,
-                              )}
-                            </li>
-                            <li className="pt-1">
-                              • {t('dashboard.initial_asset')}{" "}
-                              {formatUSDValue(adjustedReturnData.initialAsset)}
-                            </li>
-                            <li>
-                              • {t('dashboard.current_asset')}{" "}
-                              {formatUSDValue(adjustedReturnData.finalAsset)}
-                            </li>
-                            <li>
-                              • {t('dashboard.deposits')}{" "}
-                              {formatUSDValue(adjustedReturnData.deposits)}
-                            </li>
-                            <li>
-                              • {t('dashboard.withdrawals')}{" "}
-                              {formatUSDValue(adjustedReturnData.withdrawals)}
-                            </li>
-                            <li className="pt-1 text-muted-foreground">
-                              {t('dashboard.investment_formula')}
-                            </li>
-                          </ul>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </span>
+              
+              {/* 총액과 사용 중인 금액 정보 표시 */}
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">{t('account.in_order')}</p>
+                  <p className="text-lg font-medium">
+                    {!accountsBalance ? (
+                      <Skeleton className="h-6 w-24" />
+                    ) : (
+                      `${formatUSDValue(
+                        Object.values(accountsBalance || {}).reduce(
+                          (sum, item: any) => sum + (item.balance?.usd?.used || 0),
+                          0,
+                        )
+                      )} USD`
+                    )}
+                  </p>
                 </div>
-              ) : (
-                <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                  {isLoadingBalanceHistory || isLoadingAdjustedReturn ? (
-                    <>
-                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                      {t('dashboard.adjusted_return_loading')}
-                    </>
-                  ) : (
-                    <>
-                      <span>{t('dashboard.adjusted_return_unavailable')}</span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-3.5 w-3.5 ml-1 cursor-help opacity-70" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{t('dashboard.error_occurred')}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </>
-                  )}
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">{t('common.accounts')}</p>
+                  <p className="text-lg font-medium">
+                    {!accounts ? (
+                      <Skeleton className="h-6 w-16" />
+                    ) : (
+                      Object.keys(accounts || {}).length
+                    )}
+                  </p>
                 </div>
-              )}
-
-              {/* 기존 변동률도 함께 표시 (작게) */}
-              {recentStableCoinChangeRate !== null && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  {t('dashboard.simple_change_rate')} {recentStableCoinChangeRate >= 0 ? "+" : ""}
-                  {recentStableCoinChangeRate.toFixed(2)}%
-                </div>
-              )}
+              </div>
             </CardHeader>
             <CardFooter className="pt-2 flex justify-end">
               {!accountsBalance && (
@@ -568,34 +425,7 @@ const Dashboard = () => {
             </CardFooter>
           </Card>
 
-          {/* 스테이블 코인 잔고 변동 차트 */}
-          {/*   <Card> */}
-          {/*     <CardHeader> */}
-          {/*       <CardTitle>{t('dashboard.asset_change')}</CardTitle> */}
-          {/*       <CardDescription className="flex flex-col"> */}
-          {/*         <span>{t('dashboard.asset_change_desc')}</span> */}
-          {/*         {adjustedReturnData?.hasValidData && ( */}
-          {/*           <span className="text-xs mt-1"> */}
-          {/*             {t('dashboard.investment_capital')} */}
-          {/*             {formatUSDValue(adjustedReturnData.averageCapital)} */}
-          {/*           </span> */}
-          {/*         )} */}
-          {/*       </CardDescription> */}
-          {/*     </CardHeader> */}
-          {/*     <CardContent> */}
-          {/*       <CapitalChangeChart */}
-          {/*         data={dailyChartData} */}
-          {/*         isLoading={ */}
-          {/*           isLoadingBalanceHistory || */}
-          {/*           isLoadingAccounts || */}
-          {/*           isLoadingAdjustedReturn */}
-          {/*         } */}
-          {/*         isError={isErrorBalanceHistory} */}
-          {/*         height={250} */}
-          {/*         adjustedReturn={adjustedReturnData} */}
-          {/*       /> */}
-          {/*     </CardContent> */}
-          {/*   </Card> */}
+          {/* 차트 부분 제거됨 */}
         </div>
         {/* 첫 번째 열 끝 */}
         {/* 계정 목록과 활성 포지션을 포함할 두 번째 열 */}

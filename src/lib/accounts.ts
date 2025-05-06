@@ -301,7 +301,7 @@ async function handleBinanceBalance(
   balance: Balances,
 ): Promise<USDBalance> {
   const usdBalance: USDBalance = { total: 0, used: 0, free: 0 };
-  const stableCoins = ["USDT", "USDC", "FDUSD", "USD", "BUSD"];
+  const stableCoins = ["USDT", "USDC", "FDUSD", "USD", "BUSD", "LDUSDT", "BFUSD"];
 
   if (balance.info?.assets) {
     for (const asset of balance.info.assets) {
@@ -315,18 +315,32 @@ async function handleBinanceBalance(
 
       try {
         const symbol = `${currency}/USDT`;
-        const ticker = await exchange.fetchTicker(symbol);
-        const price = ticker.last || 0;
+        // 심볼이 존재하는지 먼저 확인
+        try {
+          const ticker = await exchange.fetchTicker(symbol);
+          const price = ticker.last || 0;
 
-        usdBalance.free += Number(asset.availableBalance) * price;
-        usdBalance.total += Number(asset.walletBalance) * price;
+          usdBalance.free += Number(asset.availableBalance) * price;
+          usdBalance.total += Number(asset.walletBalance) * price;
+        } catch (symbolError) {
+          // 심볼이 없는 경우 로그만 출력하고 계속 진행
+          console.warn(`Skipping non-existent market symbol: ${symbol}`);
+          // 이 자산은 계산에 포함하지 않음
+        }
       } catch (error) {
         console.warn(`Failed to calculate USD value for ${currency}:`, error);
       }
     }
   }
 
-  return usdBalance;
+  usdBalance.used = usdBalance.total - usdBalance.free;
+  if (usdBalance.used < 0) usdBalance.used = 0;
+
+  return {
+    total: Math.round(usdBalance.total * 100) / 100,
+    used: Math.round(usdBalance.used * 100) / 100,
+    free: Math.round(usdBalance.free * 100) / 100,
+  };
 }
 
 async function handleBitgetBalance(balance: Balances): Promise<USDBalance> {

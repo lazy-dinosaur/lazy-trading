@@ -109,34 +109,28 @@ const AccountDetail = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 gap-4 mb-6">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">{t('account.total')}</p>
                     <p className="text-2xl font-medium">
                       {formatUSDValue(balance?.usd?.total || 0)} USD
                     </p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {t('account.available')}
-                    </p>
-                    <p className="text-2xl font-medium">
-                      {formatUSDValue(balance?.usd?.free || 0)} USD
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {t('account.in_order')}
-                    </p>
-                    <p className="text-lg font-medium">
-                      {formatUSDValue(balance?.usd?.used || 0)} USD
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">{t('account.position_mode')}</p>
-                    <p className="text-lg font-medium capitalize">
-                      {account?.positionMode || "oneway"}
-                    </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        {t('account.in_order')}
+                      </p>
+                      <p className="text-lg font-medium">
+                        {formatUSDValue(balance?.usd?.used || 0)} USD
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">{t('account.position_mode')}</p>
+                      <p className="text-lg font-medium capitalize">
+                        {account?.positionMode || "oneway"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
