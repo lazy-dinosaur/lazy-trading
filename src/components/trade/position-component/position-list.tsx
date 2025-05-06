@@ -158,7 +158,33 @@ export const PositionsList = () => {
     let positionSize = size
 
     try {
-      // 추가: 비트겟 거래소 포지션 종료를 위한 파라미터 설정
+      // 1. 기존 TP/SL 주문 취소
+      try {
+        // 기존 주문 가져오기
+        const openOrders = await selectedAccount.exchangeInstance.ccxt.fetchOpenOrders(symbol);
+
+        // TP/SL 주문 필터링 (reduceOnly가 true인 주문 + 포지션 방향에 맞는 주문)
+        const tpslOrders = openOrders.filter(
+          (o) =>
+            (o.reduceOnly === true ||
+              o.info?.reduceOnly === true ||
+              o.info?.reduce_only === true) &&
+            (side === "long" ? o.side === "sell" : o.side === "buy")
+        );
+
+        // 기존 TP/SL 주문 취소
+        for (const order of tpslOrders) {
+          await selectedAccount.exchangeInstance.ccxt.cancelOrder(order.id, symbol);
+          console.log(`관련 주문 취소됨: ${order.id} (${order.type})`);
+        }
+
+        console.log(`${tpslOrders.length}개의 관련 주문 취소 완료`);
+      } catch (error) {
+        console.warn("관련 주문 취소 중 오류 발생:", error);
+        // 진행은 계속합니다 (기존 주문이 없을 수도 있음)
+      }
+
+      // 2. 포지션 종료를 위한 파라미터 설정
       let params: any = { reduceOnly: true };
 
       // 비트겟 거래소인 경우 포지션 모드에 따라 oneWayMode와 hedged 설정
@@ -202,6 +228,7 @@ export const PositionsList = () => {
         }
       }
 
+      // 3. 포지션 종료 주문 실행
       const order = await selectedAccount.exchangeInstance.ccxt.createOrder(
         symbol,
         "market", // 시장가
@@ -220,6 +247,11 @@ export const PositionsList = () => {
         queryKey: ["positions", exchange, accountId],
       });
       queryClient.invalidateQueries({ queryKey: ["accountsBalance"] });
+      
+      // 주문 목록도 무효화하여 업데이트
+      queryClient.invalidateQueries({
+        queryKey: ["openOrders", exchange, accountId],
+      });
     } catch (error: any) {
       console.error(t('trade.position_close_failed'), error);
       toast.error(t('trade.position_close_failed_with_error', { error: error.message }));
