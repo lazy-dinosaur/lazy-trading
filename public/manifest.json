@@ -17,7 +17,7 @@
   },
   "description": "Binance, Bybit, Bitget 거래소 연동으로 암호화폐 거래에서 안전한 매매 진입을 도와주는 크롬 확장 프로그램입니다.",
   "default_locale": "ko",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "side_panel": {
     "default_path": "index.html"
   },
