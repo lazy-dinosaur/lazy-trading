@@ -59,7 +59,7 @@ export const AccountSelector = () => {
         }}
       >
         <PlusCircle className="h-4 w-4" />
-        <span className="text-sm font-medium">{t('trade.add_account')}</span>
+        <span className="text-sm font-medium">{t('trade.add_new_account')}</span>
       </Link>
     );
   }
