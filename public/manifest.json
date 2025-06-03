@@ -16,8 +16,7 @@
     }
   },
   "description": "Binance, Bybit, Bitget 거래소 연동으로 암호화폐 거래에서 안전한 매매 진입을 도와주는 크롬 확장 프로그램입니다.",
-  "default_locale": "ko",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "side_panel": {
     "default_path": "index.html"
   },
@@ -49,7 +48,9 @@
     "https://api.huobi.com/*",
     "https://*.huobi.com/*",
     "https://api.kucoin.com/*",
-    "https://*.kucoin.com/*"
+    "https://*.kucoin.com/*",
+    "https://www.google-analytics.com/*",
+    "https://www.googletagmanager.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.binance.com wss://*.binance.com https://*.bybit.com wss://*.bybit.com https://*.bitget.com wss://*.bitget.com https://*.okx.com https://*.huobi.com https://*.kucoin.com https://*.binance.vision https://testnet.binance.vision https://testnet.binancefuture.com https://*.binancefuture.com https://api-testnet.bybit.com"
@@ -62,5 +63,6 @@
         "path": "rules.json"
       }
     ]
-  }
+  },
+  "default_locale": "ko"
 }

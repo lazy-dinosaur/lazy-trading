@@ -19,7 +19,7 @@ const baseManifest = {
       "128": "icons/icon128.png"
     }
   },
-  version: "1.0.0",
+  version: "1.0.2",
   side_panel: {
     default_path: "index.html"
   },
@@ -51,7 +51,9 @@ const baseManifest = {
     "https://api.huobi.com/*",
     "https://*.huobi.com/*",
     "https://api.kucoin.com/*",
-    "https://*.kucoin.com/*"
+    "https://*.kucoin.com/*",
+    "https://www.google-analytics.com/*",
+    "https://www.googletagmanager.com/*"
   ],
   content_security_policy: {
     extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.binance.com wss://*.binance.com https://*.bybit.com wss://*.bybit.com https://*.bitget.com wss://*.bitget.com https://*.okx.com https://*.huobi.com https://*.kucoin.com https://*.binance.vision https://testnet.binance.vision https://testnet.binancefuture.com https://*.binancefuture.com https://api-testnet.bybit.com"
